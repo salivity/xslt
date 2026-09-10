@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canonical XML (C14N) and Its Relation to XSLT - xslt</title>
+    <meta name="description" content="Canonical XML (C14N) is a standardized specification designed to generate a normalized, deterministic physical representation of an XML document from its logical structure, ensuring reliable cryptographic hashing and digital signatures. While Extensible">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/canonical-xml-c14n-and-its-relation-to-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Canonical XML (C14N) and Its Relation to XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/canonical-xml-c14n-and-its-relation-to-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Canonical XML (C14N) is a standardized specification designed to generate a normalized, deterministic physical representation of an XML document from its logical structure, ensuring reliable cryptographic hashing and digital signatures. While Extensible" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="canonical-xml-c14n-and-its-relation-to-xslt">Canonical XML
+(C14N) and Its Relation to XSLT</h1>
+<p>Canonical XML (C14N) is a standardized specification designed to
+generate a normalized, deterministic physical representation of an XML
+document from its logical structure, ensuring reliable cryptographic
+hashing and digital signatures. While Extensible Stylesheet Language
+Transformations (XSLT) is used to modify, restructure, or query XML data
+models, C14N is strictly concerned with byte-level serialization
+consistency. This article explains the fundamentals of the C14N
+standard, why it is critical for data integrity, and how it interacts
+with and differs from XSLT.</p>
+<h2 id="what-is-canonical-xml-c14n">What is Canonical XML (C14N)?</h2>
+<p>In XML, two documents can be logically equivalent while being
+physically different at the byte level. Syntactic variations that do not
+alter the semantic meaning of an XML document include:</p>
+<ul>
+<li><strong>Attribute ordering:</strong>
+<code>&lt;item id="1" name="box"/&gt;</code> versus
+<code>&lt;item name="box" id="1"/&gt;</code>.</li>
+<li><strong>Empty element representation:</strong>
+<code>&lt;item/&gt;</code> versus
+<code>&lt;item&gt;&lt;/item&gt;</code>.</li>
+<li><strong>Whitespace inside tags:</strong>
+<code>&lt;item   id="1" /&gt;</code> versus
+<code>&lt;item id="1"/&gt;</code>.</li>
+<li><strong>Character encoding and entities:</strong> Using numeric
+character references versus literal UTF-8 characters.</li>
+<li><strong>Namespace declarations:</strong> The placement and prefixing
+of namespace bindings.</li>
+</ul>
+<p>Because cryptographic hash functions (such as SHA-256) operate on
+exact byte sequences, any arbitrary change in formatting will produce a
+completely different hash value, breaking digital signatures.</p>
+<p>The Canonical XML specification (commonly abbreviated as C14N, based
+on the 14 letters between "C" and "N") solves this problem by defining
+strict serialization rules to produce an identical stream of octets for
+logically identical XML documents. The standard dictates rules such
+as:</p>
+<ul>
+<li>Encoding the document strictly in UTF-8.</li>
+<li>Normalizing line breaks to <code>#xA</code> (Line Feed).</li>
+<li>Sorting attributes lexicographically by namespace URI and local
+name.</li>
+<li>Replacing empty tags with start-end tag pairs
+(<code>&lt;tag&gt;&lt;/tag&gt;</code>).</li>
+<li>Normalizing whitespace within start and end tags.</li>
+<li>Retaining character references only where strictly necessary (e.g.,
+escaping <code>&amp;amp;</code> and <code>&amp;lt;</code>).</li>
+</ul>
+<h2 id="how-c14n-relates-to-xslt">How C14N Relates to XSLT</h2>
+<p>Although both C14N and XSLT process XML, they serve distinct roles in
+processing pipelines and handle documents at different levels of
+abstraction.</p>
+<h3 id="1-structural-transformation-vs-deterministic-serialization">1.
+Structural Transformation vs. Deterministic Serialization</h3>
+<ul>
+<li><strong>XSLT:</strong> Operates on the XML node tree to alter data,
+filter nodes, transform schemas, or convert XML into other formats like
+HTML or JSON. It alters the <em>content and structure</em> of the
+document.</li>
+<li><strong>C14N:</strong> Operates on an XML Information Set (Infoset)
+to fix its <em>physical serialization</em>. It deliberately avoids
+changing the logical meaning, hierarchy, or data payload.</li>
+</ul>
+<h3 id="2-serialization-limitations-of-xslt">2. Serialization
+Limitations of XSLT</h3>
+<p>Standard XSLT processors cannot guarantee byte-for-byte
+reproducibility across different implementations. An XSLT processor
+serializing an XML document has latitude under the W3C specification
+regarding attribute order, empty-tag formatting, and quote styles
+(single vs. double quotes). Therefore, XSLT alone cannot be used to
+prepare a document for cryptographic hashing. C14N provides the
+deterministic output rules that XSLT lacks.</p>
+<h3 id="3-pipeline-integration-in-xml-security">3. Pipeline Integration
+in XML Security</h3>
+<p>C14N and XSLT are frequently used together within the XML Digital
+Signature (XML-DSig) and XML Encryption standards. In these security
+pipelines:</p>
+<ol type="1">
+<li><strong>XSLT Transformation:</strong> An optional XSLT step is used
+to select or transform specific parts of an XML document that need to be
+signed (for example, filtering out dynamic elements or stripping
+existing signature blocks).</li>
+<li><strong>Canonicalization (C14N):</strong> The resulting node-set
+from the XSLT transform is then passed through a C14N processor to lock
+down the exact byte sequence.</li>
+<li><strong>Hashing and Signing:</strong> The canonicalized byte stream
+is hashed and signed using a cryptographic algorithm.</li>
+</ol>
+<p>By pairing XSLT's ability to extract and manipulate data with C14N's
+ability to ensure consistent serialization, XML systems can achieve
+flexible, tamper-evident document exchanges.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

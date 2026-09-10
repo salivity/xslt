@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normalizing Micro-XML to Canonical XML Using XSLT - xslt</title>
+    <meta name="description" content="Transforming micro-XML or non-standard, simplified markup into fully canonical XML is essential for ensuring data interoperability, strict validation, and compliance with enterprise schemas. This guide explains how to bridge the gap between lightweight m">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/normalizing-micro-xml-to-canonical-xml-using-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Normalizing Micro-XML to Canonical XML Using XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/normalizing-micro-xml-to-canonical-xml-using-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Transforming micro-XML or non-standard, simplified markup into fully canonical XML is essential for ensuring data interoperability, strict validation, and compliance with enterprise schemas. This guide explains how to bridge the gap between lightweight m" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="normalizing-micro-xml-to-canonical-xml-using-xslt">Normalizing
+Micro-XML to Canonical XML Using XSLT</h1>
+<p>Transforming micro-XML or non-standard, simplified markup into fully
+canonical XML is essential for ensuring data interoperability, strict
+validation, and compliance with enterprise schemas. This guide explains
+how to bridge the gap between lightweight markup and canonical XML
+standards by leveraging XSLT techniques—including handling
+well-formedness constraints, applying identity transforms, injecting
+standard namespaces, restructuring non-standard nodes, and applying
+deterministic serialization.</p>
+<h2 id="understanding-the-input-constraints">Understanding the Input
+Constraints</h2>
+<p>XSLT processors require well-formed input by design. If the markup
+violates basic XML syntax (such as unquoted attribute values or unclosed
+void tags), it must first pass through a lenient pre-parser (such as
+TagSoup, an HTML5 parser, or an XSLT 3.0 <code>unparsed-text()</code>
+regular expression parser). Once the markup is parsed into an XDM
+(XQuery and XPath Data Model) tree, XSLT can reshape its structural
+semantics to match standard canonical XML specifications.</p>
+<h2 id="establishing-the-identity-transform-foundation">Establishing the
+Identity Transform Foundation</h2>
+<p>The identity transform serves as the core engine for normalizing
+markup. It copies all nodes recursively while allowing specific
+templates to override and reshape non-standard elements.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:mode</span> <span class="ot">on-no-match=</span><span class="st">&quot;shallow-copy&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span>/&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>In XSLT 1.0 or 2.0, the same behavior is achieved using explicit
+identity templates matching <code>@*|node()</code>.</p>
+<h2 id="injecting-and-standardizing-namespaces">Injecting and
+Standardizing Namespaces</h2>
+<p>Micro-XML often omits XML namespaces to maintain brevity. Canonical
+XML requires explicit, standardized namespace URIs. You can normalize
+un-namespaced micro-XML elements into a target canonical namespace by
+intercepting elements with no namespace URI and reconstructing them:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;*[namespace-uri() = &#39;&#39;]&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{local-name()}&quot;</span> <span class="ot">namespace=</span><span class="st">&quot;http://standards.example.com/canonical/v1&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@* | node()&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:element</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="normalizing-attributes-and-element-structures">Normalizing
+Attributes and Element Structures</h2>
+<p>Micro-XML formats frequently combine data into single overloaded
+attributes, delimiter-separated strings, or non-standard tag names.</p>
+<h3 id="expanding-shorthand-attributes-into-child-elements">Expanding
+Shorthand Attributes into Child Elements</h3>
+<p>If micro-XML stores structured values in a single delimited
+attribute, XSLT 2.0/3.0 can tokenize and expand them into canonical
+child elements:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Transforming &lt;item tags=&quot;a,b,c&quot;/&gt; into canonical child nodes --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;item[@tags]&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">item</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tokenize(@tags, &#39;,&#39;)&quot;</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">tag</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;normalize-space(.)&quot;</span>/&gt;&lt;/<span class="kw">tag</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">item</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="standardizing-element-aliases">Standardizing Element
+Aliases</h3>
+<p>When simplified markup uses abbreviations or alternative naming
+conventions, override templates can map them directly to canonical
+equivalents:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;rec&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">record</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@* | node()&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">record</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="applying-canonical-serialization-rules">Applying Canonical
+Serialization Rules</h2>
+<p>Canonical XML (such as Canonical XML 1.0 or 1.1) requires
+deterministic serialization:</p>
+<ul>
+<li><strong>Attribute Ordering:</strong> XSLT processors must sort
+attributes lexicographically by namespace URI and local name.</li>
+<li><strong>Character Encoding:</strong> Output must strictly use
+UTF-8.</li>
+<li><strong>Whitespace Handling:</strong> Unnecessary whitespace within
+elements with simple content must be stripped using
+<code>&lt;xsl:strip-space elements="*"/&gt;</code> and normalized using
+XPath's <code>normalize-space()</code>.</li>
+<li><strong>Empty Element Tags:</strong> Canonical representations
+dictate explicit opening and closing tags (e.g.,
+<code>&lt;item&gt;&lt;/item&gt;</code>) or standardized empty tag syntax
+depending on the exact canonical profile.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:strip-space</span> <span class="ot">elements=</span><span class="st">&quot;*&quot;</span>/&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>            <span class="ot">indent=</span><span class="st">&quot;no&quot;</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="ot">omit-xml-declaration=</span><span class="st">&quot;no&quot;</span>/&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;@*&quot;</span>&gt;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:attribute</span> <span class="ot">name=</span><span class="st">&quot;{name()}&quot;</span>&gt;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;normalize-space(.)&quot;</span>/&gt;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:attribute</span>&gt;</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>By pairing a lenient parsing phase with modular XSLT transformation
+templates, non-standard markup is converted into predictable,
+schema-compliant, and fully canonical XML pipelines.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

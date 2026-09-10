@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use map:merge in XSLT 3.0 - xslt</title>
+    <meta name="description" content="In XSLT 3.0, the map:merge() function is the standard mechanism for aggregating multiple discrete maps into a single unified dictionary. This article explains the syntax of map:merge(), details its duplicate-handling options, and demonstrates how to comb">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-use-map-merge-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use map:merge in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-use-map-merge-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, the map:merge() function is the standard mechanism for aggregating multiple discrete maps into a single unified dictionary. This article explains the syntax of map:merge(), details its duplicate-handling options, and demonstrates how to comb" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-mapmerge-in-xslt-30">How to Use map:merge in XSLT
+3.0</h1>
+<p>In XSLT 3.0, the <code>map:merge()</code> function is the standard
+mechanism for aggregating multiple discrete maps into a single unified
+dictionary. This article explains the syntax of
+<code>map:merge()</code>, details its duplicate-handling options, and
+demonstrates how to combine key-value pairs from multiple sources into a
+consolidated map structure.</p>
+<hr />
+<h3 id="function-overview-and-syntax">Function Overview and Syntax</h3>
+<p>The <code>map:merge()</code> function is defined in the standard
+XPath and XQuery Functions and Operators 3.1 specification, which XSLT
+3.0 supports natively. The function takes a sequence of zero or more
+maps and returns a single map containing all key-value entries.</p>
+<p>It provides two signatures:</p>
+<pre class="xpath"><code>map:merge($maps as map(*)*) as map(*)
+map:merge($maps as map(*)*, $options as map(*)) as map(*)</code></pre>
+<p>When called with a single argument, <code>map:merge()</code> applies
+default options. When provided with a second argument, users can control
+how key collisions and duplicates are resolved.</p>
+<h3 id="handling-key-collisions-with-options">Handling Key Collisions
+with Options</h3>
+<p>When combining distinct maps, identical keys frequently occur across
+datasets. The <code>$options</code> parameter accepts a map specifying
+how to handle duplicate keys using the <code>duplicates</code>
+entry.</p>
+<p>The available settings for <code>duplicates</code> include:</p>
+<ul>
+<li><strong><code>use-first</code></strong> (Default): If a key occurs
+in multiple input maps, the output map retains the value associated with
+the first occurrence in the sequence.</li>
+<li><strong><code>use-last</code></strong>: If a key occurs multiple
+times, the output map overwrites earlier entries with the value from the
+last occurrence in the sequence.</li>
+<li><strong><code>combine</code></strong>: When duplicate keys are
+found, their values are concatenated into a single sequence under that
+key.</li>
+<li><strong><code>reject</code></strong>: The processor raises an error
+(<code>FOJS0003</code>) if any duplicate key is encountered.</li>
+<li><strong><code>use-any</code></strong>: The processor is free to
+choose any of the supplied values arbitrarily.</li>
+</ul>
+<h3 id="practical-examples">Practical Examples</h3>
+<h4 id="1-basic-merging-default-behavior">1. Basic Merging (Default
+Behavior)</h4>
+<p>Combining two distinct dictionaries without overlapping keys:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;mapA&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;id&#39;: 101, &#39;name&#39;: &#39;Alpha&#39; }&quot;</span>/&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;mapB&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;status&#39;: &#39;active&#39;, &#39;role&#39;: &#39;Admin&#39; }&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;combined&quot;</span> <span class="ot">select=</span><span class="st">&quot;map:merge(($mapA, $mapB))&quot;</span>/&gt;</span></code></pre></div>
+<p>The resulting <code>$combined</code> map contains all four keys:
+<code>'id'</code>, <code>'name'</code>, <code>'status'</code>, and
+<code>'role'</code>.</p>
+<h4 id="2-resolving-overwrites-with-use-last">2. Resolving Overwrites
+with <code>use-last</code></h4>
+<p>When merging a base configuration with overriding settings,
+<code>use-last</code> ensures later maps overwrite earlier values:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;defaults&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;theme&#39;: &#39;light&#39;, &#39;fontSize&#39;: 12 }&quot;</span>/&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;userPrefs&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;theme&#39;: &#39;dark&#39; }&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;config&quot;</span> <span class="ot">select=</span><span class="st">&quot;map:merge(($defaults, $userPrefs), map { &#39;duplicates&#39;: &#39;use-last&#39; })&quot;</span>/&gt;</span></code></pre></div>
+<p>The resulting map contains:</p>
+<ul>
+<li><code>'theme'</code>: <code>'dark'</code></li>
+<li><code>'fontSize'</code>: <code>12</code></li>
+</ul>
+<h4 id="3-grouping-values-with-combine">3. Grouping Values with
+<code>combine</code></h4>
+<p>To group related data under identical keys without losing entries,
+set <code>duplicates</code> to <code>'combine'</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;entry1&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;tag&#39;: &#39;xslt&#39; }&quot;</span>/&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;entry2&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;tag&#39;: &#39;xml&#39; }&quot;</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;entry3&quot;</span> <span class="ot">select=</span><span class="st">&quot;map { &#39;tag&#39;: &#39;xpath&#39; }&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;grouped&quot;</span> <span class="ot">select=</span><span class="st">&quot;map:merge(($entry1, $entry2, $entry3), map { &#39;duplicates&#39;: &#39;combine&#39; })&quot;</span>/&gt;</span></code></pre></div>
+<p>The resulting map contains a single key <code>'tag'</code> mapped to
+the sequence <code>('xslt', 'xml', 'xpath')</code>.</p>
+<h3 id="constructing-maps-from-xml-nodes">Constructing Maps from XML
+Nodes</h3>
+<p>A common pattern in XSLT 3.0 stylesheets is transforming a sequence
+of XML elements into a lookup map using an XPath <code>for</code>
+expression combined with <code>map:merge()</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;lookup&quot;</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">  map:merge(</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">    for $item in //item</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    return map { string($item/@id) : string($item/@value) },</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">    map { &#39;duplicates&#39;: &#39;use-last&#39; }</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">  )</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span>/&gt;</span></code></pre></div>
+<p>This pattern iterates over every <code>&lt;item&gt;</code> element,
+wraps each into an individual entry map, and consolidates them into a
+single dictionary optimized for fast key-based retrieval.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

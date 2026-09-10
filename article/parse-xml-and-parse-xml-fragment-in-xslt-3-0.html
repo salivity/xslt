@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>parse-xml and parse-xml-fragment in XSLT 3.0 - xslt</title>
+    <meta name="description" content="In XSLT 3.0, processing raw string data that contains markup is made possible through the standard parse-xml() and parse-xml-fragment() functions. This article explains the primary purpose of both functions, how they convert textual XML into navigable XP">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/parse-xml-and-parse-xml-fragment-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="parse-xml and parse-xml-fragment in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/parse-xml-and-parse-xml-fragment-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, processing raw string data that contains markup is made possible through the standard parse-xml() and parse-xml-fragment() functions. This article explains the primary purpose of both functions, how they convert textual XML into navigable XP" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="parse-xml-and-parse-xml-fragment-in-xslt-30">parse-xml and
+parse-xml-fragment in XSLT 3.0</h1>
+<p>In XSLT 3.0, processing raw string data that contains markup is made
+possible through the standard <code>parse-xml()</code> and
+<code>parse-xml-fragment()</code> functions. This article explains the
+primary purpose of both functions, how they convert textual XML into
+navigable XPath Data Model (XDM) node trees, and the technical
+differences between parsing standalone XML documents versus arbitrary
+XML fragments.</p>
+<h3 id="the-purpose-of-string-to-xml-parsing">The Purpose of
+String-to-XML Parsing</h3>
+<p>In modern data pipelines, XML is frequently embedded as escaped text
+inside JSON payloads, CDATA sections, database fields, or plain text
+files fetched via <code>unparsed-text()</code>. Prior to XSLT 3.0,
+transforming this embedded text required proprietary extension functions
+or multi-stage pipelines.</p>
+<p>The <code>parse-xml()</code> and <code>parse-xml-fragment()</code>
+functions resolve this limitation by taking an <code>xs:string</code>
+input containing XML markup and dynamically constructing an in-memory
+document node (<code>document-node()</code>). Once converted, the
+contents can be queried using standard XPath expressions, matched
+against templates, or transformed like any other node tree.</p>
+<h3 id="the-parse-xml-function">The <code>parse-xml()</code>
+Function</h3>
+<p>The <code>parse-xml()</code> function is designed to parse a
+complete, well-formed XML document from a string.</p>
+<ul>
+<li><strong>Signature:</strong>
+<code>parse-xml($arg as xs:string?) as document-node(element())?</code></li>
+<li><strong>Requirement:</strong> The input string must strictly conform
+to the XML specification for a well-formed document. This means it must
+contain exactly one root element, with all child elements properly
+nested and closed. An XML declaration (such as
+<code>&lt;?xml version="1.0"?&gt;</code>) is permitted but
+optional.</li>
+<li><strong>Output:</strong> It returns a document node containing
+exactly one child element node, along with any associated comments or
+processing instructions outside the root element.</li>
+<li><strong>Behavior on Failure:</strong> If the input string contains
+multiple top-level elements, loose text nodes at the top level, or
+syntax errors, the function raises a dynamic error
+(<code>err:FODC0006</code>).</li>
+</ul>
+<p>Use <code>parse-xml()</code> when you are certain the incoming string
+represents a complete XML document with a single root wrapper.</p>
+<h3 id="the-parse-xml-fragment-function">The
+<code>parse-xml-fragment()</code> Function</h3>
+<p>The <code>parse-xml-fragment()</code> function is designed to handle
+well-formed XML <em>fragments</em> or external parsed entities, rather
+than standalone documents.</p>
+<ul>
+<li><strong>Signature:</strong>
+<code>parse-xml-fragment($arg as xs:string?) as document-node()?</code></li>
+<li><strong>Requirement:</strong> The input string does not need a
+single root element. It can consist of multiple adjacent elements, bare
+text nodes, comments, processing instructions, or an empty string. The
+markup itself must still be well-formed (tags must close and nest
+correctly).</li>
+<li><strong>Output:</strong> It returns a document node that can contain
+zero, one, or multiple child nodes of any kind (elements, text,
+comments, processing instructions).</li>
+<li><strong>Behavior on Failure:</strong> It raises a dynamic error
+(<code>err:FODC0006</code>) only if the markup violates general XML
+syntax rules, such as mismatched tags or invalid characters.</li>
+</ul>
+<p>Use <code>parse-xml-fragment()</code> when handling rich text fields,
+HTML-like snippets (e.g.,
+<code>&lt;p&gt;Hello&lt;/p&gt;&lt;p&gt;World&lt;/p&gt;</code>), or
+unstructured markup that lacks an overarching root element.</p>
+<h3 id="key-differences-summary">Key Differences Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>parse-xml()</code></th>
+<th style="text-align: left;"><code>parse-xml-fragment()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Input Expectation</strong></td>
+<td style="text-align: left;">Full XML document</td>
+<td style="text-align: left;">XML fragment / external entity</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Root Element</strong></td>
+<td style="text-align: left;">Exactly one required</td>
+<td style="text-align: left;">Zero, one, or multiple allowed</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Top-Level Text</strong></td>
+<td style="text-align: left;">Disallowed (causes dynamic error)</td>
+<td style="text-align: left;">Allowed</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Return Type</strong></td>
+<td
+style="text-align: left;"><code>document-node(element())?</code></td>
+<td style="text-align: left;"><code>document-node()?</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Common Use Case</strong></td>
+<td style="text-align: left;">Embedded SOAP payloads, full configs</td>
+<td style="text-align: left;">CMS rich text, un-nested element
+sequences</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

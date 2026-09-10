@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:output Control XSLT Serialization? - xslt</title>
+    <meta name="description" content="The <xsl:output> element acts as the primary configuration directive for serialization in XSLT, determining precisely how an internal result tree is converted into a physical text, HTML, or XML output stream. By declaring output methods, character encodi">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-output-control-xslt-serialization">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:output Control XSLT Serialization? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-output-control-xslt-serialization" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The <xsl:output> element acts as the primary configuration directive for serialization in XSLT, determining precisely how an internal result tree is converted into a physical text, HTML, or XML output stream. By declaring output methods, character encodi" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xsloutput-control-xslt-serialization">How Does
+xsl:output Control XSLT Serialization?</h1>
+<p>The <code>&lt;xsl:output&gt;</code> element acts as the primary
+configuration directive for serialization in XSLT, determining precisely
+how an internal result tree is converted into a physical text, HTML, or
+XML output stream. By declaring output methods, character encodings,
+indentation rules, and document type definitions, this top-level element
+gives developers granular control over the final syntax and structure of
+generated documents.</p>
+<h2 id="the-role-of-serialization-in-xslt-processing">The Role of
+Serialization in XSLT Processing</h2>
+<p>An XSLT processor executes transformations in two distinct conceptual
+phases: tree construction and serialization. During the transformation
+phase, templates match source XML nodes and construct an abstract result
+tree in memory.</p>
+<p>Serialization is the subsequent process of turning that abstract
+in-memory tree into a serialized byte or character stream that can be
+saved to a file or sent over a network. The
+<code>&lt;xsl:output&gt;</code> element configures the serializer,
+ensuring that the raw nodes adhere to the structural conventions,
+syntactic quirks, and encoding standards required by downstream
+consumers.</p>
+<h2 id="core-output-methods">Core Output Methods</h2>
+<p>The most fundamental attribute of <code>&lt;xsl:output&gt;</code> is
+<code>method</code>, which dictates the serialization grammar.</p>
+<ul>
+<li><strong><code>method="xml"</code></strong>: Generates standard,
+well-formed XML. It ensures all empty tags are self-closing (such as
+<code>&lt;br/&gt;</code>), outputs an XML declaration header by default,
+and strictly escapes special markup characters like <code>&amp;</code>
+and <code>&lt;</code>.</li>
+<li><strong><code>method="html"</code></strong>: Formats the output for
+legacy and modern HTML user agents. It serializes void elements without
+self-closing slashes (such as <code>&lt;br&gt;</code> and
+<code>&lt;img&gt;</code>), recognizes non-empty tags (writing
+<code>&lt;div&gt;&lt;/div&gt;</code> instead of
+<code>&lt;div/&gt;</code>), and adjusts URL attributes containing
+special characters.</li>
+<li><strong><code>method="text"</code></strong>: Strips away markup
+semantics entirely. The serializer outputs only the string values of
+text nodes without escaping characters, which is ideal for producing CSV
+files, JSON payloads, SQL scripts, or plain configuration files.</li>
+<li><strong><code>method="xhtml"</code></strong> <em>(XSLT 2.0+)</em>:
+Applies XML serialization rules while respecting XHTML guidelines,
+ensuring compatibility across both XML parsers and web browsers.</li>
+</ul>
+<h2 id="key-attributes-and-formatting-controls">Key Attributes and
+Formatting Controls</h2>
+<p>Beyond selecting the general method, <code>&lt;xsl:output&gt;</code>
+provides attributes to fine-tune document delivery and human
+readability:</p>
+<ul>
+<li><strong><code>encoding</code></strong>: Specifies the character
+encoding (such as <code>UTF-8</code>, <code>UTF-16</code>, or
+<code>ISO-8859-1</code>). The serializer encodes the output stream
+accordingly and updates the declaration header to match.</li>
+<li><strong><code>indent</code></strong>: Accepts <code>yes</code> or
+<code>no</code> to control whether the processor introduces whitespace
+and line breaks to format output for human readability.</li>
+<li><strong><code>omit-xml-declaration</code></strong>: Suppresses the
+standard <code>&lt;?xml version="1.0" ...?&gt;</code> processing
+instruction when set to <code>yes</code>, which is essential when
+generating XML fragments intended for embedding inside other
+documents.</li>
+<li>**<code>doctype-public</code> and <code>doctype-system**</code>:
+Emits formal <code>&lt;!DOCTYPE ...&gt;</code> declarations at the
+beginning of the serialized document, pointing to specific Document Type
+Definitions (DTDs) for HTML or custom XML schemas.</li>
+<li><strong><code>cdata-section-elements</code></strong>: Designates
+specific element names whose text contents must be serialized within
+<code>&lt;![CDATA[ ... ]]&gt;</code> blocks rather than standard
+entity-escaped text.</li>
+</ul>
+<p>Configuring <code>&lt;xsl:output&gt;</code> correctly ensures that
+transformed data conforms to external delivery standards without
+requiring manual string manipulation inside template bodies.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference Between is and eq in XSLT - xslt</title>
+    <meta name="description" content="In XSLT and XPath 2.0 and later, determining whether two items are identical depends entirely on whether you are comparing memory references or underlying data. The is operator checks for node identity, determining whether two expressions resolve to the">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/difference-between-is-and-eq-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Difference Between is and eq in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/difference-between-is-and-eq-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath 2.0 and later, determining whether two items are identical depends entirely on whether you are comparing memory references or underlying data. The is operator checks for node identity, determining whether two expressions resolve to the" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="difference-between-is-and-eq-in-xslt">Difference Between is and
+eq in XSLT</h1>
+<p>In XSLT and XPath 2.0 and later, determining whether two items are
+identical depends entirely on whether you are comparing memory
+references or underlying data. The <code>is</code> operator checks for
+<strong>node identity</strong>, determining whether two expressions
+resolve to the exact same node within an XML document tree. In contrast,
+the <code>eq</code> operator checks for <strong>value equality</strong>,
+evaluating whether the typed atomic values of two items are equal,
+regardless of where they are located.</p>
+<h3 id="the-is-operator-node-identity">The <code>is</code> Operator:
+Node Identity</h3>
+<p>The <code>is</code> operator tests whether two node references point
+to the same physical node in the XML document hierarchy.</p>
+<ul>
+<li><strong>Operand Requirements:</strong> Both operands must be a
+single node (or an empty sequence). If an operand evaluates to an atomic
+value (such as a string or integer) rather than a node, the processor
+raises a type error.</li>
+<li><strong>Mechanism:</strong> It does not inspect the contents,
+attributes, or string values of the elements. It checks only their
+structural identity.</li>
+<li><strong>Empty Sequences:</strong> If either operand evaluates to an
+empty sequence, the result of the <code>is</code> expression is an empty
+sequence (which evaluates to <code>false</code> in a boolean
+context).</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre class="xpath"><code>$nodeA is $nodeB</code></pre>
+<p>This expression returns <code>true</code> only if <code>$nodeA</code>
+and <code>$nodeB</code> represent the identical node in the tree. Even
+if two elements have the exact same tag name, attributes, and text
+content, <code>$nodeA is $nodeB</code> will return <code>false</code> if
+they are two distinct sibling or separate nodes.</p>
+<h3 id="the-eq-operator-value-equality">The <code>eq</code> Operator:
+Value Equality</h3>
+<p>The <code>eq</code> operator evaluates the atomic values of two items
+after performing atomization.</p>
+<ul>
+<li><strong>Operand Requirements:</strong> Both operands must evaluate
+to a single atomic value (or a node that can be atomized into a single
+atomic value), or an empty sequence.</li>
+<li><strong>Mechanism:</strong> When applied to nodes, the processor
+extracts the typed value (or <code>xs:untypedAtomic</code> if no schema
+is present) of each node and compares the data.</li>
+<li><strong>Strictness:</strong> Unlike the general equality operator
+(<code>=</code>), which allows sequences of multiple items and has
+existential semantics, <code>eq</code> is strictly for single-item
+comparisons.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre class="xpath"><code>$nodeA eq $nodeB</code></pre>
+<p>This expression returns <code>true</code> if the atomized value of
+<code>$nodeA</code> matches the atomized value of <code>$nodeB</code>,
+regardless of whether they are the same node or exist in different parts
+of the document.</p>
+<h3 id="direct-comparison">Direct Comparison</h3>
+<p>Consider the following XML document:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">catalog</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">item</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;Widget&lt;/<span class="kw">item</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">item</span> <span class="ot">id=</span><span class="st">&quot;2&quot;</span>&gt;Widget&lt;/<span class="kw">item</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">catalog</span>&gt;</span></code></pre></div>
+<p>Given the variables:</p>
+<ul>
+<li><code>$first := /catalog/item[1]</code></li>
+<li><code>$second := /catalog/item[2]</code></li>
+<li><code>$alias := /catalog/item[1]</code></li>
+</ul>
+<p>The operators behave as follows:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Expression</th>
+<th style="text-align: left;">Result</th>
+<th style="text-align: left;">Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>$first is $second</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">They are two distinct element nodes in the
+tree.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>$first eq $second</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Both atomize to the string value
+<code>"Widget"</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>$first is $alias</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Both paths select the exact same element
+in the tree.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>$first eq $alias</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">The values are identical.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="when-to-use-which">When to Use Which</h3>
+<ul>
+<li>Use <strong><code>is</code></strong> when testing whether a node is
+the current context node (<code>. is $target</code>), verifying that a
+node belongs to a specific set, or confirming that two axes reached the
+same position in a document tree.</li>
+<li>Use <strong><code>eq</code></strong> when comparing business data,
+strings, numbers, dates, or element text content between two single
+items.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

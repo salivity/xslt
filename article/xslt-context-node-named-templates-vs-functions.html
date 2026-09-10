@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Context Node: Named Templates vs Functions - xslt</title>
+    <meta name="description" content="In XSLT development, understanding how context is bound is essential when deciding between named templates and stylesheet functions. The fundamental difference lies in context inheritance: named templates automatically inherit and operate within the call">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-context-node-named-templates-vs-functions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Context Node: Named Templates vs Functions - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-context-node-named-templates-vs-functions" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT development, understanding how context is bound is essential when deciding between named templates and stylesheet functions. The fundamental difference lies in context inheritance: named templates automatically inherit and operate within the call" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-context-node-named-templates-vs-functions">XSLT Context
+Node: Named Templates vs Functions</h1>
+<p>In XSLT development, understanding how context is bound is essential
+when deciding between named templates and stylesheet functions. The
+fundamental difference lies in context inheritance: named templates
+automatically inherit and operate within the caller's existing context
+node, whereas XSLT functions evaluate in an environment where the
+context node is completely undefined by default.</p>
+<h3 id="context-node-in-named-templates">Context Node in Named
+Templates</h3>
+<p>A named template, defined using
+<code>&lt;xsl:template name="..."&gt;</code> and invoked via
+<code>&lt;xsl:call-template name="..."&gt;</code>, retains the dynamic
+context of the calling instruction. This means:</p>
+<ul>
+<li><strong>Automatic Context Preservation:</strong> The context item
+(<code>.</code>), context position (<code>position()</code>), and
+context size (<code>last()</code>) are identical to those at the point
+of the call.</li>
+<li><strong>Direct Path Evaluation:</strong> You can immediately
+evaluate relative XPath expressions (such as <code>child::title</code>
+or <code>@attribute</code>) inside the named template without having to
+explicitly pass the current node as a parameter.</li>
+<li><strong>Tunnel and Explicit Parameters:</strong> While named
+templates can accept parameters (<code>&lt;xsl:param&gt;</code>),
+passing the context item is redundant unless you intend to evaluate a
+completely different node tree.</li>
+</ul>
+<h3 id="context-node-in-function-declarations">Context Node in Function
+Declarations</h3>
+<p>Introduced in XSLT 2.0, stylesheet functions defined with
+<code>&lt;xsl:function name="..."&gt;</code> behave differently because
+they are invoked directly within XPath expressions. In this
+environment:</p>
+<ul>
+<li><strong>No Initial Context Item:</strong> When an XSLT function
+begins execution, the context item is absent (undefined).</li>
+<li><strong>Dynamic Error on Implicit Reference:</strong> Attempting to
+reference the context item directly (using <code>.</code>) or using
+context-dependent functions like <code>position()</code> or relative
+axis steps without a defined context results in a static or dynamic
+error (such as <code>XPDY0002: Context item is absent</code>).</li>
+<li><strong>Explicit Parameter Passing:</strong> To perform operations
+on a node within a function, that node must be explicitly passed as an
+argument. For instance, you must declare
+<code>&lt;xsl:param name="node" as="node()"/&gt;</code> and write
+<code>$node/@attribute</code> or <code>$node/child::element</code>.</li>
+<li><strong>Establishing a Context:</strong> If a function needs to use
+context-dependent operations, a context must be established explicitly
+inside the function body, typically using an
+<code>&lt;xsl:for-each select="$node"&gt;</code> instruction or a path
+expression.</li>
+</ul>
+<h3 id="key-reasons-for-the-architectural-difference">Key Reasons for
+the Architectural Difference</h3>
+<p>This distinction exists primarily to preserve functional purity and
+avoid unexpected side effects within XPath expressions.</p>
+<p>XPath functions are intended to behave as pure functions whose output
+depends solely on their supplied arguments. If functions implicitly
+bound to the ambient context node, changing an outer XPath expression
+could invisibly alter the internal behavior of the function, making
+stylesheets harder to debug, refactor, and optimize. Named templates, by
+contrast, are procedural instructions designed to produce markup
+directly within the XSLT execution flow, making context inheritance
+natural and convenient.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

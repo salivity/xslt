@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT function-available Conditional Fallbacks - xslt</title>
+    <meta name="description" content="The function-available() function in XSLT evaluates whether an XSLT processor supports a specific XPath or extension function before attempting to call it. By using this function within conditional structures like <xsl:choose> or <xsl:if>, developers can">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-function-available-conditional-fallbacks">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT function-available Conditional Fallbacks - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-function-available-conditional-fallbacks" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The function-available() function in XSLT evaluates whether an XSLT processor supports a specific XPath or extension function before attempting to call it. By using this function within conditional structures like <xsl:choose> or <xsl:if>, developers can" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-function-available-conditional-fallbacks">XSLT
+function-available Conditional Fallbacks</h1>
+<p>The <code>function-available()</code> function in XSLT evaluates
+whether an XSLT processor supports a specific XPath or extension
+function before attempting to call it. By using this function within
+conditional structures like <code>&lt;xsl:choose&gt;</code> or
+<code>&lt;xsl:if&gt;</code>, developers can create cross-platform
+stylesheets that leverage advanced processor-specific features when
+present while gracefully degrading to standard or alternative logic when
+running on different engines.</p>
+<h2 id="the-cross-platform-challenge-in-xslt">The Cross-Platform
+Challenge in XSLT</h2>
+<p>Different XSLT processors—such as Saxon, Xalan, Libxslt, and
+MSXML—vary widely in their support for XSLT versions, EXSLT modules, and
+proprietary extension functions. Calling a function that the host
+processor does not recognize causes a fatal dynamic or static evaluation
+error, terminating the transformation.</p>
+<p>Because stylesheets frequently need to run across diverse
+environments (such as client-side browsers and server-side runtimes),
+hardcoding proprietary or version-specific functions introduces
+significant fragility.</p>
+<h2 id="how-function-available-works">How
+<code>function-available()</code> Works</h2>
+<p>The <code>function-available()</code> function accepts a single
+string argument representing the qualified name (QName) of a
+function:</p>
+<pre class="xpath"><code>function-available(&#39;prefix:function-name&#39;)</code></pre>
+<p>The function returns <code>true()</code> if the processor supports
+the function within the specified namespace; otherwise, it returns
+<code>false()</code>. If the argument is an unqualified name without a
+prefix, it checks for standard core functions in the default function
+namespace.</p>
+<p>Because XPath evaluates conditional branches logically, an
+unsupported function placed inside an unexecuted branch will not cause a
+runtime failure in compliant processors, provided the call itself does
+not trigger a compile-time static error.</p>
+<h2 id="implementing-conditional-fallback-patterns">Implementing
+Conditional Fallback Patterns</h2>
+<p>The standard design pattern uses an <code>&lt;xsl:choose&gt;</code>
+block to verify function availability before execution, providing a
+fallback implementation in the <code>&lt;xsl:otherwise&gt;</code>
+block.</p>
+<h3 id="example-regular-expression-evaluation">Example: Regular
+Expression Evaluation</h3>
+<p>Consider a scenario where you want to use the EXSLT
+<code>regexp:test</code> function if available, but fall back to
+standard string matching using <code>contains()</code> if the engine
+does not support EXSLT:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:regexp=</span><span class="st">&quot;http://exslt.org/regular-expressions&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">extension-element-prefixes=</span><span class="st">&quot;regexp&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Check for EXSLT regular expression support --&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;function-available(&#39;regexp:test&#39;)&quot;</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;regexp:test(text(), &#39;^[A-Z]{3}-[0-9]{4}$&#39;)&quot;</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">valid-item</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;text()&quot;</span>/&gt;&lt;/<span class="kw">valid-item</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Fallback logic for processors without regexp support --&gt;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;contains(text(), &#39;-&#39;)&quot;</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">valid-item</span> <span class="ot">status=</span><span class="st">&quot;unverified&quot;</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;text()&quot;</span>/&gt;&lt;/<span class="kw">valid-item</span>&gt;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>In this implementation:</p>
+<ol type="1">
+<li>Processors supporting <code>regexp:test</code> enter the first
+<code>&lt;xsl:when&gt;</code> branch and perform precise pattern
+matching.</li>
+<li>Processors lacking the function evaluate
+<code>function-available('regexp:test')</code> as <code>false()</code>,
+bypass the branch entirely, and execute the
+<code>&lt;xsl:otherwise&gt;</code> fallback.</li>
+</ol>
+<h2 id="key-considerations-for-cross-platform-design">Key Considerations
+for Cross-Platform Design</h2>
+<ul>
+<li><strong>Namespace Declaration</strong>: Any prefix passed to
+<code>function-available()</code> must be mapped to the appropriate
+namespace URI in the stylesheet header. If the namespace is missing, the
+transformation will fail during parsing.</li>
+<li><strong>Arity Checks (XSLT 2.0+)</strong>: In XSLT 2.0 and later,
+<code>function-available()</code> accepts an optional second integer
+argument specifying the function arity:
+<code>function-available('my:func', 2)</code>. This allows checking for
+specific function signatures when functions are overloaded.</li>
+<li><strong>Static vs. Dynamic Analysis</strong>: Some strict XSLT 2.0+
+processors validate XPath function calls statically during compilation.
+If an unavailable function is invoked directly in the stylesheet,
+compilation might fail regardless of the
+<code>function-available()</code> guard. In these environments,
+combining <code>function-available()</code> with dynamic execution
+techniques or splitting version-dependent code into separate modules
+using <code>xsl:use-when</code> ensures complete portability.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

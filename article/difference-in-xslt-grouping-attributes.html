@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference in XSLT Grouping Attributes? - xslt</title>
+    <meta name="description" content="XSLT 2.0 introduced the <xsl:for-each-group> instruction to simplify complex grouping tasks that previously required verbose Muenchian grouping techniques in XSLT 1.0. The element provides several distinct attributes to control grouping logic, most notab">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/difference-in-xslt-grouping-attributes">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Difference in XSLT Grouping Attributes? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/difference-in-xslt-grouping-attributes" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 2.0 introduced the <xsl:for-each-group> instruction to simplify complex grouping tasks that previously required verbose Muenchian grouping techniques in XSLT 1.0. The element provides several distinct attributes to control grouping logic, most notab" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="difference-in-xslt-grouping-attributes">Difference in XSLT
+Grouping Attributes?</h1>
+<p>XSLT 2.0 introduced the <code>&lt;xsl:for-each-group&gt;</code>
+instruction to simplify complex grouping tasks that previously required
+verbose Muenchian grouping techniques in XSLT 1.0. The element provides
+several distinct attributes to control grouping logic, most notably
+<code>group-by</code>, <code>group-adjacent</code>, and
+<code>group-starting-with</code> (along with its counterpart
+<code>group-ending-with</code>). While all three attributes organize an
+input sequence into distinct collections processed via
+<code>current-group()</code> and <code>current-grouping-key()</code>,
+they differ fundamentally in whether they evaluate items based on global
+value equality, sequential runs of identical values, or positional
+patterns within the document structure.</p>
+<h2 id="group-by-value-based-global-grouping"><code>group-by</code>:
+Value-Based Global Grouping</h2>
+<p>The <code>group-by</code> attribute groups items by evaluating a key
+expression for each item across the entire sequence. All items that
+evaluate to the same key value are placed into the same group,
+regardless of where they appear in the original source document.</p>
+<ul>
+<li><strong>Evaluation:</strong> Evaluates the expression for every item
+in <code>select</code>.</li>
+<li><strong>Ordering:</strong> Creates one group per distinct key. The
+order of the groups corresponds to the first appearance of each key in
+the source sequence.</li>
+<li><strong>Use Case:</strong> Aggregating data, such as organizing a
+flat list of products by category or department.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each-group</span> <span class="ot">select=</span><span class="st">&quot;employee&quot;</span> <span class="ot">group-by=</span><span class="st">&quot;department&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">department</span> <span class="ot">name=</span><span class="st">&quot;{current-grouping-key()}&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-group()&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">department</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each-group</span>&gt;</span></code></pre></div>
+<h2
+id="group-adjacent-consecutive-value-grouping"><code>group-adjacent</code>:
+Consecutive Value Grouping</h2>
+<p>The <code>group-adjacent</code> attribute forms groups strictly from
+contiguous sequences of items that share the exact same key value. If an
+item has a different key value than its predecessor, a new group starts
+immediately, even if that key value appeared earlier in the
+sequence.</p>
+<ul>
+<li><strong>Evaluation:</strong> Compares each item's key expression
+only to the adjacent item.</li>
+<li><strong>Ordering:</strong> Maintains strict document order;
+non-consecutive items with identical keys will end up in separate
+groups.</li>
+<li><strong>Use Case:</strong> Wrapping consecutive elements of the same
+type, such as grouping runs of standard text nodes or adjacent list
+items within mixed content.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each-group</span> <span class="ot">select=</span><span class="st">&quot;*&quot;</span> <span class="ot">group-adjacent=</span><span class="st">&quot;boolean(self::li)&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;current-grouping-key()&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ul</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-group()&quot;</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">ul</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-group()&quot;</span>/&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each-group</span>&gt;</span></code></pre></div>
+<h2
+id="group-starting-with-pattern-based-structural-grouping"><code>group-starting-with</code>:
+Pattern-Based Structural Grouping</h2>
+<p>The <code>group-starting-with</code> attribute uses a pattern
+(similar to an <code>xsl:template match="..."</code> pattern) rather
+than an expression. A new group begins whenever an item matches the
+specified pattern, and that matched item becomes the first element in
+the new group. All subsequent items belong to this group until another
+matching item appears.</p>
+<ul>
+<li><strong>Evaluation:</strong> Evaluates whether each item matches an
+XSLT pattern.</li>
+<li><strong>Grouping Key:</strong> Does not generate a grouping key;
+<code>current-grouping-key()</code> evaluates to an empty sequence.</li>
+<li><strong>Use Case:</strong> Restructuring flat document formats into
+hierarchical structures, such as gathering flat paragraphs under heading
+tags (<code>h1</code>, <code>h2</code>, etc.).</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each-group</span> <span class="ot">select=</span><span class="st">&quot;*&quot;</span> <span class="ot">group-starting-with=</span><span class="st">&quot;h2&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">section</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-group()&quot;</span>/&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">section</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each-group</span>&gt;</span></code></pre></div>
+<h2 id="comparison-summary">Comparison Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Mechanism</th>
+<th>Handles Non-Adjacent Items</th>
+<th><code>current-grouping-key()</code> Available</th>
+<th>Primary Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>group-by</code></td>
+<td>Expression evaluation</td>
+<td>Yes (merges globally)</td>
+<td>Yes</td>
+<td>Categorizing and aggregating data</td>
+</tr>
+<tr>
+<td><code>group-adjacent</code></td>
+<td>Expression evaluation</td>
+<td>No (splits on value change)</td>
+<td>Yes</td>
+<td>Grouping contiguous sequences</td>
+</tr>
+<tr>
+<td><code>group-starting-with</code></td>
+<td>Pattern matching</td>
+<td>No (splits on pattern match)</td>
+<td>No</td>
+<td>Converting flat structures to hierarchies</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

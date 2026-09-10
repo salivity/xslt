@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tail-Call Optimization in Recursive XSLT Templates - xslt</title>
+    <meta name="description" content="Processing extensive XML datasets through recursive templates frequently triggers call stack overflow errors in environments where memory limits are strictly enforced. Tail-call optimization (TCO) eliminates this vulnerability by allowing compliant XSLT">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/tail-call-optimization-in-recursive-xslt-templates">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tail-Call Optimization in Recursive XSLT Templates - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/tail-call-optimization-in-recursive-xslt-templates" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing extensive XML datasets through recursive templates frequently triggers call stack overflow errors in environments where memory limits are strictly enforced. Tail-call optimization (TCO) eliminates this vulnerability by allowing compliant XSLT" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tail-call-optimization-in-recursive-xslt-templates">Tail-Call
+Optimization in Recursive XSLT Templates</h1>
+<p>Processing extensive XML datasets through recursive templates
+frequently triggers call stack overflow errors in environments where
+memory limits are strictly enforced. Tail-call optimization (TCO)
+eliminates this vulnerability by allowing compliant XSLT processors to
+reuse the active execution stack frame instead of allocating a new one
+for every step. This article explains how tail recursion works in XSLT,
+how to refactor standard recursive templates into tail-recursive forms
+using accumulators, and the structural requirements necessary to ensure
+your XSLT processor successfully optimizes the execution stack.</p>
+<h3 id="the-stack-overflow-problem-in-recursive-xslt">The Stack Overflow
+Problem in Recursive XSLT</h3>
+<p>In XSLT 1.0 and 2.0, loops are often implemented using recursion via
+<code>&lt;xsl:call-template&gt;</code> or
+<code>&lt;xsl:apply-templates&gt;</code>. In a traditional recursive
+design, each template invocation allocates a new frame on the call stack
+to preserve the local execution context, pending operations, and
+variable scopes.</p>
+<p>When dealing with large inputs—such as a sequence of tens of
+thousands of items—the call stack depth grows linearly (<span
+class="math inline">\(O(N)\)</span>). Once the engine exceeds the
+maximum call stack limit allocated by the underlying runtime (such as
+the JVM or .NET runtime), execution halts with a stack overflow
+error.</p>
+<h3 id="how-tail-call-optimization-solves-the-issue">How Tail-Call
+Optimization Solves the Issue</h3>
+<p>Tail-call optimization is an execution strategy where the processor
+identifies that the final action of a template is invoking another
+template (or itself). Because there are no subsequent operations that
+rely on the local scope of the current template, the processor discards
+or overwrites the current stack frame rather than pushing a new one.
+This reduces stack space complexity from <span
+class="math inline">\(O(N)\)</span> to <span
+class="math inline">\(O(1)\)</span>, enabling infinite recursive depth
+without running out of stack memory.</p>
+<h3 id="structuring-templates-for-tail-recursion">Structuring Templates
+for Tail Recursion</h3>
+<p>To enable TCO, the recursive call must be in the <strong>tail
+position</strong>. This means the recursive invocation must be the very
+last instruction evaluated in that execution path. A common mistake is
+leaving work—such as element wrapping, mathematical calculations, or
+string concatenation—to be performed after the recursive call
+returns.</p>
+<h4 id="the-anti-pattern-non-tail-recursive">The Anti-Pattern
+(Non-Tail-Recursive)</h4>
+<p>In the following example, the addition occurs <em>after</em> the
+recursive call returns. The processor must keep the current frame active
+to add the current value to the result of the next call:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;sum-list&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;numbers&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;empty($numbers)&quot;</span>&gt;0&lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>            <span class="co">&lt;!-- Non-tail: addition happens AFTER the call returns --&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$numbers[1] + count(.)&quot;</span>/&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;rest&quot;</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;sum-list&quot;</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;numbers&quot;</span> <span class="ot">select=</span><span class="st">&quot;$numbers[position() &gt; 1]&quot;</span>/&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$numbers[1] + $rest&quot;</span>/&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Because the processor must wait for <code>$rest</code> before
+performing addition, it cannot drop the stack frame.</p>
+<h4 id="the-correct-pattern-tail-recursive-with-accumulator">The Correct
+Pattern (Tail-Recursive with Accumulator)</h4>
+<p>To convert this pattern into a tail-recursive structure, introduce an
+accumulator parameter. The work is computed <em>before</em> making the
+recursive call and passed forward into the next iteration:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;sum-list&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;numbers&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;accumulator&quot;</span> <span class="ot">select=</span><span class="st">&quot;0&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Base Case: return accumulated result --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;empty($numbers)&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$accumulator&quot;</span>/&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Recursive Case: tail call --&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;sum-list&quot;</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;numbers&quot;</span> <span class="ot">select=</span><span class="st">&quot;$numbers[position() &gt; 1]&quot;</span>/&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;accumulator&quot;</span> <span class="ot">select=</span><span class="st">&quot;$accumulator + $numbers[1]&quot;</span>/&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this version, the call to <code>sum-list</code> inside
+<code>&lt;xsl:otherwise&gt;</code> is the final instruction. No pending
+calculations remain, so the XSLT engine can safely discard the current
+frame.</p>
+<h3 id="critical-rules-to-maintain-the-tail-position">Critical Rules to
+Maintain the Tail Position</h3>
+<p>For an XSLT processor (such as Saxon-EE, Saxon-HE, or Altova) to
+apply TCO, the recursive step must adhere strictly to these
+constraints:</p>
+<ol type="1">
+<li><strong>No Wrapping Output Elements:</strong> Do not place
+<code>&lt;xsl:call-template&gt;</code> inside an enclosing literal
+result element. For example,
+<code>&lt;div&gt;&lt;xsl:call-template name="loop"/&gt;&lt;/div&gt;</code>
+breaks TCO because the closing tag <code>&lt;/div&gt;</code> must be
+written after the recursive call returns. Instead, emit markup before
+the call or pass constructed nodes down through parameters.</li>
+<li><strong>Avoid Variable Assignment Enclosures:</strong> Placing a
+recursive call inside an <code>&lt;xsl:variable&gt;</code> assignment
+prevents TCO, as the variable must capture the output before continuing
+execution in the current template.</li>
+<li><strong>Check Branching Logic:</strong> Ensure that <em>all</em>
+relevant conditional branches (<code>&lt;xsl:when&gt;</code>,
+<code>&lt;xsl:otherwise&gt;</code>) isolate the recursive call as the
+absolute final statement within that branch.</li>
+<li><strong>Processor Support:</strong> TCO is an implementation detail,
+not a hard requirement of the W3C XSLT specification. While modern
+production processors like Saxon implement robust tail recursion
+detection, older processors (like MSXML or standard Xalan) may have
+limited or no TCO support. In environments lacking TCO, recursive logic
+processing large data should be replaced with iterative XPath
+expressions or XSLT 3.0 constructs like
+<code>&lt;xsl:iterate&gt;</code>.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

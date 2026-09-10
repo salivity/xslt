@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using xsl:on-completion in XSLT 3.0 Iteration - xslt</title>
+    <meta name="description" content="In XSLT 3.0, the <xsl:on-completion> element serves as a dedicated finalization mechanism within an <xsl:iterate> instruction. It executes once the input sequence is completely exhausted, allowing developers to cleanly separate per-item processing from f">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xsl-on-completion-in-xslt-3-0-iteration">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using xsl:on-completion in XSLT 3.0 Iteration - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xsl-on-completion-in-xslt-3-0-iteration" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, the <xsl:on-completion> element serves as a dedicated finalization mechanism within an <xsl:iterate> instruction. It executes once the input sequence is completely exhausted, allowing developers to cleanly separate per-item processing from f" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-xslon-completion-in-xslt-30-iteration">Using
+xsl:on-completion in XSLT 3.0 Iteration</h1>
+<p>In XSLT 3.0, the <code>&lt;xsl:on-completion&gt;</code> element
+serves as a dedicated finalization mechanism within an
+<code>&lt;xsl:iterate&gt;</code> instruction. It executes once the input
+sequence is completely exhausted, allowing developers to cleanly
+separate per-item processing from final clean-up or summary logic. This
+article explains how <code>&lt;xsl:on-completion&gt;</code> functions,
+how it accesses accumulated iteration parameters, and how it handles
+edge cases such as empty input sequences.</p>
+<h3 id="purpose-of-xslon-completion">Purpose of
+<code>&lt;xsl:on-completion&gt;</code></h3>
+<p>The <code>&lt;xsl:iterate&gt;</code> instruction processes a sequence
+sequentially, passing parameters from one iteration step to the next
+using <code>&lt;xsl:next-iteration&gt;</code>. While the main body of
+<code>&lt;xsl:iterate&gt;</code> handles individual items in the
+sequence, <code>&lt;xsl:on-completion&gt;</code> defines what output
+should be produced after processing ends.</p>
+<p>Common use cases include:</p>
+<ul>
+<li>Emitting closing markup or summary elements (such as running totals
+or item counts).</li>
+<li>Emitting fallback content when the input sequence contains zero
+items.</li>
+<li>Generating a final transformation result derived from accumulated
+parameters.</li>
+</ul>
+<h3 id="access-to-iteration-parameters">Access to Iteration
+Parameters</h3>
+<p><code>&lt;xsl:on-completion&gt;</code> has full access to the loop's
+iteration parameters (<code>&lt;xsl:param&gt;</code>). It receives the
+parameter values produced by the final
+<code>&lt;xsl:next-iteration&gt;</code> call.</p>
+<p>If the input sequence is completely empty, the iteration loop body
+does not execute, but <code>&lt;xsl:on-completion&gt;</code> executes
+immediately, receiving the initial default values defined on the
+<code>&lt;xsl:iterate&gt;</code> parameters.</p>
+<h3 id="execution-behavior-vs-xslbreak">Execution Behavior vs.
+<code>&lt;xsl:break&gt;</code></h3>
+<p>It is important to distinguish between normal completion and
+premature termination:</p>
+<ul>
+<li><strong>Normal Termination:</strong> When the input sequence runs
+out of items, <code>&lt;xsl:on-completion&gt;</code> is triggered
+automatically.</li>
+<li><strong>Early Exit (<code>&lt;xsl:break&gt;</code>):</strong> If an
+<code>&lt;xsl:break&gt;</code> element is reached during processing,
+<code>&lt;xsl:iterate&gt;</code> terminates immediately. Any content
+inside <code>&lt;xsl:break&gt;</code> is evaluated and returned, and
+<code>&lt;xsl:on-completion&gt;</code> is skipped entirely.</li>
+</ul>
+<h3 id="practical-example">Practical Example</h3>
+<p>The following example demonstrates calculating a running total and
+outputting a summary block upon completion:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:iterate</span> <span class="ot">select=</span><span class="st">&quot;order/item&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;total-cost&quot;</span> <span class="ot">select=</span><span class="st">&quot;0.0&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:double&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Output individual item details --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">li</span> <span class="ot">class=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@name&quot;</span>/&gt;: $&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@price&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">li</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Continue iteration with updated total --&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;total-cost&quot;</span> <span class="ot">select=</span><span class="st">&quot;$total-cost + xs:double(@price)&quot;</span>/&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Finalization logic executes after all items are processed --&gt;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:on-completion</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">li</span> <span class="ot">class=</span><span class="st">&quot;total&quot;</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">strong</span>&gt;Total Cost: $&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$total-cost&quot;</span>/&gt;&lt;/<span class="kw">strong</span>&gt;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">li</span>&gt;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:on-completion</span>&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:iterate</span>&gt;</span></code></pre></div>
+<p>In this example, each item generates a list entry during iteration.
+When the input sequence finishes, <code>&lt;xsl:on-completion&gt;</code>
+evaluates once, using the finalized <code>$total-cost</code> parameter
+to emit the final total row.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

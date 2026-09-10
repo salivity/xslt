@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT use-when Attribute for Conditional Inclusion - xslt</title>
+    <meta name="description" content="The use-when attribute in XSLT 2.0 and later versions provides compile-time conditional inclusion of stylesheet elements, enabling developers to selectively include or exclude code before the transformation executes. This feature ensures backward and for">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-use-when-attribute-for-conditional-inclusion">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT use-when Attribute for Conditional Inclusion - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-use-when-attribute-for-conditional-inclusion" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The use-when attribute in XSLT 2.0 and later versions provides compile-time conditional inclusion of stylesheet elements, enabling developers to selectively include or exclude code before the transformation executes. This feature ensures backward and for" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-use-when-attribute-for-conditional-inclusion">XSLT use-when
+Attribute for Conditional Inclusion</h1>
+<p>The <code>use-when</code> attribute in XSLT 2.0 and later versions
+provides compile-time conditional inclusion of stylesheet elements,
+enabling developers to selectively include or exclude code before the
+transformation executes. This feature ensures backward and forward
+compatibility, controls debugging routines, and handles
+processor-specific capabilities without causing static compilation
+errors. By evaluating expressions statically, <code>use-when</code>
+gives developers granular control over the stylesheet structure before
+any source document data is processed.</p>
+<h2 id="the-purpose-of-use-when">The Purpose of use-when</h2>
+<p>In standard XSLT processing, conditional instructions like
+<code>&lt;xsl:if&gt;</code> and <code>&lt;xsl:choose&gt;</code> operate
+dynamically at runtime based on the contents of the source XML document
+or runtime parameters. However, if a stylesheet contains instructions,
+functions, or schema components not supported by the XSLT processor
+compiling the sheet, the transformation halts with a static compilation
+error—even if the unsupported instruction is inside a branch of an
+<code>&lt;xsl:if&gt;</code> that would never execute.</p>
+<p>The <code>use-when</code> attribute solves this limitation by
+allowing static preprocessing. Can be attached to any XSLT element,
+<code>use-when</code> contains an XPath expression that is evaluated at
+compile time. If the expression evaluates to <code>true()</code>, the
+element and its content are included in the compiled stylesheet. If it
+evaluates to <code>false()</code>, the element is stripped entirely from
+the stylesheet tree prior to compilation, ensuring that unsupported
+syntax or definitions do not trigger static errors.</p>
+<h2 id="static-evaluation-context">Static Evaluation Context</h2>
+<p>Because <code>use-when</code> runs during the compilation phase, it
+operates in a restricted "static context." The XPath expression inside a
+<code>use-when</code> attribute cannot reference:</p>
+<ul>
+<li>Context nodes, axes, or data from the input XML document.</li>
+<li>Standard runtime variables or parameters
+(<code>&lt;xsl:param&gt;</code>,
+<code>&lt;xsl:variable&gt;</code>).</li>
+<li>Runtime functions that depend on dynamic context (such as
+<code>position()</code> or <code>last()</code>).</li>
+</ul>
+<p>Instead, <code>use-when</code> expressions can only use static
+information, which includes:</p>
+<ul>
+<li>Core XPath functions that do not depend on the dynamic context
+(e.g., <code>true()</code>, <code>false()</code>,
+<code>not()</code>).</li>
+<li>The <code>system-property()</code> function, used to inspect vendor,
+engine, and version data.</li>
+<li>The <code>function-available()</code> and
+<code>element-available()</code> functions to check for processor
+capabilities.</li>
+<li>Static variables and parameters declared with
+<code>static="yes"</code> (introduced in XSLT 3.0).</li>
+</ul>
+<h2 id="primary-use-cases">Primary Use Cases</h2>
+<h3 id="1-cross-version-and-multi-engine-compatibility">1. Cross-Version
+and Multi-Engine Compatibility</h3>
+<p>A single stylesheet can serve multiple XSLT specifications (e.g.,
+XSLT 2.0 and XSLT 3.0) or different vendor implementations (e.g., Saxon
+vs. Altova). By testing system properties or function availability,
+newer features can be isolated:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:include</span> <span class="ot">href=</span><span class="st">&quot;xslt3-transforms.xsl&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>             <span class="ot">use-when=</span><span class="st">&quot;system-property(&#39;xsl:version&#39;) &gt;= 3.0&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:include</span> <span class="ot">href=</span><span class="st">&quot;xslt2-transforms.xsl&quot;</span> </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>             <span class="ot">use-when=</span><span class="st">&quot;system-property(&#39;xsl:version&#39;) </span><span class="dv">&amp;lt;</span><span class="st"> 3.0&quot;</span>/&gt;</span></code></pre></div>
+<h3 id="2-eliminating-static-compilation-errors">2. Eliminating Static
+Compilation Errors</h3>
+<p>If a stylesheet uses an extension function or an advanced feature
+like streaming or schema awareness, processors lacking that feature fail
+immediately upon compilation. Using
+<code>use-when="function-available('custom:fast-parse')"</code> ensures
+that code utilizing the extension is only compiled if the engine
+actually supports it.</p>
+<h3 id="3-build-time-configuration-and-debugging">3. Build-Time
+Configuration and Debugging</h3>
+<p>Developers can toggle modes such as verbose logging, development
+traces, or production optimizations. In XSLT 3.0, static parameters can
+be supplied at compile time:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;DEBUG&quot;</span> <span class="ot">select=</span><span class="st">&quot;false()&quot;</span> <span class="ot">static=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;*&quot;</span> <span class="ot">use-when=</span><span class="st">&quot;$DEBUG&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:message</span>&gt;Processing node: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name()&quot;</span>/&gt;&lt;/<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:next-match</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>When <code>$DEBUG</code> is set to <code>false()</code>, the
+diagnostic template is eliminated entirely, removing any runtime
+overhead or unwanted logging.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

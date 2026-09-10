@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Remove Whitespace-Only Text Nodes in XSLT - xslt</title>
+    <meta name="description" content="Handling whitespace-only text nodes is a common challenge in XML processing, as unnecessary line breaks and indentation can alter transformation outputs and degrade data quality. This guide explains how to effectively eliminate whitespace-only text nodes">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-remove-whitespace-only-text-nodes-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Remove Whitespace-Only Text Nodes in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-remove-whitespace-only-text-nodes-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Handling whitespace-only text nodes is a common challenge in XML processing, as unnecessary line breaks and indentation can alter transformation outputs and degrade data quality. This guide explains how to effectively eliminate whitespace-only text nodes" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-remove-whitespace-only-text-nodes-in-xslt">How to Remove
+Whitespace-Only Text Nodes in XSLT</h1>
+<p>Handling whitespace-only text nodes is a common challenge in XML
+processing, as unnecessary line breaks and indentation can alter
+transformation outputs and degrade data quality. This guide explains how
+to effectively eliminate whitespace-only text nodes during XSLT parsing
+and processing phases using built-in stylesheet declarations, template
+matching rules, and parser-level configurations.</p>
+<h3 id="1-using-xslstrip-space-recommended">1. Using
+<code>&lt;xsl:strip-space&gt;</code> (Recommended)</h3>
+<p>The most direct and standard method to remove whitespace-only text
+nodes during the source tree construction phase is the top-level
+<code>&lt;xsl:strip-space&gt;</code> element.</p>
+<p>When an XSLT processor parses an XML source document, it builds an
+input tree. Placing <code>&lt;xsl:strip-space&gt;</code> at the top
+level instructs the processor to strip whitespace-only text nodes from
+the specified elements before any templates are executed.</p>
+<p>To remove whitespace from all elements globally:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:strip-space</span> <span class="ot">elements=</span><span class="st">&quot;*&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Retain whitespace inside specific tags if needed --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:preserve-space</span> <span class="ot">elements=</span><span class="st">&quot;pre code description&quot;</span> /&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Template rules --&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;@*|node()&quot;</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@*|node()&quot;</span>/&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong><code>elements="*"</code></strong>: Targets every element in
+the document.</li>
+<li><strong><code>&lt;xsl:preserve-space&gt;</code></strong>:
+Complements <code>&lt;xsl:strip-space&gt;</code> by explicitly
+protecting elements where formatting and line breaks must remain
+intact.</li>
+</ul>
+<h3 id="2-matching-whitespace-with-templates">2. Matching Whitespace
+with Templates</h3>
+<p>If you need finer control during the transformation phase rather than
+the initial parsing phase, you can drop whitespace-only text nodes using
+an empty template match combined with the <code>normalize-space()</code>
+function.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;text()[not(normalize-space())]&quot;</span> /&gt;</span></code></pre></div>
+<p>This rule matches any text node whose string value contains only
+whitespace (spaces, tabs, newlines) and produces no output, effectively
+pruning the node. This method is particularly useful when working within
+an identity transform or when you need conditional logic to determine
+whether whitespace should be dropped based on ancestor or sibling
+nodes.</p>
+<h3 id="3-parser-level-stripping-via-dtd-or-schema">3. Parser-Level
+Stripping via DTD or Schema</h3>
+<p>In XSLT 1.0 and 2.0, whitespace stripping behavior can also be
+dictated by the XML parser before XSLT execution begins.</p>
+<p>If your XML document is validated against a Document Type Definition
+(DTD) or XML Schema (XSD):</p>
+<ul>
+<li>Elements declared with element-only content models (e.g.,
+<code>&lt;!ELEMENT parent (child+)&gt;</code>) allow the parser to
+recognize whitespace between child tags as ignorable whitespace.</li>
+<li>Most XML parsers can be configured to discard ignorable whitespace
+automatically at the parser level before handing the document tree over
+to the XSLT engine.</li>
+</ul>
+<h3 id="choosing-the-right-method">Choosing the Right Method</h3>
+<ul>
+<li>Use
+<strong><code>&lt;xsl:strip-space elements="*"/&gt;</code></strong> for
+standard, efficient cleanup. It optimizes memory usage because
+whitespace nodes are discarded before stylesheet execution.</li>
+<li>Use
+<strong><code>match="text()[not(normalize-space())]"</code></strong>
+when stripping needs to be conditional, applied dynamically, or limited
+to specific branches in complex stylesheets.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

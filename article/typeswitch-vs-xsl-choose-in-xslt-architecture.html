@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typeswitch vs xsl:choose in XSLT Architecture - xslt</title>
+    <meta name="description" content="While both constructs enable multi-branch conditional execution within XML processing environments, typeswitch and <xsl:choose> serve fundamentally different architectural purposes. <xsl:choose> is a general-purpose, statement-based conditional structure">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/typeswitch-vs-xsl-choose-in-xslt-architecture">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Typeswitch vs xsl:choose in XSLT Architecture - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/typeswitch-vs-xsl-choose-in-xslt-architecture" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="While both constructs enable multi-branch conditional execution within XML processing environments, typeswitch and <xsl:choose> serve fundamentally different architectural purposes. <xsl:choose> is a general-purpose, statement-based conditional structure" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="typeswitch-vs-xslchoose-in-xslt-architecture">Typeswitch vs
+xsl:choose in XSLT Architecture</h1>
+<p>While both constructs enable multi-branch conditional execution
+within XML processing environments, <code>typeswitch</code> and
+<code>&lt;xsl:choose&gt;</code> serve fundamentally different
+architectural purposes. <code>&lt;xsl:choose&gt;</code> is a
+general-purpose, statement-based conditional structure native to XSLT
+that evaluates boolean XPath expressions sequentially. In contrast,
+<code>typeswitch</code> is a functional, expression-based construct
+originating in XQuery (and integrated across XML data-processing models)
+specifically tailored for dispatching execution based on the dynamic
+<code>SequenceType</code> of an item. Understanding their architectural
+divergence is critical for designing clean, efficient, and schema-aware
+transformations.</p>
+<h3 id="core-paradigms-and-purpose">Core Paradigms and Purpose</h3>
+<ul>
+<li><strong><code>&lt;xsl:choose&gt;</code></strong>: Acts as XSLT’s
+imperative-style <code>switch</code> or <code>if/else-if/else</code>
+control structure. It evaluates child
+<code>&lt;xsl:when test="..."&gt;</code> conditions in document order.
+The processor executes the body of the first
+<code>&lt;xsl:when&gt;</code> whose <code>test</code> attribute
+evaluates to an effective boolean value of <code>true()</code>. If none
+evaluate to true, the fallback <code>&lt;xsl:otherwise&gt;</code> block
+executes.</li>
+<li><strong><code>typeswitch</code></strong>: Operates as a functional
+pattern-matching expression built entirely around types rather than
+boolean conditions. It evaluates an input expression, inspects its
+dynamic <code>SequenceType</code> (such as schema element types, atomic
+types, or node kinds), and routes execution to the matching
+<code>case</code> clause.</li>
+</ul>
+<h3 id="branching-mechanics">Branching Mechanics</h3>
+<p>The mechanism used to select an execution path differs significantly
+between the two:</p>
+<ol type="1">
+<li><p><strong>Condition Evaluation vs. Type Matching</strong>:</p>
+<ul>
+<li>In <code>&lt;xsl:choose&gt;</code>, any valid XPath expression can
+serve as the condition. To check types within
+<code>&lt;xsl:choose&gt;</code>, developers must explicitly write
+boolean type assertions using the <code>instance of</code> operator:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;$val instance of xs:integer&quot;</span>&gt;...&lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;$val instance of xs:string&quot;</span>&gt;...&lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:otherwise</span>&gt;...&lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div></li>
+<li>In a <code>typeswitch</code> expression, the syntax natively
+evaluates against sequence types:
+<pre class="xquery"><code>typeswitch ($val)
+  case xs:integer return ...
+  case xs:string return ...
+  default return ...</code></pre></li>
+</ul></li>
+<li><p><strong>Variable Binding and Scope</strong>:</p>
+<ul>
+<li><code>&lt;xsl:choose&gt;</code> does not automatically capture or
+narrow down the type of the value being tested. If type conversion or
+scoped access is needed inside the <code>&lt;xsl:when&gt;</code>,
+developers must explicitly declare an <code>&lt;xsl:variable&gt;</code>
+inside that branch.</li>
+<li><code>typeswitch</code> allows optional variable binding directly
+within each <code>case</code> statement (e.g.,
+<code>case $i as xs:integer</code>). The bound variable is automatically
+cast to that type within the scope of that branch, simplifying
+operations on narrowed data types.</li>
+</ul></li>
+</ol>
+<h3 id="structural-integration-in-xslt">Structural Integration in
+XSLT</h3>
+<p><code>&lt;xsl:choose&gt;</code> is an instruction element native to
+XSLT stylesheets, allowing arbitrary template generation, variable
+declarations, and nested instructions within its branches.</p>
+<p><code>typeswitch</code> is an expression-level construct from the
+XQuery specification. While XQuery applications utilize
+<code>typeswitch</code> extensively for recursive descent
+transformations, standard XSLT does not have an
+<code>&lt;xsl:typeswitch&gt;</code> instruction. Instead, XSLT provides
+two architectural alternatives:</p>
+<ul>
+<li><strong>Conditional Emulation</strong>: Using
+<code>&lt;xsl:choose&gt;</code> combined with <code>instance of</code>
+predicates.</li>
+<li><strong>Polymorphic Template Matching</strong>: The idiomatic XSLT
+alternative to <code>typeswitch</code> is dynamic template dispatch
+using <code>&lt;xsl:template match="..."&gt;</code>. In schema-aware
+XSLT processors, match patterns can target types directly (e.g.,
+<code>&lt;xsl:template match="element(*, my:SchemaType)"&gt;</code>).</li>
+</ul>
+<h3 id="optimization-and-processor-behavior">Optimization and Processor
+Behavior</h3>
+<ul>
+<li><strong><code>&lt;xsl:choose&gt;</code> Optimization</strong>:
+Processors evaluate conditions in strict sequential order. Optimization
+relies on static analysis of independent boolean expressions, but early
+exit is generally governed by sequential short-circuiting.</li>
+<li><strong><code>typeswitch</code> Optimization</strong>: Because
+branches are based purely on static and dynamic types rather than
+arbitrary expressions with potential side effects or external document
+navigation, processors can implement <code>typeswitch</code> routing
+using constant-time jump tables or type-hierarchy hash lookups, making
+it substantially faster for large sets of type rules.</li>
+</ul>
+<h3 id="summary-of-differences">Summary of Differences</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>&lt;xsl:choose&gt;</code></th>
+<th style="text-align: left;"><code>typeswitch</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Origin</strong></td>
+<td style="text-align: left;">Native XSLT Instruction</td>
+<td style="text-align: left;">XQuery / XPath Functional Expression</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Branch Criteria</strong></td>
+<td style="text-align: left;">Boolean XPath expressions</td>
+<td style="text-align: left;"><code>SequenceType</code> signatures</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Type Binding</strong></td>
+<td style="text-align: left;">Manual via
+<code>&lt;xsl:variable&gt;</code></td>
+<td style="text-align: left;">Native variable binding per
+<code>case</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Idiomatic Use Case</strong></td>
+<td style="text-align: left;">Arbitrary value and state-based logic</td>
+<td style="text-align: left;">Data-type polymorphism and schema
+handling</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>XSLT Counterpart</strong></td>
+<td style="text-align: left;">Standard control flow</td>
+<td style="text-align: left;">Schema-aware
+<code>&lt;xsl:template match="..."&gt;</code></td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

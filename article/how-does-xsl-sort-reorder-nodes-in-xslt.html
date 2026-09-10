@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:sort Reorder Nodes in XSLT? - xslt</title>
+    <meta name="description" content="The <xsl:sort> element in XSLT is used inside <xsl:for-each> loops or <xsl:apply-templates> instructions to reorder the processed node sequence before template rules execute. Rather than modifying the underlying XML source document, XSLT evaluates the so">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-sort-reorder-nodes-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:sort Reorder Nodes in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-sort-reorder-nodes-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The <xsl:sort> element in XSLT is used inside <xsl:for-each> loops or <xsl:apply-templates> instructions to reorder the processed node sequence before template rules execute. Rather than modifying the underlying XML source document, XSLT evaluates the so" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslsort-reorder-nodes-in-xslt">How Does xsl:sort
+Reorder Nodes in XSLT?</h1>
+<p>The <code>&lt;xsl:sort&gt;</code> element in XSLT is used inside
+<code>&lt;xsl:for-each&gt;</code> loops or
+<code>&lt;xsl:apply-templates&gt;</code> instructions to reorder the
+processed node sequence before template rules execute. Rather than
+modifying the underlying XML source document, XSLT evaluates the sorting
+criteria specified by the stylesheet author, generates a sorted
+intermediate node list in memory, and iterates over those nodes in the
+newly defined order. Understanding its core attributes and multi-level
+sorting capabilities enables precise control over XML transformation
+output.</p>
+<h2 id="core-attributes-governing-sort-behavior">Core Attributes
+Governing Sort Behavior</h2>
+<p>The sorting engine relies on several attributes to determine how
+nodes are compared and arranged:</p>
+<ul>
+<li><strong><code>select</code></strong>: Defines the XPath expression
+evaluated relative to the current node being sorted. The resulting value
+serves as the sort key. If omitted, the string-value of the context node
+itself (<code>.</code>) is used.</li>
+<li><strong><code>order</code></strong>: Specifies the sort direction.
+It accepts either <code>ascending</code> (the default) or
+<code>descending</code>.</li>
+<li><strong><code>data-type</code></strong>: Determines whether values
+are compared as plain text (<code>text</code>, the default) or numeric
+values (<code>number</code>). Setting this correctly prevents numerical
+errors, such as <code>10</code> appearing before <code>2</code> in
+standard alphanumeric sorting.</li>
+<li><strong><code>case-order</code></strong>: Directs whether uppercase
+or lowercase characters take precedence in textual comparisons,
+accepting <code>upper-first</code> or <code>lower-first</code>.</li>
+<li><strong><code>lang</code></strong>: Declares the language whose
+collation rules should be applied during textual sorting (for example,
+<code>lang="en"</code> or <code>lang="de"</code>).</li>
+</ul>
+<h2 id="execution-flow-and-position-handling">Execution Flow and
+Position Handling</h2>
+<p>When an XSLT processor encounters <code>&lt;xsl:sort&gt;</code>
+children within <code>&lt;xsl:apply-templates&gt;</code> or
+<code>&lt;xsl:for-each&gt;</code>, it alters the sequence of
+evaluation:</p>
+<ol type="1">
+<li><strong>Node Selection</strong>: The processor first selects the
+initial sequence of nodes matching the <code>select</code> expression of
+the parent instruction.</li>
+<li><strong>Key Evaluation</strong>: For every node in the selected
+sequence, the processor calculates the sort key defined in
+<code>&lt;xsl:sort&gt;</code>.</li>
+<li><strong>Sequence Reordering</strong>: The nodes are arranged into a
+new sequence based on the calculated sort keys and comparison
+attributes.</li>
+<li><strong>Context Update</strong>: When processing the sorted nodes,
+dynamic context functions like <code>position()</code> and
+<code>last()</code> reflect the new, sorted sequence rather than
+document order.</li>
+</ol>
+<h2 id="multi-level-sorting">Multi-Level Sorting</h2>
+<p>Complex data sets often require tie-breaking when two or more nodes
+share identical values in their primary sort key. In XSLT, multi-level
+sorting is achieved by declaring multiple <code>&lt;xsl:sort&gt;</code>
+elements consecutively. The processor treats the first
+<code>&lt;xsl:sort&gt;</code> element as the primary key, the second as
+the secondary key, and so on.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;catalog&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;product&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;category&quot;</span> <span class="ot">order=</span><span class="st">&quot;ascending&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;text&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span> <span class="ot">order=</span><span class="st">&quot;descending&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;number&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:apply-templates</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this pattern, all products are first grouped alphabetically by
+category. Within each individual category, products are subsequently
+ordered from highest price to lowest.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

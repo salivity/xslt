@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Data Types Does XSLT Sort Support? - xslt</title>
+    <meta name="description" content="The data-type attribute in the XSLT <xsl:sort> element controls how items are compared during node ordering, distinguishing between alphabetic collation and numerical evaluation. The standard W3C XSLT 1.0 and 2.0/3.0 specifications natively define two co">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-data-types-does-xslt-sort-support">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Data Types Does XSLT Sort Support? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-data-types-does-xslt-sort-support" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The data-type attribute in the XSLT <xsl:sort> element controls how items are compared during node ordering, distinguishing between alphabetic collation and numerical evaluation. The standard W3C XSLT 1.0 and 2.0/3.0 specifications natively define two co" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-data-types-does-xslt-sort-support">What Data Types Does
+XSLT Sort Support?</h1>
+<p>The <code>data-type</code> attribute in the XSLT
+<code>&lt;xsl:sort&gt;</code> element controls how items are compared
+during node ordering, distinguishing between alphabetic collation and
+numerical evaluation. The standard W3C XSLT 1.0 and 2.0/3.0
+specifications natively define two core enumerated
+values—<code>text</code> and <code>number</code>—while also allowing
+QName extension types or explicit XML Schema data types depending on the
+processor version.</p>
+<h2 id="standard-data-types-in-xslt-10">Standard Data Types in XSLT
+1.0</h2>
+<p>In XSLT 1.0, the <code>data-type</code> attribute accepts two primary
+standard values:</p>
+<ul>
+<li><strong><code>text</code> (Default):</strong> Instructs the XSLT
+processor to perform lexicographical (alphabetic) sorting based on
+Unicode code points or local collation rules. Under <code>text</code>
+sorting, the string <code>"10"</code> precedes <code>"2"</code> because
+the character <code>'1'</code> comes before <code>'2'</code>.</li>
+<li><strong><code>number</code>:</strong> Instructs the processor to
+evaluate the sort keys as floating-point numbers. Non-numeric values or
+empty nodes are evaluated as <code>NaN</code> (Not-a-Number), which
+typically sort before all valid numerical values in standard
+implementations.</li>
+</ul>
+<p>XSLT 1.0 also allows a prefixed <code>QName</code> (Qualified Name)
+to support implementation-defined, vendor-specific sorting algorithms,
+though portable stylesheets generally stick to <code>text</code> and
+<code>number</code>.</p>
+<h2 id="enhancements-in-xslt-20-and-30">Enhancements in XSLT 2.0 and
+3.0</h2>
+<p>XSLT 2.0 and XSLT 3.0 expand on sorting capabilities through
+integration with W3C XML Schema data types:</p>
+<ul>
+<li><strong>Standard Built-in Types:</strong> In addition to
+<code>text</code> and <code>number</code>, processors supporting
+Schema-Aware XSLT allow <code>data-type</code> to reference built-in XML
+Schema types such as <code>xs:date</code>, <code>xs:dateTime</code>,
+<code>xs:time</code>, <code>xs:integer</code>, <code>xs:decimal</code>,
+and <code>xs:duration</code>.</li>
+<li><strong>Collation URI Integration:</strong> Rather than relying
+solely on <code>data-type</code> extensions for advanced text
+manipulation, modern XSLT specifications recommend using the
+<code>collation</code> attribute alongside <code>data-type="text"</code>
+to define language-sensitive, case-order, and natural sorting
+rules.</li>
+</ul>
+<h2 id="basic-syntax-example">Basic Syntax Example</h2>
+<p>Sorting nodes numerically in an XSLT template:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;product&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;number&quot;</span> <span class="ot">order=</span><span class="st">&quot;ascending&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">p</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span>/&gt;: $&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span>/&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

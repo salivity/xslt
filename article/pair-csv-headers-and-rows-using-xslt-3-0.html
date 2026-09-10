@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pair CSV Headers and Rows Using XSLT 3.0 - xslt</title>
+    <meta name="description" content="Processing delimited text files like CSV directly into structured XML or JSON has become significantly easier with XSLT 3.0. By leveraging native XPath 3.1 text functions such as unparsed-text() and tokenize(), alongside dynamic element generation, devel">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/pair-csv-headers-and-rows-using-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pair CSV Headers and Rows Using XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/pair-csv-headers-and-rows-using-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing delimited text files like CSV directly into structured XML or JSON has become significantly easier with XSLT 3.0. By leveraging native XPath 3.1 text functions such as unparsed-text() and tokenize(), alongside dynamic element generation, devel" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="pair-csv-headers-and-rows-using-xslt-30">Pair CSV Headers and
+Rows Using XSLT 3.0</h1>
+<p>Processing delimited text files like CSV directly into structured XML
+or JSON has become significantly easier with XSLT 3.0. By leveraging
+native XPath 3.1 text functions such as <code>unparsed-text()</code> and
+<code>tokenize()</code>, alongside dynamic element generation,
+developers can parse raw CSV strings, extract header titles, and
+programmatically bind each row's values to their respective header keys
+without relying on third-party parsers or extensions.</p>
+<h3 id="reading-and-splitting-the-csv-data">Reading and Splitting the
+CSV Data</h3>
+<p>The transformation begins by reading the raw CSV data using
+<code>unparsed-text()</code> or passing the raw text into a stylesheet
+parameter. Once loaded, the text is split into an array of individual
+lines using <code>tokenize()</code> with a regular expression that
+handles common line-break variants (<code>\r?\n</code>).</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;csv-text&quot;</span> <span class="ot">select=</span><span class="st">&quot;unparsed-text(&#39;data.csv&#39;)&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;lines&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize($csv-text, &#39;\r?\n&#39;)[normalize-space()]&quot;</span>/&gt;</span></code></pre></div>
+<p>Filtering out empty lines with <code>[normalize-space()]</code>
+ensures that trailing newlines do not generate phantom nodes during
+processing.</p>
+<h3 id="sanitizing-and-storing-dynamic-headers">Sanitizing and Storing
+Dynamic Headers</h3>
+<p>The first item in the sequence represents the column headers. Because
+CSV headers often contain spaces, punctuation, or start with
+digits—characteristics invalid for XML tag names—they should be
+sanitized using <code>replace()</code> before being mapped to element
+names.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;headers&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string*&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tokenize($lines[1], &#39;,&#39;)&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Remove quotes and replace invalid characters with underscores --&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:sequence</span> <span class="ot">select=</span><span class="st">&quot;replace(replace(., &#39;^</span><span class="dv">&amp;quot;</span><span class="st">|</span><span class="dv">&amp;quot;</span><span class="st">$&#39;, &#39;&#39;), &#39;[^a-zA-Z0-9_\-\.]&#39;, &#39;_&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:variable</span>&gt;</span></code></pre></div>
+<h3 id="dynamically-pairing-headers-with-row-values">Dynamically Pairing
+Headers with Row Values</h3>
+<p>With the headers captured in an indexed sequence, iterate over the
+subsequent lines (the data rows) starting at index <code>2</code>. For
+each row, tokenize the line into columns and use positional indexing to
+pair the column value with the corresponding header name.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">root</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tail($lines)&quot;</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">row</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;columns&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize(., &#39;,&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;$columns&quot;</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;pos&quot;</span> <span class="ot">select=</span><span class="st">&quot;position()&quot;</span>/&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;header-name&quot;</span> <span class="ot">select=</span><span class="st">&quot;$headers[$pos]&quot;</span>/&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$header-name&quot;</span>&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                        &lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{$header-name}&quot;</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>                            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;replace(., &#39;^</span><span class="dv">&amp;quot;</span><span class="st">|</span><span class="dv">&amp;quot;</span><span class="st">$&#39;, &#39;&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                        &lt;/<span class="kw">xsl:element</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">row</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">root</span>&gt;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="alternative-jsonmap-pairing-using-xpath-31-maps">Alternative
+JSON/Map Pairing Using XPath 3.1 Maps</h3>
+<p>If targeting JSON output instead of XML, XSLT 3.0 allows the direct
+creation of XPath 3.1 maps without worrying about XML naming
+restrictions.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tail($lines)&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;columns&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize(., &#39;,&#39;)&quot;</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;row-map&quot;</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">        map:merge(</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">            for $i in 1 to count($headers)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">            return map { $headers[$i]: $columns[$i] }</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="st">        )</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;</span>/&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<h3 id="considerations-for-complex-csv-structures">Considerations for
+Complex CSV Structures</h3>
+<p>While regular expression tokenization is fast and effective for
+straightforward CSV structures, values containing escaped commas or
+embedded line breaks within quotation marks require more specialized
+handling. In these scenarios, replace basic <code>tokenize()</code>
+logic with <code>xsl:analyze-string</code> to parse quotes and field
+delimiters according to the RFC 4180 standard while maintaining the
+dynamic header-to-column pairing architecture.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

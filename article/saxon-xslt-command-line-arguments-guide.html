@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saxon XSLT Command-Line Arguments Guide - xslt</title>
+    <meta name="description" content="This guide provides a practical overview of executing XSLT transformations using the Saxon processor directly from the command line. It covers the core syntax, mandatory flags for source and stylesheet files, standard output options, and essential operat">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/saxon-xslt-command-line-arguments-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Saxon XSLT Command-Line Arguments Guide - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/saxon-xslt-command-line-arguments-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides a practical overview of executing XSLT transformations using the Saxon processor directly from the command line. It covers the core syntax, mandatory flags for source and stylesheet files, standard output options, and essential operat" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="saxon-xslt-command-line-arguments-guide">Saxon XSLT Command-Line
+Arguments Guide</h1>
+<p>This guide provides a practical overview of executing XSLT
+transformations using the Saxon processor directly from the command
+line. It covers the core syntax, mandatory flags for source and
+stylesheet files, standard output options, and essential operational
+switches used to configure transformation behavior.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>To run a transformation using Saxon, invoke the Java runtime against
+the Saxon JAR file, followed by the required arguments and any optional
+parameters:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he-12.x.jar <span class="at">-s:source.xml</span> <span class="at">-xsl:stylesheet.xsl</span> <span class="at">-o:output.xml</span></span></code></pre></div>
+<p><em>(Note: Depending on your installation, the class name
+<code>net.sf.saxon.Transform</code> can be used instead of
+<code>-jar</code> if Saxon is on your Java classpath.)</em></p>
+<h2 id="essential-arguments">Essential Arguments</h2>
+<p>Saxon uses a distinct colon syntax (<code>-flag:value</code>) to bind
+arguments to their values without requiring spaces.</p>
+<ul>
+<li><strong><code>-s:&lt;filename&gt;</code></strong>: Specifies the
+source XML document to be transformed. Example:
+<code>-s:input.xml</code>.</li>
+<li><strong><code>-xsl:&lt;filename&gt;</code></strong>: Specifies the
+primary XSLT stylesheet file. Example:
+<code>-xsl:transform.xsl</code>.</li>
+<li><strong><code>-o:&lt;filename&gt;</code></strong>: Designates the
+output destination file. If omitted, the transformation output is
+written directly to standard output (<code>stdout</code>). Example:
+<code>-o:result.html</code>.</li>
+</ul>
+<h2 id="transformation-entry-points">Transformation Entry Points</h2>
+<p>When starting a transformation without a standard source document or
+targeting a specific entry point, use the following options:</p>
+<ul>
+<li><strong><code>-it</code> or
+<code>-it:&lt;template-name&gt;</code></strong>: Invokes an initial
+named template. If no name is provided, execution begins at the template
+named <code>xsl:initial-template</code>. This is often used when
+generating documents without a primary input XML file.</li>
+<li><strong><code>-im:&lt;mode-name&gt;</code></strong>: Specifies the
+initial processing mode for the transformation.</li>
+</ul>
+<h2 id="operational-and-diagnostic-flags">Operational and Diagnostic
+Flags</h2>
+<p>Saxon includes several flags for monitoring performance, handling
+errors, and managing resolution:</p>
+<ul>
+<li><strong><code>-t</code></strong>: Enables timing and environment
+tracing. It displays the Saxon version, Java version, loading times, and
+execution duration.</li>
+<li><strong><code>-catalog:&lt;files&gt;</code></strong>: Specifies
+catalog files used to resolve external entity and URI references.</li>
+<li><strong><code>-now:&lt;yyyy-mm-ddThh:mm:ss&gt;</code></strong>: Sets
+an explicit date and time for dynamic functions like
+<code>current-dateTime()</code>, ensuring repeatable results during
+automated testing.</li>
+<li><strong><code>-warnings:silent|recover|fatal</code></strong>:
+Determines how the processor handles recoverable errors:
+<ul>
+<li><code>silent</code>: Suppresses warning output and continues
+execution.</li>
+<li><code>recover</code>: Reports warnings but continues
+processing.</li>
+<li><code>fatal</code>: Treats warnings as fatal errors and aborts
+transformation.</li>
+</ul></li>
+<li><strong><code>-versionmsg:off</code></strong>: Disables the default
+startup message that identifies the Saxon product release.</li>
+</ul>
+<h2 id="passing-stylesheet-parameters">Passing Stylesheet
+Parameters</h2>
+<p>Global parameters defined in your XSLT via
+<code>&lt;xsl:param name="paramName"/&gt;</code> can be set by adding
+<code>name=value</code> pairs at the end of the command line:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he-12.x.jar <span class="at">-s:input.xml</span> <span class="at">-xsl:transform.xsl</span> <span class="at">-o:output.xml</span> paramName=paramValue <span class="st">&quot;message=Hello World&quot;</span></span></code></pre></div>
+<p>To pass parameters as untyped atomic values or XPath expressions,
+prefix the parameter name:</p>
+<ul>
+<li><strong><code>+paramName=value</code></strong>: Interpreted as a
+string or filename, resolved as a document reference where
+applicable.</li>
+<li><strong><code>?paramName=expression</code></strong>: Evaluates the
+right-hand value as an XPath 3.1 expression rather than a literal
+string.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

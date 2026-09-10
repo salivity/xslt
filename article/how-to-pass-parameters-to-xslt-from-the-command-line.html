@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Pass Parameters to XSLT from the Command Line - xslt</title>
+    <meta name="description" content="Passing command-line parameters to an XSLT processor enables you to create dynamic, reusable stylesheets that adapt their output based on external runtime inputs. This article covers how to define receiving parameters inside your XSLT file and provides t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-pass-parameters-to-xslt-from-the-command-line">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Pass Parameters to XSLT from the Command Line - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-pass-parameters-to-xslt-from-the-command-line" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Passing command-line parameters to an XSLT processor enables you to create dynamic, reusable stylesheets that adapt their output based on external runtime inputs. This article covers how to define receiving parameters inside your XSLT file and provides t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-pass-parameters-to-xslt-from-the-command-line">How to
+Pass Parameters to XSLT from the Command Line</h1>
+<p>Passing command-line parameters to an XSLT processor enables you to
+create dynamic, reusable stylesheets that adapt their output based on
+external runtime inputs. This article covers how to define receiving
+parameters inside your XSLT file and provides the exact syntax required
+to pass values using the most popular command-line processors:
+<strong>xsltproc</strong>, <strong>Saxon</strong>, and
+<strong>MSXSL</strong>.</p>
+<h2 id="1-declare-the-parameter-in-your-xslt-stylesheet">1. Declare the
+Parameter in Your XSLT Stylesheet</h2>
+<p>Before a processor can accept an external value, the stylesheet must
+declare the parameter using the top-level <code>&lt;xsl:param&gt;</code>
+element. It must be a direct child of
+<code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Declare the parameter with an optional default value --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;environment&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;development&#39;&quot;</span> /&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">html</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">body</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">p</span>&gt;Current Environment: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$environment&quot;</span> /&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">body</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">html</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<hr />
+<h2 id="2-passing-parameters-with-xsltproc">2. Passing Parameters with
+<code>xsltproc</code></h2>
+<p>The <code>xsltproc</code> utility (part of <code>libxslt</code>) is
+standard on macOS and most Linux distributions. It differentiates
+between raw XPath expressions and literal strings.</p>
+<h3 id="passing-a-string-parameter">Passing a String Parameter</h3>
+<p>Use <code>--stringparam</code> when passing plain text to avoid
+manual quote escaping:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">xsltproc</span> <span class="at">--stringparam</span> environment <span class="st">&quot;production&quot;</span> transform.xsl input.xml</span></code></pre></div>
+<h3 id="passing-an-xpath-expression">Passing an XPath Expression</h3>
+<p>Use <code>--param</code> if you are passing an XPath expression,
+numbers, or boolean values. If passing a string via
+<code>--param</code>, the value must be wrapped in nested quotes:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Passing a string using --param (requires nested quotes)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">xsltproc</span> <span class="at">--param</span> environment <span class="st">&quot;&#39;production&#39;&quot;</span> transform.xsl input.xml</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Passing a number or XPath expression</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">xsltproc</span> <span class="at">--param</span> maxItems 10 transform.xsl input.xml</span></code></pre></div>
+<hr />
+<h2 id="3-passing-parameters-with-saxon">3. Passing Parameters with
+Saxon</h2>
+<p>Saxon is the standard processor for modern XSLT (versions 2.0 and
+3.0). With Saxon, parameters are passed as <code>name=value</code> pairs
+placed at the very end of the command.</p>
+<h3 id="standard-syntax">Standard Syntax</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he.jar <span class="at">-s:input.xml</span> <span class="at">-xsl:transform.xsl</span> environment=<span class="st">&quot;production&quot;</span></span></code></pre></div>
+<h3 id="type-handling-in-saxon">Type Handling in Saxon</h3>
+<ul>
+<li><strong>Literal Strings / Untyped:</strong> <code>name=value</code>
+passes the parameter as an untyped atomic value or string.</li>
+<li><strong>XPath Expressions:</strong> Prefix the parameter name with
+<code>?</code> to evaluate the value as an XPath 2.0/3.0 expression:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he.jar <span class="at">-s:input.xml</span> <span class="at">-xsl:transform.xsl</span> <span class="pp">?</span>maxItems=<span class="st">&quot;5 + 5&quot;</span></span></code></pre></div></li>
+<li><strong>XML Node/Document:</strong> Prefix with <code>+</code> to
+have the processor parse the string as an XML file name and pass the
+resulting document node:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he.jar <span class="at">-s:input.xml</span> <span class="at">-xsl:transform.xsl</span> +config=<span class="st">&quot;settings.xml&quot;</span></span></code></pre></div></li>
+</ul>
+<hr />
+<h2 id="4-passing-parameters-with-msxsl">4. Passing Parameters with
+MSXSL</h2>
+<p>For Windows environments using Microsoft's command-line tool
+<code>msxsl.exe</code>, parameters are also passed at the end of the
+command invocation.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>msxsl.exe input.xml transform.xsl <span class="at">-o</span> output.html environment=<span class="st">&quot;production&quot;</span></span></code></pre></div>
+<p>To pass an XPath expression instead of a string literal, wrap the
+expression within single quotes inside double quotes:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>msxsl.exe input.xml transform.xsl <span class="at">-o</span> output.html environment=<span class="st">&quot;&#39;production&#39;&quot;</span></span></code></pre></div>
+<hr />
+<h2 id="key-best-practices">Key Best Practices</h2>
+<ul>
+<li><strong>Always Set Default Values:</strong> Define a fallback inside
+<code>&lt;xsl:param name="..." select="'default'"/&gt;</code> so the
+stylesheet runs properly even if the command-line argument is
+omitted.</li>
+<li><strong>Mind Shell Escaping:</strong> When passing strings that
+contain spaces or special characters, wrap them carefully in quotes
+according to your shell’s rules (e.g., Bash, Zsh, or Windows
+PowerShell/CMD).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

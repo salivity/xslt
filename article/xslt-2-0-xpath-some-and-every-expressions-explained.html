@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 2.0 XPath Some and Every Expressions Explained - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and XPath 2.0, the some and every keywords form quantified expressions used to test boolean conditions across a sequence of items. This article explains the purpose of these operators, contrasts existential and universal quantification, detai">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-2-0-xpath-some-and-every-expressions-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 2.0 XPath Some and Every Expressions Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-2-0-xpath-some-and-every-expressions-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and XPath 2.0, the some and every keywords form quantified expressions used to test boolean conditions across a sequence of items. This article explains the purpose of these operators, contrasts existential and universal quantification, detai" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-20-xpath-some-and-every-expressions-explained">XSLT 2.0
+XPath Some and Every Expressions Explained</h1>
+<p>In XSLT 2.0 and XPath 2.0, the <code>some</code> and
+<code>every</code> keywords form quantified expressions used to test
+boolean conditions across a sequence of items. This article explains the
+purpose of these operators, contrasts existential and universal
+quantification, details their syntax, and demonstrates how to implement
+them effectively to simplify conditional logic within your XSLT
+stylesheets.</p>
+<h2 id="understanding-quantified-expressions">Understanding Quantified
+Expressions</h2>
+<p>Quantified expressions allow you to iterate through an sequence and
+test each member against an explicit condition, returning a single
+boolean value: <code>true</code> or <code>false</code>. They replace
+verbose and error-prone workarounds from XSLT 1.0, such as using
+<code>count()</code> predicates or complex recursively called templates,
+with clean, declarative syntax.</p>
+<p>The expressions rely on a temporary variable bound to each item in
+the evaluated sequence.</p>
+<h3 id="the-basic-syntax">The Basic Syntax</h3>
+<p>Both expressions follow the same structural pattern:</p>
+<pre class="xpath"><code>some $variable in sequence satisfies test-expression</code></pre>
+<pre class="xpath"><code>every $variable in sequence satisfies test-expression</code></pre>
+<p>Multiple variables can also be bound within a single expression:</p>
+<pre class="xpath"><code>some $x in seq1, $y in seq2 satisfies $x = $y</code></pre>
+<hr />
+<h2 id="the-some-expression-existential-quantification">The
+<code>some</code> Expression (Existential Quantification)</h2>
+<p>The <code>some</code> keyword performs existential quantification. It
+checks whether <strong>at least one</strong> item in a given sequence
+satisfies the defined condition.</p>
+<ul>
+<li><strong>Result is <code>true</code></strong> if the
+<code>satisfies</code> condition evaluates to <code>true</code> for at
+least one item.</li>
+<li><strong>Result is <code>false</code></strong> if no items satisfy
+the condition, or if the input sequence is completely empty.</li>
+</ul>
+<h3 id="example">Example</h3>
+<p>Consider an XML document containing an order with multiple items:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">order</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">item</span> <span class="ot">price=</span><span class="st">&quot;25&quot;</span> <span class="ot">status=</span><span class="st">&quot;in-stock&quot;</span> /&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">item</span> <span class="ot">price=</span><span class="st">&quot;60&quot;</span> <span class="ot">status=</span><span class="st">&quot;backordered&quot;</span> /&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">item</span> <span class="ot">price=</span><span class="st">&quot;15&quot;</span> <span class="ot">status=</span><span class="st">&quot;in-stock&quot;</span> /&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">order</span>&gt;</span></code></pre></div>
+<p>To test if any single item costs more than $50:</p>
+<pre class="xpath"><code>some $item in /order/item satisfies xs:decimal($item/@price) &gt; 50</code></pre>
+<p>Because the second item has a price of <code>60</code>, the
+expression immediately resolves to <code>true()</code>.</p>
+<hr />
+<h2 id="the-every-expression-universal-quantification">The
+<code>every</code> Expression (Universal Quantification)</h2>
+<p>The <code>every</code> keyword performs universal quantification. It
+checks whether <strong>all</strong> items in a given sequence satisfy
+the defined condition.</p>
+<ul>
+<li><strong>Result is <code>true</code></strong> if the
+<code>satisfies</code> condition evaluates to <code>true</code> for
+every item in the sequence.</li>
+<li><strong>Result is <code>false</code></strong> if even a single item
+fails the condition.</li>
+<li><strong>Vacuous Truth:</strong> If the target sequence is empty,
+<code>every</code> always returns <code>true</code>.</li>
+</ul>
+<h3 id="example-1">Example</h3>
+<p>Using the same XML order data, to verify if all items are ready for
+shipping:</p>
+<pre class="xpath"><code>every $item in /order/item satisfies $item/@status = &#39;in-stock&#39;</code></pre>
+<p>Because one item has the status <code>backordered</code>, the
+condition fails and the expression returns <code>false()</code>.</p>
+<hr />
+<h2 id="practical-application-in-xslt-20">Practical Application in XSLT
+2.0</h2>
+<p>Quantified expressions are most commonly used in <code>xsl:if</code>
+tests, <code>xsl:when</code> conditions, and template match
+patterns.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;order&quot;</span>&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Apply discounts if every item is eligible --&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;every $i in item satisfies $i/@discount-eligible = &#39;true&#39;&quot;</span>&gt;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;apply-bulk-discount&quot;</span> /&gt;</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Trigger an alert if any item is dangerous --&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;some $i in item satisfies $i/@hazardous = &#39;true&#39;&quot;</span>&gt;</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;flag-hazardous-shipment&quot;</span> /&gt;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<hr />
+<h2 id="key-benefits">Key Benefits</h2>
+<ol type="1">
+<li><strong>Short-Circuit Evaluation:</strong> XPath processors
+typically stop evaluating items as soon as the final result is
+guaranteed (e.g., <code>some</code> stops on the first match, and
+<code>every</code> stops on the first failure), optimizing performance
+on large node-sets.</li>
+<li><strong>Readability:</strong> Quantified expressions state intent
+directly, eliminating the need to write unintuitive logic such as
+<code>not(item/@status != 'in-stock')</code>.</li>
+<li><strong>Type Safety:</strong> You can cast or validate variables
+directly within the <code>satisfies</code> clause before performing
+comparisons.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:for-each-group Simplify XSLT 2.0 Grouping? - xslt</title>
+    <meta name="description" content="XSLT 2.0 introduced the <xsl:for-each-group> element to replace complex, performance-intensive workarounds like Muenchian grouping with a clean, declarative syntax. This article explores how native grouping simplifies stylesheet development, reduces code">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-for-each-group-simplify-xslt-2-0-grouping">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:for-each-group Simplify XSLT 2.0 Grouping? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-for-each-group-simplify-xslt-2-0-grouping" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 2.0 introduced the <xsl:for-each-group> element to replace complex, performance-intensive workarounds like Muenchian grouping with a clean, declarative syntax. This article explores how native grouping simplifies stylesheet development, reduces code" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslfor-each-group-simplify-xslt-20-grouping">How Does
+xsl:for-each-group Simplify XSLT 2.0 Grouping?</h1>
+<p>XSLT 2.0 introduced the <code>&lt;xsl:for-each-group&gt;</code>
+element to replace complex, performance-intensive workarounds like
+Muenchian grouping with a clean, declarative syntax. This article
+explores how native grouping simplifies stylesheet development, reduces
+code complexity, and provides specialized grouping modes tailored to
+different XML data structures.</p>
+<h2 id="the-challenge-of-grouping-in-xslt-10">The Challenge of Grouping
+in XSLT 1.0</h2>
+<p>In XSLT 1.0, performing grouping required developers to use
+workarounds because the language lacked a native grouping construct. The
+standard technique—Muenchian grouping—relied on defining keys with
+<code>xsl:key</code> and matching elements using the
+<code>generate-id()</code> function inside a nested
+<code>xsl:for-each</code> loop. While efficient, this pattern was
+verbose, unintuitive, and difficult to maintain.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- XSLT 1.0 Muenchian Grouping Pattern --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:key</span> <span class="ot">name=</span><span class="st">&quot;by-category&quot;</span> <span class="ot">match=</span><span class="st">&quot;item&quot;</span> <span class="ot">use=</span><span class="st">&quot;@category&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;catalog&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;item[generate-id() = generate-id(key(&#39;by-category&#39;, @category)[1])]&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">h2</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@category&quot;</span>/&gt;&lt;/<span class="kw">h2</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;key(&#39;by-category&#39;, @category)&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">p</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span>/&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Alternative methods in XSLT 1.0, such as using preceding axis
+expressions (<code>preceding-sibling::</code>), produced clean-looking
+code but resulted in severe performance bottlenecks on larger datasets
+due to quadratic comparison overhead (<span
+class="math inline">\(O(n^2)\)</span> complexity).</p>
+<h2 id="native-declarative-grouping-in-xslt-20">Native Declarative
+Grouping in XSLT 2.0</h2>
+<p>The <code>&lt;xsl:for-each-group&gt;</code> element eliminates the
+need for auxiliary keys and ID comparisons by handling group
+partitioning directly inside the processor.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- XSLT 2.0 Native Grouping --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;catalog&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:for-each-group</span> <span class="ot">select=</span><span class="st">&quot;item&quot;</span> <span class="ot">group-by=</span><span class="st">&quot;@category&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">h2</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;current-grouping-key()&quot;</span>/&gt;&lt;/<span class="kw">h2</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;current-group()&quot;</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">p</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span>/&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:for-each-group</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>During each iteration, the processor automatically sets two
+contextual helper functions:</p>
+<ul>
+<li><code>current-grouping-key()</code>: Returns the calculated key
+value for the current group.</li>
+<li><code>current-group()</code>: Returns the sequence of items
+belonging to the current group.</li>
+</ul>
+<h2 id="four-grouping-modes-for-diverse-xml-structures">Four Grouping
+Modes for Diverse XML Structures</h2>
+<p>XSLT 2.0 provides four distinct attributes on
+<code>&lt;xsl:for-each-group&gt;</code> to accommodate various
+structural patterns:</p>
+<h3 id="1-group-by">1. <code>group-by</code></h3>
+<p>Groups elements based on a shared calculated key or attribute value,
+regardless of their position in the source document. It is ideal for
+flat data where order does not dictate membership.</p>
+<h3 id="2-group-adjacent">2. <code>group-adjacent</code></h3>
+<p>Collects consecutive siblings that share the same calculated key
+value. A new group starts as soon as an item has a different key value
+than the preceding one. This is useful when processing formatted
+documents, such as grouping sequential list items between
+paragraphs.</p>
+<h3 id="3-group-starting-with">3. <code>group-starting-with</code></h3>
+<p>Creates a new group every time an element matches a specified
+pattern, including all subsequent nodes until the next matching element.
+This is common when converting flat HTML structures (like
+<code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>,
+<code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>) into hierarchical
+structures (like <code>&lt;section&gt;</code> elements).</p>
+<h3 id="4-group-ending-with">4. <code>group-ending-with</code></h3>
+<p>Creates a new group ending with the element matching the pattern. It
+is commonly used when processing delimiter nodes, such as closing
+page-break tags or terminating markers.</p>
+<h2 id="benefits-of-xslfor-each-group">Benefits of
+<code>&lt;xsl:for-each-group&gt;</code></h2>
+<ul>
+<li><strong>Readability and Maintainability:</strong> Templates clearly
+declare their grouping criteria without boilerplate key
+declarations.</li>
+<li><strong>Performance:</strong> XSLT 2.0 processors optimize native
+grouping internally, avoiding the quadratic scanning penalties of manual
+axis checks.</li>
+<li><strong>Positional Flexibility:</strong> Sibling-based and
+pattern-based attributes handle semi-structured text formats that were
+virtually impossible to group reliably in XSLT 1.0.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

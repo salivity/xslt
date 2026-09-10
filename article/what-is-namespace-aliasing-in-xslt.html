@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is Namespace Aliasing in XSLT? - xslt</title>
+    <meta name="description" content="Namespace aliasing in XSLT, implemented via the <xsl:namespace-alias> element, is a mechanism designed to output XSLT instructions or other specific XML namespaces without triggering execution during transformation. By mapping a temporary prefix used in">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-namespace-aliasing-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is Namespace Aliasing in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-namespace-aliasing-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Namespace aliasing in XSLT, implemented via the <xsl:namespace-alias> element, is a mechanism designed to output XSLT instructions or other specific XML namespaces without triggering execution during transformation. By mapping a temporary prefix used in" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-namespace-aliasing-in-xslt">What Is Namespace Aliasing
+in XSLT?</h1>
+<p>Namespace aliasing in XSLT, implemented via the
+<code>&lt;xsl:namespace-alias&gt;</code> element, is a mechanism
+designed to output XSLT instructions or other specific XML namespaces
+without triggering execution during transformation. By mapping a
+temporary prefix used in the stylesheet to an intended result prefix in
+the output, it solves the fundamental conflict that arises when an XSLT
+stylesheet is used to generate another XSLT stylesheet.</p>
+<h2 id="the-problem-generating-xslt-with-xslt">The Problem: Generating
+XSLT with XSLT</h2>
+<p>When authoring a stylesheet that produces standard XML or HTML,
+elements matching the standard XSLT namespace
+(<code>[http://www.w3.org/1999/XSL/Transform](http://www.w3.org/1999/XSL/Transform)</code>)
+are treated as instructions to be executed by the XSLT processor. Any
+other element is treated as literal result element content and copied
+directly to the output.</p>
+<p>However, when writing an XSLT stylesheet to generate <em>another</em>
+XSLT stylesheet (meta-programming or code generation), any element
+bearing the actual XSLT namespace prefix (such as
+<code>&lt;xsl:template&gt;</code>) is executed immediately rather than
+emitted as literal XML. Attempting to output XSLT syntax directly causes
+the processor to interpret those elements as instructions for the
+current transformation, leading to errors or malformed results.</p>
+<h2 id="how-xslnamespace-alias-works">How
+<code>&lt;xsl:namespace-alias&gt;</code> Works</h2>
+<p>The <code>&lt;xsl:namespace-alias&gt;</code> top-level element
+resolves this collision by allowing developers to declare a proxy or
+alias namespace for the generation phase and swap it with the target
+namespace during output generation.</p>
+<p>The element takes two primary attributes:</p>
+<ul>
+<li><strong><code>stylesheet-prefix</code></strong>: The namespace
+prefix used inside the stylesheet to denote elements intended as
+output.</li>
+<li><strong><code>result-prefix</code></strong>: The namespace prefix
+(and corresponding URI) that should appear in the final output
+document.</li>
+</ul>
+<p>During execution, the processor treats elements tied to the
+<code>stylesheet-prefix</code> as literal result elements. Upon
+serialization, the processor maps that namespace URI to the target URI
+defined by <code>result-prefix</code>.</p>
+<h2 id="example-implementation">Example Implementation</h2>
+<p>Consider a scenario where a stylesheet generates another stylesheet
+containing an <code>&lt;xsl:template&gt;</code> rule:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:axsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/TransformAlias&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Map the temporary &#39;axsl&#39; prefix to the real &#39;xsl&#39; namespace --&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:namespace-alias</span> <span class="ot">stylesheet-prefix=</span><span class="st">&quot;axsl&quot;</span> <span class="ot">result-prefix=</span><span class="st">&quot;xsl&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- axsl elements are treated as literal output elements --&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">axsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">axsl:template</span> <span class="ot">match=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">axsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span>/&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">axsl:template</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">axsl:stylesheet</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="transformation-result">Transformation Result</h3>
+<p>When processed, the <code>axsl</code> namespace URI is replaced by
+the standard XSLT URI:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="key-considerations">Key Considerations</h2>
+<ul>
+<li><strong>Top-Level Element Placement</strong>:
+<code>&lt;xsl:namespace-alias&gt;</code> must always be a top-level
+child of <code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code>.</li>
+<li><strong>Default Namespaces</strong>: The <code>#default</code>
+keyword can be used for either attribute to designate the default
+namespace instead of an explicit prefix.</li>
+<li><strong>URI Identity</strong>: The processor swaps the underlying
+namespace URI rather than merely renaming prefixes, ensuring the
+generated document contains valid namespace bindings conforming to XML
+specifications.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

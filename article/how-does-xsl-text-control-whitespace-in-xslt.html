@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:text Control Whitespace in XSLT? - xslt</title>
+    <meta name="description" content="In Extensible Stylesheet Language Transformations (XSLT), the <xsl:text> element serves as a precise mechanism for managing output whitespace, preserving literal character data, and preventing unwanted text formatting side effects. Because XSLT processor">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-text-control-whitespace-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:text Control Whitespace in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-text-control-whitespace-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Extensible Stylesheet Language Transformations (XSLT), the <xsl:text> element serves as a precise mechanism for managing output whitespace, preserving literal character data, and preventing unwanted text formatting side effects. Because XSLT processor" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xsltext-control-whitespace-in-xslt">How Does xsl:text
+Control Whitespace in XSLT?</h1>
+<p>In Extensible Stylesheet Language Transformations (XSLT), the
+<code>&lt;xsl:text&gt;</code> element serves as a precise mechanism for
+managing output whitespace, preserving literal character data, and
+preventing unwanted text formatting side effects. Because XSLT
+processors automatically strip white-space-only text nodes from
+stylesheets during parsing, developers frequently face formatting
+challenges where spaces, tabs, and line breaks are discarded or
+unintentionally introduced. Using <code>&lt;xsl:text&gt;</code> provides
+explicit control over text node emission, ensuring predictable character
+rendering across XML, HTML, and plain-text serialization.</p>
+<h2 id="default-whitespace-handling-in-xslt">Default Whitespace Handling
+in XSLT</h2>
+<p>XSLT processors operate according to strict whitespace preservation
+and stripping rules outlined in the W3C specifications. When an XSLT
+processor reads a stylesheet, it differentiates between elements in the
+XSLT namespace and literal result elements.</p>
+<p>During the initial stylesheet compilation:</p>
+<ul>
+<li>Any text node containing exclusively whitespace characters (spaces,
+carriage returns, line feeds, and tabs) located within an XSLT element
+is stripped out by default.</li>
+<li>Whitespace adjacent to literal XML tags within templates is
+frequently collapsed or eliminated during output tree construction.</li>
+<li>Formatting applied to enhance stylesheet readability, such as
+indents and new lines, can inadvertently bleed into output text if plain
+character blocks are used outside of structured tags.</li>
+</ul>
+<p>Without a targeted directive, generating exact whitespace—such as a
+single space separating two dynamic values or specific line breaks in
+plain-text output formats like CSV or Markdown—becomes unreliable across
+different processors.</p>
+<h2 id="the-core-functionality-of-xsltext">The Core Functionality of
+<code>&lt;xsl:text&gt;</code></h2>
+<p>The <code>&lt;xsl:text&gt;</code> element instructs the XSLT
+processor to treat enclosed content as a literal text node that must be
+written directly to the result tree.</p>
+<p>Key behaviors of <code>&lt;xsl:text&gt;</code> include:</p>
+<h3 id="1-protection-against-whitespace-stripping">1. Protection Against
+Whitespace Stripping</h3>
+<p>Unlike general XSLT container elements, an
+<code>&lt;xsl:text&gt;</code> element that contains only whitespace
+characters will not have its content stripped during stylesheet parsing.
+Enclosing spaces, line feeds, or tabs inside
+<code>&lt;xsl:text&gt;</code> guarantees that those exact characters are
+emitted into the result document.</p>
+<h3 id="2-isolation-from-stylesheet-indentation">2. Isolation from
+Stylesheet Indentation</h3>
+<p>Developers can format and indent their XSLT stylesheets for visual
+clarity without risking that the indentation logic corrupts the target
+output. Wrapping desired text strings or spaces within
+<code>&lt;xsl:text&gt;</code> isolates the output content from the
+formatting whitespace of the stylesheet itself.</p>
+<h3 id="3-disabling-output-escaping">3. Disabling Output Escaping</h3>
+<p>The <code>&lt;xsl:text&gt;</code> element supports the optional
+attribute <code>disable-output-escaping="yes"</code>. When enabled, this
+attribute allows the emission of characters like <code>&lt;</code> and
+<code>&amp;</code> without converting them into standard XML entities
+(<code>&amp;lt;</code> and <code>&amp;amp;</code>), facilitating raw
+text injection when required for specific non-XML outputs.</p>
+<h2 id="common-practical-use-cases">Common Practical Use Cases</h2>
+<h3
+id="adding-controlled-spacing-between-dynamically-generated-elements">Adding
+Controlled Spacing Between Dynamically Generated Elements</h3>
+<p>When outputting sibling values such as a first name and a last name,
+placing a space between two <code>&lt;xsl:value-of&gt;</code> elements
+directly in the stylesheet can result in the space being discarded by
+the parser.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;FirstName&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:text</span>&gt; &lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;LastName&quot;</span>/&gt;</span></code></pre></div>
+<p>The enclosed space inside
+<code>&lt;xsl:text&gt; &lt;/xsl:text&gt;</code> is preserved as a
+literal character node, guaranteeing consistent separation between the
+output tokens.</p>
+<h3 id="enforcing-line-breaks-in-plain-text-formats">Enforcing Line
+Breaks in Plain Text Formats</h3>
+<p>When generating delimited data or plain text formats, standard
+template line breaks may be parsed ambiguously. Developers can define
+explicit newlines using entity-encoded text elements:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;Record/Field&quot;</span>/&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:text</span>&gt;<span class="dv">&amp;#10;</span>&lt;/<span class="kw">xsl:text</span>&gt;</span></code></pre></div>
+<p>This ensures an exact line feed (ASCII code 10) is added after each
+record, independent of operating system formatting or engine-specific
+indentation rules.</p>
+<h3 id="preventing-unwanted-concatenation-or-gaps">Preventing Unwanted
+Concatenation or Gaps</h3>
+<p>In mixed-content scenarios where inline text meets markup (such as
+producing inline punctuation or formatted HTML spans),
+<code>&lt;xsl:text&gt;</code> eliminates accidental spaces introduced by
+editor auto-formatting tools.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">a</span> <span class="ot">href=</span><span class="st">&quot;{@url}&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@title&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">a</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:text</span>&gt;.&lt;/<span class="kw">xsl:text</span>&gt;</span></code></pre></div>
+<p>Placing the period inside <code>&lt;xsl:text&gt;</code> attaches it
+directly to the link text without intervening whitespace or line wrap
+artifacts.</p>
+<h2 id="summary-of-best-practices">Summary of Best Practices</h2>
+<p>To maintain predictable transformations:</p>
+<ul>
+<li>Use <code>&lt;xsl:text&gt; &lt;/xsl:text&gt;</code> whenever
+single-character spaces are mandatory between dynamic expressions.</li>
+<li>Use numeric character references (such as <code>&amp;#10;</code> for
+line feeds or <code>&amp;#09;</code> for tabs) inside
+<code>&lt;xsl:text&gt;</code> to make whitespace intent explicit and
+immune to automated code formatters.</li>
+<li>Avoid relying on stylesheet whitespace formatting for output
+structure, as parsers optimize and discard unstructured whitespace nodes
+during execution.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

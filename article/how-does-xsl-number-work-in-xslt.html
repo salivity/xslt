@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:number Work in XSLT? - xslt</title>
+    <meta name="description" content="The <xsl:number> element in XSLT is a dedicated instruction used to compute sequential counts, hierarchical numbering, and custom numeric or alphabetic formatting directly from the source XML tree. Rather than requiring developers to manage procedural lo">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-number-work-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:number Work in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-number-work-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The <xsl:number> element in XSLT is a dedicated instruction used to compute sequential counts, hierarchical numbering, and custom numeric or alphabetic formatting directly from the source XML tree. Rather than requiring developers to manage procedural lo" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslnumber-work-in-xslt">How Does xsl:number Work in
+XSLT?</h1>
+<p>The <code>&lt;xsl:number&gt;</code> element in XSLT is a dedicated
+instruction used to compute sequential counts, hierarchical numbering,
+and custom numeric or alphabetic formatting directly from the source XML
+tree. Rather than requiring developers to manage procedural loops or
+index counters, <code>&lt;xsl:number&gt;</code> evaluates a node’s
+position within the document structure and automatically generates
+ordered values such as simple lists, multi-level chapter outlines, or
+Roman-numeral sequences.</p>
+<h2 id="core-purpose-and-functionality">Core Purpose and
+Functionality</h2>
+<p>In declarative stylesheet processing, maintaining sequential counters
+can be challenging because variables in XSLT are immutable. The
+<code>&lt;xsl:number&gt;</code> element solves this by inspecting the
+position of the current node relative to its siblings, ancestors, or
+specified pattern matches.</p>
+<p>The primary use cases include:</p>
+<ul>
+<li>Inserting sequential numbers for ordered HTML or text output.</li>
+<li>Generating multi-level numbering schemes (such as <code>1.1.2</code>
+or <code>Section A.3</code>).</li>
+<li>Formatting numbers into Roman numerals, alphabetized letters, or
+zero-padded strings.</li>
+<li>Counting specific target elements across an entire document or
+within bounded subsections.</li>
+</ul>
+<h2
+id="controlling-numbering-scope-with-the-level-attribute">Controlling
+Numbering Scope with the Level Attribute</h2>
+<p>The <code>level</code> attribute determines how XSLT scans the XML
+hierarchy to determine the sequence number. It supports three distinct
+modes:</p>
+<ol type="1">
+<li><strong>Single (<code>level="single"</code>):</strong> This is the
+default mode. It counts the target node among its preceding siblings
+with the same name or matching pattern, resulting in flat, single-digit
+sequences.</li>
+<li><strong>Multiple (<code>level="multiple"</code>):</strong> This mode
+traverses up the ancestor tree, generating a compound sequence
+representing each hierarchical level. For example, a
+<code>&lt;subsection&gt;</code> inside a <code>&lt;section&gt;</code>
+inside a <code>&lt;chapter&gt;</code> can automatically produce
+identifiers like <code>3.2.1</code>.</li>
+<li><strong>Any (<code>level="any"</code>):</strong> This mode counts
+all matching nodes that appear prior to the current node across the
+entire document tree, regardless of depth or parent containers.</li>
+</ol>
+<h2 id="fine-tuning-with-count-and-from-attributes">Fine-Tuning with
+Count and From Attributes</h2>
+<p>To refine which nodes are included or where the counter resets,
+<code>&lt;xsl:number&gt;</code> provides pattern-matching
+attributes:</p>
+<ul>
+<li><strong><code>count</code>:</strong> An XPath pattern specifying
+exactly which elements to include in the count. This allows developers
+to ignore intervening markup or unrelated siblings.</li>
+<li><strong><code>from</code>:</strong> An XPath pattern that defines a
+boundary. When counting preceding nodes, the counter stops scanning once
+it encounters an ancestor or preceding node matching this pattern,
+effectively resetting the sequence count at section or chapter
+boundaries.</li>
+</ul>
+<h2 id="formatting-options">Formatting Options</h2>
+<p>The <code>format</code> attribute specifies how the calculated
+integer is rendered into the final output. Common formats include:</p>
+<ul>
+<li><code>format="1"</code> produces standard Arabic numbers (1, 2,
+3).</li>
+<li><code>format="01"</code> applies zero-padding for fixed-width digits
+(01, 02, 03).</li>
+<li><code>format="a"</code> or <code>format="A"</code> converts counts
+into lowercase or uppercase Latin letters (a, b, c or A, B, C).</li>
+<li><code>format="i"</code> or <code>format="I"</code> renders numbers
+as lowercase or uppercase Roman numerals (i, ii, iii or I, II,
+III).</li>
+<li><code>format="1.1 "</code> combines with
+<code>level="multiple"</code> to define separators between hierarchical
+levels.</li>
+</ul>
+<h2 id="difference-between-xslnumber-and-position">Difference Between
+xsl:number and position()</h2>
+<p>While the XPath <code>position()</code> function returns the index of
+a node within the currently processed node-set,
+<code>&lt;xsl:number&gt;</code> determines position based on the source
+document structure itself. This makes <code>&lt;xsl:number&gt;</code>
+especially valuable when processing filtered selections, complex
+hierarchies, or when specialized visual formatting like Roman numerals
+or chapter-level prefixes is required.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

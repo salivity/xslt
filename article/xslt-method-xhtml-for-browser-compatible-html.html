@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT method="xhtml" for Browser Compatible HTML - xslt</title>
+    <meta name="description" content="The method="xhtml" output declaration in XSLT controls the serialization of transformation results into Extensible HyperText Markup Language (XHTML). It bridges the gap between strict XML processing and browser rendering requirements, ensuring that the g">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-method-xhtml-for-browser-compatible-html">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT method="xhtml" for Browser Compatible HTML - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-method-xhtml-for-browser-compatible-html" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The method="xhtml" output declaration in XSLT controls the serialization of transformation results into Extensible HyperText Markup Language (XHTML). It bridges the gap between strict XML processing and browser rendering requirements, ensuring that the g" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-methodxhtml-for-browser-compatible-html">XSLT
+method="xhtml" for Browser Compatible HTML</h1>
+<p>The <code>method="xhtml"</code> output declaration in XSLT controls
+the serialization of transformation results into Extensible HyperText
+Markup Language (XHTML). It bridges the gap between strict XML
+processing and browser rendering requirements, ensuring that the
+generated output complies with XML well-formedness standards while
+avoiding common parsing pitfalls in modern and legacy web browsers.</p>
+<h3 id="the-conflict-between-xml-and-html-output-methods">The Conflict
+Between <code>xml</code> and <code>html</code> Output Methods</h3>
+<p>In XSLT, the <code>&lt;xsl:output&gt;</code> element dictates how the
+final document tree is serialized into text:</p>
+<ul>
+<li><strong><code>method="html"</code>:</strong> Targets legacy HTML
+(such as HTML 4.01). It ignores XML syntax rules by omitting end tags on
+empty elements (e.g., generating <code>&lt;br&gt;</code> or
+<code>&lt;input&gt;</code>) and leaving attributes unquoted in some
+implementations. This output cannot be parsed by standard XML
+tools.</li>
+<li><strong><code>method="xml"</code>:</strong> Strictly enforces XML
+syntax. Any empty element is serialized as a self-closing tag (e.g.,
+<code>&lt;div/&gt;</code> or <code>&lt;script/&gt;</code>). When modern
+web browsers parse these documents as standard HTML, self-closing tags
+on non-void elements cause parsing failures. For instance,
+<code>&lt;script src="app.js"/&gt;</code> causes the browser to assume
+all subsequent HTML is part of the unclosed script body, breaking the
+page layout entirely.</li>
+</ul>
+<h3 id="how-methodxhtml-enforces-browser-compatibility">How
+<code>method="xhtml"</code> Enforces Browser Compatibility</h3>
+<p>Introduced natively in XSLT 2.0, <code>method="xhtml"</code> combines
+the structural rigor of XML with specific serialization rules defined in
+the W3C XHTML specifications to preserve browser compatibility:</p>
+<h4 id="1-proper-handling-of-empty-elements">1. Proper Handling of Empty
+Elements</h4>
+<p>The <code>xhtml</code> method differentiates between elements that
+are defined as empty (void) by the HTML specification and elements that
+simply have no content:</p>
+<ul>
+<li><strong>Void Elements:</strong> Tags such as
+<code>&lt;br&gt;</code>, <code>&lt;img&gt;</code>,
+<code>&lt;meta&gt;</code>, and <code>&lt;link&gt;</code> are serialized
+with a trailing space before the closing slash (e.g.,
+<code>&lt;br /&gt;</code>). This format is valid XML and is
+simultaneously understood by traditional HTML parsers.</li>
+<li><strong>Non-Void Elements:</strong> Elements intended to contain
+text or child nodes—such as <code>&lt;div&gt;</code>,
+<code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, and
+<code>&lt;p&gt;</code>—are never self-closed, even when empty. The
+serializer forces full end tags (e.g.,
+<code>&lt;script src="app.js"&gt;&lt;/script&gt;</code> or
+<code>&lt;div&gt;&lt;/div&gt;</code>), preventing catastrophic DOM
+corruption.</li>
+</ul>
+<h4 id="2-escaping-in-script-and-style-blocks">2. Escaping in Script and
+Style Blocks</h4>
+<p>In pure XML, characters like <code>&lt;</code> and <code>&amp;</code>
+inside <code>&lt;script&gt;</code> or <code>&lt;style&gt;</code> tags
+must be escaped as <code>&amp;lt;</code> and <code>&amp;amp;</code>, or
+placed inside CDATA sections. However, raw CDATA markers can cause
+JavaScript syntax errors if not handled correctly. The
+<code>method="xhtml"</code> serializer outputs content inside these
+blocks so that inline code remains executable without violating the
+underlying document structure.</p>
+<h4 id="3-doctype-and-namespace-management">3. DOCTYPE and Namespace
+Management</h4>
+<p>Specifying <code>method="xhtml"</code> automatically coordinates
+standard XHTML DOCTYPE declarations and namespaces:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">method=</span><span class="st">&quot;xhtml&quot;</span> </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">doctype-public=</span><span class="st">&quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">doctype-system=</span><span class="st">&quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span>/&gt;</span></code></pre></div>
+<p>This ensures the browser renders the page in "Standards Mode" rather
+than "Quirks Mode," preventing CSS rendering discrepancies across
+different browser engines.</p>
+<h3 id="implementation-requirements">Implementation Requirements</h3>
+<p>To use <code>method="xhtml"</code>, an XSLT 2.0 or 3.0 processor
+(such as Saxon) is required. The source templates must also declare and
+match elements within the XHTML namespace
+(<code>http://www.w3.org/1999/xhtml</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/1999/xhtml&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xhtml&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">html</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">head</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">title</span>&gt;Compatible Output&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">script</span> <span class="ot">src=</span><span class="st">&quot;script.js&quot;</span>&gt;&lt;/<span class="kw">script</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">head</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">body</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">img</span> <span class="ot">src=</span><span class="st">&quot;graphic.png&quot;</span> <span class="ot">alt=</span><span class="st">&quot;Example&quot;</span> /&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">div</span> <span class="ot">id=</span><span class="st">&quot;container&quot;</span>&gt;&lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">body</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">html</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>By applying <code>method="xhtml"</code>, transformation pipelines
+ensure that downstream XML validators pass the output while web browsers
+receive a predictable, render-safe markup structure.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

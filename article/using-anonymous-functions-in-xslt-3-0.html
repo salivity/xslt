@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Anonymous Functions in XSLT 3.0 - xslt</title>
+    <meta name="description" content="XSLT 3.0 integrates XPath 3.0 and 3.1 capabilities, introducing higher-order functions that allow developers to create and execute anonymous functions—commonly known as lambdas—directly within expressions. This article explains the core syntax for de">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-anonymous-functions-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using Anonymous Functions in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-anonymous-functions-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0 integrates XPath 3.0 and 3.1 capabilities, introducing higher-order functions that allow developers to create and execute anonymous functions—commonly known as lambdas—directly within expressions. This article explains the core syntax for de" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-anonymous-functions-in-xslt-30">Using Anonymous Functions
+in XSLT 3.0</h1>
+<p>XSLT 3.0 integrates XPath 3.0 and 3.1 capabilities, introducing
+higher-order functions that allow developers to create and execute
+anonymous functions—commonly known as lambdas—directly within
+expressions. This article explains the core syntax for declaring
+anonymous functions, demonstrates how to invoke them immediately or
+through variables, and highlights their practical application alongside
+standard higher-order functions like <code>fn:filter</code> and
+<code>fn:for-each</code>.</p>
+<h2 id="syntax-of-an-anonymous-function">Syntax of an Anonymous
+Function</h2>
+<p>An anonymous function is defined inline using the
+<code>function</code> keyword, followed by a parenthesized parameter
+list, an optional return type declaration, and a function body enclosed
+in curly braces.</p>
+<p>The general syntax is:</p>
+<pre class="xpath"><code>function($parameter as type, ...) as return-type { expression }</code></pre>
+<p>Type annotations for parameters and the return type are optional. If
+omitted, they default to <code>item()*</code>.</p>
+<pre class="xpath"><code>function($x) { $x * 2 }</code></pre>
+<h2 id="assigning-lambdas-to-variables">Assigning Lambdas to
+Variables</h2>
+<p>Anonymous functions can be bound to variables using
+<code>&lt;xsl:variable&gt;</code> or <code>&lt;xsl:param&gt;</code>.
+Once stored, the variable acts as a callable function reference.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;square&quot;</span> <span class="ot">select=</span><span class="st">&quot;function($n as xs:integer) as xs:integer { $n * $n }&quot;</span>/&gt;</span></code></pre></div>
+<p>To invoke the function through the variable, append parentheses
+containing the arguments directly to the variable reference:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$square(5)&quot;</span>/&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Output: 25 --&gt;</span></span></code></pre></div>
+<h2 id="immediate-invocation">Immediate Invocation</h2>
+<p>You can define and invoke an anonymous function in a single
+expression without assigning it to a variable. Wrap the function
+definition in parentheses before passing arguments:</p>
+<pre class="xpath"><code>(function($a, $b) { $a + $b })(10, 20)
+&lt;!-- Returns: 30 --&gt;</code></pre>
+<h2 id="passing-lambdas-to-higher-order-functions">Passing Lambdas to
+Higher-Order Functions</h2>
+<p>A primary use case for anonymous functions in XSLT 3.0 is passing
+custom logic directly to built-in higher-order functions such as
+<code>fn:for-each</code>, <code>fn:filter</code>, and
+<code>fn:fold-left</code>.</p>
+<h3 id="example-transforming-sequences-with-fnfor-each">Example:
+Transforming Sequences with <code>fn:for-each</code></h3>
+<p>Instead of creating a separate named <code>xsl:function</code>, you
+can supply an inline transformation:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;numbers&quot;</span> <span class="ot">select=</span><span class="st">&quot;1 to 5&quot;</span>/&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;doubled&quot;</span> <span class="ot">select=</span><span class="st">&quot;for-each($numbers, function($n) { $n * 2 })&quot;</span>/&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Result: (2, 4, 6, 8, 10) --&gt;</span></span></code></pre></div>
+<h3 id="example-filtering-data-with-fnfilter">Example: Filtering Data
+with <code>fn:filter</code></h3>
+<p>Anonymous functions acting as predicates must return a boolean
+value:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;words&quot;</span> <span class="ot">select=</span><span class="st">&quot;(&#39;apple&#39;, &#39;banana&#39;, &#39;fig&#39;, &#39;pear&#39;)&quot;</span>/&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;longWords&quot;</span> <span class="ot">select=</span><span class="st">&quot;filter($words, function($w) { string-length($w) gt 4 })&quot;</span>/&gt;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Result: (&#39;apple&#39;, &#39;banana&#39;) --&gt;</span></span></code></pre></div>
+<h2 id="variable-scoping-and-closures">Variable Scoping and
+Closures</h2>
+<p>Anonymous functions in XSLT 3.0 act as closures. They retain access
+to variables declared in their enclosing lexical scope:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;factor&quot;</span> <span class="ot">select=</span><span class="st">&quot;3&quot;</span>/&gt;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;multiplier&quot;</span> <span class="ot">select=</span><span class="st">&quot;function($n) { $n * $factor }&quot;</span>/&gt;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$multiplier(10)&quot;</span>/&gt;</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Output: 30 --&gt;</span></span></code></pre></div>
+<p>In this case, the lambda captures <code>$factor</code> from the
+stylesheet context and evaluates correctly when invoked.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

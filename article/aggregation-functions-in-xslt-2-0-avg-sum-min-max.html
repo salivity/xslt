@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggregation Functions in XSLT 2.0+: avg, sum, min, max - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and later versions, the aggregation functions avg(), sum(), min(), and max() provide native mechanisms to calculate statistical metrics over sequences of items. Sourced from the shared XPath 2.0 function library, these functions eliminate the">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/aggregation-functions-in-xslt-2-0-avg-sum-min-max">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Aggregation Functions in XSLT 2.0+: avg, sum, min, max - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/aggregation-functions-in-xslt-2-0-avg-sum-min-max" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and later versions, the aggregation functions avg(), sum(), min(), and max() provide native mechanisms to calculate statistical metrics over sequences of items. Sourced from the shared XPath 2.0 function library, these functions eliminate the" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="aggregation-functions-in-xslt-20-avg-sum-min-max">Aggregation
+Functions in XSLT 2.0+: avg, sum, min, max</h1>
+<p>In XSLT 2.0 and later versions, the aggregation functions
+<code>avg()</code>, <code>sum()</code>, <code>min()</code>, and
+<code>max()</code> provide native mechanisms to calculate statistical
+metrics over sequences of items. Sourced from the shared XPath 2.0
+function library, these functions eliminate the complex recursive
+templates that were required in XSLT 1.0. This article explains the
+purpose, behavior, and practical application of each of these four core
+aggregation functions when transforming XML documents.</p>
+<h3 id="overview-of-sequence-aggregation">Overview of Sequence
+Aggregation</h3>
+<p>XSLT 1.0 operated strictly on node-sets and offered only a basic
+<code>sum()</code> function that required implicit conversions to
+numbers. XSLT 2.0+ adopts the XPath 2.0 data model, which is built on
+sequences of atomic values and nodes. Aggregation functions in XSLT 2.0+
+process a sequence of zero or more items, automatically "atomizing"
+nodes into their typed values (such as <code>xs:integer</code>,
+<code>xs:decimal</code>, <code>xs:date</code>, or
+<code>xs:string</code>) before performing calculations.</p>
+<h3 id="the-sum-function">The <code>sum()</code> Function</h3>
+<p>The <code>sum()</code> function computes the arithmetic total of all
+values in an input sequence.</p>
+<ul>
+<li><strong>Purpose:</strong> Calculates the total of numeric values,
+dates, times, or durations.</li>
+<li><strong>Syntax:</strong>
+<code>sum($arg as xs:anyAtomicType*) as xs:anyAtomicType</code> or
+<code>sum($arg, $zero)</code></li>
+<li><strong>Behavior:</strong>
+<ul>
+<li>If the sequence contains numeric items, they are added together
+using standard numeric promotion rules.</li>
+<li>Unlike XSLT 1.0, XSLT 2.0 allows <code>sum()</code> to add
+year-month or day-time durations.</li>
+<li>If the input sequence is empty, <code>sum()</code> returns the
+integer <code>0</code>. An optional second argument allows you to
+specify an alternative fallback value for empty inputs (e.g.,
+<code>sum($items, ())</code>).</li>
+</ul></li>
+</ul>
+<h3 id="the-avg-function">The <code>avg()</code> Function</h3>
+<p>The <code>avg()</code> function calculates the arithmetic mean of a
+sequence of numeric or duration values.</p>
+<ul>
+<li><strong>Purpose:</strong> Determines the average value of a given
+dataset.</li>
+<li><strong>Syntax:</strong>
+<code>avg($arg as xs:anyAtomicType*) as xs:anyAtomicType?</code></li>
+<li><strong>Behavior:</strong>
+<ul>
+<li>It divides the sum of the sequence items by the total number of
+items (<code>fn:count($arg)</code>).</li>
+<li>If the items are of mixed numeric types (e.g., integers and
+doubles), values are promoted to a common type before calculation.</li>
+<li>If the input sequence is empty, <code>avg()</code> returns an empty
+sequence (<code>()</code>), rather than <code>0</code> or
+<code>NaN</code>.</li>
+</ul></li>
+</ul>
+<h3 id="the-min-and-max-functions">The <code>min()</code> and
+<code>max()</code> Functions</h3>
+<p>The <code>min()</code> and <code>max()</code> functions identify the
+extreme boundaries of a sequence based on type-specific ordering.</p>
+<ul>
+<li><strong>Purpose:</strong> Returns the minimum or maximum item from a
+sequence, respectively.</li>
+<li><strong>Syntax:</strong>
+<ul>
+<li><code>min($arg as xs:anyAtomicType*) as xs:anyAtomicType?</code></li>
+<li><code>max($arg as xs:anyAtomicType*) as xs:anyAtomicType?</code></li>
+</ul></li>
+<li><strong>Behavior:</strong>
+<ul>
+<li><strong>Numeric comparison:</strong> Evaluates numeric values to
+find the lowest or highest value.</li>
+<li><strong>String and URI comparison:</strong> Compares values
+lexicographically based on Unicode codepoints or a specified
+collation.</li>
+<li><strong>Dates and Durations:</strong> Identifies the earliest or
+latest date, time, or duration.</li>
+<li>Both functions require all items in the sequence to be mutually
+comparable. Attempting to find the minimum of a mixed sequence of
+strings and numbers will result in a dynamic type error.</li>
+<li>If the input sequence is empty, both functions return an empty
+sequence (<code>()</code>).</li>
+</ul></li>
+</ul>
+<h3 id="summary-of-use-cases">Summary of Use Cases</h3>
+<ul>
+<li>Use <code>sum()</code> when aggregating quantities, itemized
+invoices, or cumulative durations.</li>
+<li>Use <code>avg()</code> when generating summary reports requiring
+mean metrics, such as average test scores or response times.</li>
+<li>Use <code>min()</code> and <code>max()</code> to detect boundaries,
+such as finding the lowest product price, the latest modification date,
+or sorting alphabetic ranges.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

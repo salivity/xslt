@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT Pattern Matching Process XML Nodes? - xslt</title>
+    <meta name="description" content="XSLT templates process XML documents by evaluating node structures against patterns defined in the match attribute of xsl:template rules. When an XSLT processor encounters an XML node, it scans available template rules to identify matching patterns, reso">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-pattern-matching-process-xml-nodes">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT Pattern Matching Process XML Nodes? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-pattern-matching-process-xml-nodes" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT templates process XML documents by evaluating node structures against patterns defined in the match attribute of xsl:template rules. When an XSLT processor encounters an XML node, it scans available template rules to identify matching patterns, reso" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslt-pattern-matching-process-xml-nodes">How Does XSLT
+Pattern Matching Process XML Nodes?</h1>
+<p>XSLT templates process XML documents by evaluating node structures
+against patterns defined in the <code>match</code> attribute of
+<code>xsl:template</code> rules. When an XSLT processor encounters an
+XML node, it scans available template rules to identify matching
+patterns, resolves any conflicts using built-in priority and specificity
+rules, and then executes the body of the winning template to transform
+the selected data.</p>
+<h2
+id="understanding-the-match-attribute-and-xpath-subsets">Understanding
+the Match Attribute and XPath Subsets</h2>
+<p>At the core of template processing is the
+<code>xsl:template match="..."</code> declaration. While standard XPath
+expressions select nodes from anywhere in the document tree relative to
+a context, XSLT match patterns define structural criteria that an
+individual node must satisfy to trigger the template.</p>
+<p>Match patterns use a specialized subset of XPath syntax:</p>
+<ul>
+<li><strong>Node-Type Matches:</strong> Match based on the kind of XML
+construct, such as <code>text()</code>, <code>comment()</code>,
+<code>processing-instruction()</code>, or general elements.</li>
+<li><strong>Element and Attribute Names:</strong> Specify explicit
+QNames or wildcards, such as <code>match="book"</code> or
+<code>match="@isbn"</code>.</li>
+<li><strong>Structural Paths:</strong> Define parent-child or ancestor
+relationships, such as <code>match="library/book"</code> or
+<code>match="catalog//title"</code>.</li>
+<li><strong>Predicates:</strong> Constrain matches using boolean
+expressions, such as <code>match="book[@status='active']"</code> or
+<code>match="item[position() &gt; 1]"</code>.</li>
+</ul>
+<h2 id="the-processing-loop-how-nodes-meet-templates">The Processing
+Loop: How Nodes Meet Templates</h2>
+<p>XSLT uses a recursive descent model driven by instructions such as
+<code>xsl:apply-templates</code>. The matching mechanism follows a
+distinct lifecycle:</p>
+<ol type="1">
+<li><strong>Node Selection:</strong> An instruction (like
+<code>&lt;xsl:apply-templates select="items/item"/&gt;</code>) evaluates
+an XPath selection to build a node list.</li>
+<li><strong>Pattern Evaluation:</strong> For each node in the selected
+sequence, the processor checks all active templates in the stylesheet
+against the current node.</li>
+<li><strong>Conflict Resolution:</strong> If multiple templates match
+the same node, the engine evaluates template import precedence, explicit
+<code>priority</code> attributes, and pattern specificity.</li>
+<li><strong>Template Execution:</strong> The engine applies the winning
+template, transforming the node into the desired output format (HTML,
+XML, JSON, or plain text).</li>
+</ol>
+<h2 id="conflict-resolution-and-template-priority">Conflict Resolution
+and Template Priority</h2>
+<p>When multiple templates match a single node, the processor determines
+the winner using a strict hierarchy:</p>
+<ul>
+<li><strong>Import Precedence:</strong> Templates in the main stylesheet
+take precedence over those in imported stylesheets via
+<code>xsl:import</code>.</li>
+<li><strong>Explicit Priority:</strong> A developer can assign a numeric
+priority (e.g.,
+<code>&lt;xsl:template match="book" priority="2"&gt;</code>). Higher
+values always override lower values at the same import level.</li>
+<li><strong>Default Priority (Specificity):</strong> If no explicit
+priority is set, the processor computes a score based on pattern
+complexity:</li>
+<li><strong>+0.5:</strong> Highly specific patterns involving
+child/ancestor axes or predicates (e.g., <code>section/p</code>,
+<code>book[@id]</code>).</li>
+<li><strong>0:</strong> Type or name tests without predicates (e.g.,
+<code>title</code>, <code>@id</code>,
+<code>processing-instruction('php')</code>).</li>
+<li><strong>-0.25:</strong> Prefix or namespace wildcards (e.g.,
+<code>prefix:*</code>, <code>*:item</code>).</li>
+<li><strong>-0.5:</strong> General wildcards or general node types
+(e.g., <code>*</code>, <code>node()</code>, <code>text()</code>,
+<code>@*</code>).</li>
+</ul>
+<h2 id="built-in-fallback-rules">Built-in Fallback Rules</h2>
+<p>If no user-defined template matches a node during processing, XSLT
+applies built-in default templates.</p>
+<p>For element and root nodes, the built-in rule recursively calls
+<code>xsl:apply-templates</code> on all child nodes, ensuring the
+processor continues down the document tree. For text and attribute
+nodes, the default rule copies their string values directly into the
+result tree. This fallback behavior guarantees that processing does not
+halt unexpectedly when encountering unmapped nodes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

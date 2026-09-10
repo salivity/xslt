@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to namespace-uri-for-prefix in XSLT - xslt</title>
+    <meta name="description" content="The namespace-uri-for-prefix() function in XSLT and XPath is an essential utility for dynamic namespace resolution, allowing stylesheets to determine the namespace Uniform Resource Identifier (URI) bound to a specific prefix within the context of a given">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/guide-to-namespace-uri-for-prefix-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Guide to namespace-uri-for-prefix in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/guide-to-namespace-uri-for-prefix-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The namespace-uri-for-prefix() function in XSLT and XPath is an essential utility for dynamic namespace resolution, allowing stylesheets to determine the namespace Uniform Resource Identifier (URI) bound to a specific prefix within the context of a given" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="guide-to-namespace-uri-for-prefix-in-xslt">Guide to
+namespace-uri-for-prefix in XSLT</h1>
+<p>The <code>namespace-uri-for-prefix()</code> function in XSLT and
+XPath is an essential utility for dynamic namespace resolution, allowing
+stylesheets to determine the namespace Uniform Resource Identifier (URI)
+bound to a specific prefix within the context of a given XML element at
+runtime. Introduced in XPath 2.0 and leveraged heavily in XSLT 2.0 and
+later versions, this function bridges the gap between static stylesheet
+declarations and dynamic XML content, particularly when processing
+QNames embedded in element values or attributes.</p>
+<h3 id="function-signature-and-core-mechanics">Function Signature and
+Core Mechanics</h3>
+<p>The function is formally defined in the standard XPath Functions and
+Operators specification with the following signature:</p>
+<pre class="text"><code>fn:namespace-uri-for-prefix($prefix as xs:string?, $element as element()) as xs:anyURI?</code></pre>
+<p>It accepts two arguments:</p>
+<ol type="1">
+<li><code>$prefix</code>: A string representing the namespace prefix to
+look up. If this is an empty string or an empty sequence, the function
+resolves the default namespace associated with the element.</li>
+<li><code>$element</code>: The context element node whose in-scope
+namespaces are inspected.</li>
+</ol>
+<p>The function evaluates the in-scope namespaces of the supplied
+element and returns the corresponding <code>xs:anyURI</code>. If the
+prefix is not mapped to any namespace in the scope of that element, the
+function returns an empty sequence.</p>
+<h3 id="role-in-dynamic-namespace-resolution">Role in Dynamic Namespace
+Resolution</h3>
+<p>In standard XSLT processing, namespace prefixes are usually resolved
+statically during stylesheet compilation. However, XML documents often
+contain dynamic QNames—such as data types in XML Schema
+(<code>xsi:type="xs:string"</code>), dynamic XPath expressions, or
+domain-specific metadata—where the prefix is stored as dynamic text
+rather than an element or attribute name.</p>
+<p>Static resolution cannot reliably process these values because:</p>
+<ul>
+<li>Prefixes in the source XML may differ from the prefixes defined in
+the XSLT stylesheet, even if they refer to the same URI.</li>
+<li>The prefix mapping can vary across different elements in the source
+document due to local namespace redeclarations.</li>
+</ul>
+<p><code>namespace-uri-for-prefix()</code> solves this by evaluating the
+context node's actual in-scope namespace bindings at execution time. It
+decouples the source document's arbitrary prefix choices from the
+stylesheet's internal logic, allowing the transformation to extract the
+true, unambiguous URI.</p>
+<h3 id="practical-use-cases">Practical Use Cases</h3>
+<h4 id="1-resolving-qnames-in-attributes">1. Resolving QNames in
+Attributes</h4>
+<p>When parsing an attribute value such as
+<code>type="pref:CustomType"</code>, the prefix <code>pref</code> must
+be matched to a URI to confirm its type definition. Using
+<code>substring-before(@type, ':')</code>, the stylesheet extracts
+<code>"pref"</code> and passes it to
+<code>namespace-uri-for-prefix('pref', .)</code> to retrieve the target
+URI.</p>
+<h4 id="2-dynamic-element-and-attribute-generation">2. Dynamic Element
+and Attribute Generation</h4>
+<p>When generating output XML elements dynamically with functions like
+<code>QName($uri, $qname)</code> or the <code>resolve-QName()</code>
+function, <code>namespace-uri-for-prefix()</code> supplies the required
+URI parameter directly from the input context. This ensures that the
+generated nodes retain the semantic identity intended by the source
+XML.</p>
+<h4 id="3-cross-document-reference-mapping">3. Cross-Document Reference
+Mapping</h4>
+<p>When merging or transforming multiple XML documents that use
+different prefix abbreviations for identical namespaces, using this
+function ensures that comparisons are made against canonical URIs rather
+than unpredictable prefix strings.</p>
+<h3 id="key-behaviors-and-edge-cases">Key Behaviors and Edge Cases</h3>
+<ul>
+<li><strong>Default Namespaces:</strong> Passing an empty string
+(<code>""</code>) as the prefix argument retrieves the default namespace
+of the context element. If the element resides in no namespace and has
+no default namespace declared, the function returns an empty
+sequence.</li>
+<li><strong>Unbound Prefixes:</strong> If a source document contains a
+typo or an undeclared prefix in text content, the function returns empty
+rather than halting execution with a fatal dynamic error, allowing the
+stylesheet to implement fallback or error-handling logic.</li>
+<li><strong>Context Dependency:</strong> Because namespace declarations
+cascade and can be overridden by child elements, the second argument
+(<code>$element</code>) is mandatory. The URI returned is strictly
+accurate only for that specific node's scope.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

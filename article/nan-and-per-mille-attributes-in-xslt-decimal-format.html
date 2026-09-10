@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nan and per-mille Attributes in XSLT Decimal Format - xslt</title>
+    <meta name="description" content="In XSLT, the xsl:decimal-format element controls how the format-number() function interprets formatting patterns and outputs numeric values. Within this definition, the nan attribute specifies the fallback string displayed when a target value is not a va">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/nan-and-per-mille-attributes-in-xslt-decimal-format">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="nan and per-mille Attributes in XSLT Decimal Format - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/nan-and-per-mille-attributes-in-xslt-decimal-format" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT, the xsl:decimal-format element controls how the format-number() function interprets formatting patterns and outputs numeric values. Within this definition, the nan attribute specifies the fallback string displayed when a target value is not a va" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nan-and-per-mille-attributes-in-xslt-decimal-format">nan and
+per-mille Attributes in XSLT Decimal Format</h1>
+<p>In XSLT, the <code>xsl:decimal-format</code> element controls how the
+<code>format-number()</code> function interprets formatting patterns and
+outputs numeric values. Within this definition, the <code>nan</code>
+attribute specifies the fallback string displayed when a target value is
+not a valid number, while the <code>per-mille</code> attribute defines
+the character used to represent parts per thousand (‰) in both pattern
+matching and output. Together, they allow developers to handle invalid
+data gracefully and localize specialized percentage-like
+calculations.</p>
+<h3 id="the-role-of-xsldecimal-format">The Role of
+<code>xsl:decimal-format</code></h3>
+<p>The <code>xsl:decimal-format</code> element establishes the symbols
+used by the XPath <code>format-number()</code> function. When
+transforming XML to HTML, text, or other XML formats, standard numbering
+conventions vary between locales and use cases. Defining custom decimal
+formats ensures that numbers, errors, and mathematical notations conform
+to the required output standard.</p>
+<h3 id="the-nan-attribute">The <code>nan</code> Attribute</h3>
+<p>The <code>nan</code> attribute determines what string is output when
+the numeric expression passed to <code>format-number()</code> evaluates
+to <code>NaN</code> (Not a Number).</p>
+<ul>
+<li><strong>Default Value:</strong> <code>"NaN"</code></li>
+<li><strong>Purpose:</strong> By default, if a non-numeric value or an
+invalid mathematical result (such as dividing zero by zero) is
+processed, XSLT renders literal text: <code>NaN</code>. The
+<code>nan</code> attribute allows this representation to be customized
+to user-friendly or localized strings such as <code>"N/A"</code>,
+<code>"Not Applicable"</code>, <code>"-"</code>, or
+<code>"None"</code>.</li>
+<li><strong>Example:</strong>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:decimal-format</span> <span class="ot">name=</span><span class="st">&quot;custom&quot;</span> <span class="ot">nan=</span><span class="st">&quot;N/A&quot;</span> /&gt;</span></code></pre></div>
+Evaluating
+<code>format-number('invalid_string', '#,##0.00', 'custom')</code> will
+output <code>N/A</code> instead of <code>NaN</code>.</li>
+</ul>
+<h3 id="the-per-mille-attribute">The <code>per-mille</code>
+Attribute</h3>
+<p>The <code>per-mille</code> attribute defines the character that
+represents a per-mille sign (parts per thousand) in a format
+pattern.</p>
+<ul>
+<li><strong>Default Value:</strong> <code>‰</code> (Unicode character
+<code>&amp;#x2030;</code>)</li>
+<li><strong>Purpose:</strong> Similar to how the percent symbol
+(<code>%</code>) multiplies a fraction by 100 and appends the sign, a
+per-mille character multiplies the input number by 1,000 and appends the
+specified symbol. The <code>per-mille</code> attribute allows you to
+redefine which character triggers this behavior in the pattern and which
+character appears in the resulting document. This is useful when working
+with specific encodings, environments lacking standard Unicode per-mille
+support, or alternate cultural notations.</li>
+<li><strong>Example:</strong>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:decimal-format</span> <span class="ot">name=</span><span class="st">&quot;promille&quot;</span> <span class="ot">per-mille=</span><span class="st">&quot;m&quot;</span> /&gt;</span></code></pre></div>
+Evaluating <code>format-number(0.025, '#,##0m', 'promille')</code>
+multiplies <code>0.025</code> by 1,000 to produce <code>25m</code>.</li>
+</ul>
+<h3 id="summary-of-usage">Summary of Usage</h3>
+<p>Both attributes give developers precise control over presentation
+logic:</p>
+<ul>
+<li>Use <strong><code>nan</code></strong> to replace system error
+indicators with clean, readable fallback text when data is missing or
+corrupted.</li>
+<li>Use <strong><code>per-mille</code></strong> to manage
+parts-per-thousand mathematical representations according to specific
+locale, character set, or display requirements.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

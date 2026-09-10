@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive XSLT Anti-Patterns and Exponential Complexity - xslt</title>
+    <meta name="description" content="Recursive processing in XSLT is often required for hierarchical transformations, string parsing, and iterative mathematical operations, but flawed implementations can rapidly trigger exponential runtime complexity ($O(2^n)$). This guide breaks down the p">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/recursive-xslt-anti-patterns-and-exponential-complexity">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Recursive XSLT Anti-Patterns and Exponential Complexity - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/recursive-xslt-anti-patterns-and-exponential-complexity" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Recursive processing in XSLT is often required for hierarchical transformations, string parsing, and iterative mathematical operations, but flawed implementations can rapidly trigger exponential runtime complexity ($O(2^n)$). This guide breaks down the p" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="recursive-xslt-anti-patterns-and-exponential-complexity">Recursive
+XSLT Anti-Patterns and Exponential Complexity</h1>
+<p>Recursive processing in XSLT is often required for hierarchical
+transformations, string parsing, and iterative mathematical operations,
+but flawed implementations can rapidly trigger exponential runtime
+complexity (<span class="math inline">\(O(2^n)\)</span>). This guide
+breaks down the primary anti-patterns responsible for severe performance
+degradation in recursive XSLT templates and functions, explaining why
+they stall execution engines and how to refactor them for predictable,
+linear performance.</p>
+<h2 id="1-multiple-unmemoized-recursive-branches">1. Multiple Unmemoized
+Recursive Branches</h2>
+<p>The most direct route to exponential complexity is triggering more
+than one recursive call per execution step without memoization or
+caching. This resembles the classic naive Fibonacci algorithm.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Anti-pattern: Dual recursive branches --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;process-tree&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;node&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$node&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Call 1 --&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;process-tree&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;node&quot;</span> <span class="ot">select=</span><span class="st">&quot;$node/left&quot;</span>/&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Call 2 --&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;process-tree&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;node&quot;</span> <span class="ot">select=</span><span class="st">&quot;$node/right&quot;</span>/&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>When a template splits its workload into two or more calls at every
+depth, the call stack branches exponentially. If the branching factor is
+<span class="math inline">\(b\)</span> and the tree depth is <span
+class="math inline">\(d\)</span>, the processor executes <span
+class="math inline">\(O(b^d)\)</span> operations.</p>
+<p><strong>Solution:</strong> Flatten the traversal using standard
+pattern-matching template rules
+(<code>&lt;xsl:apply-templates select="left | right"/&gt;</code>)
+instead of explicit named recursion, or utilize XSLT 3.0's
+<code>xsl:iterate</code> to maintain linear processing.</p>
+<h2 id="2-dynamic-axis-scanning-inside-recursive-steps">2. Dynamic Axis
+Scanning Inside Recursive Steps</h2>
+<p>Evaluating open-ended XPath axes (such as <code>//</code>,
+<code>preceding-sibling::*</code>, or <code>following::*</code>) inside
+a recursive step causes geometric expansion of the search space.</p>
+<p>A frequent anti-pattern involves scanning the entire sibling axis on
+each step:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Anti-pattern: Evaluating axes relative to context repeatedly --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;sum-elements&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;current&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$current&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;rest&quot;</span> <span class="ot">select=</span><span class="st">&quot;$current/following-sibling::item&quot;</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Cost of following-sibling increases or scans repeatedly --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$current/@val + sum($rest/@val)&quot;</span>/&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>When an axis expression like <code>following-sibling::*[1]</code> is
+coupled with operations that re-evaluate the remainder of the node-set
+from the root or document scope, the engine must recalculate node
+sequences repeatedly. If combined with predicate filters that search
+descendant axes, operations often cross from polynomial into exponential
+behavior as the node list grows.</p>
+<p><strong>Solution:</strong> Pass the pre-computed node sequence as a
+parameter and pop nodes from the sequence using head/tail
+decomposition:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;remaining&quot;</span> <span class="ot">select=</span><span class="st">&quot;$remaining[position() &gt; 1]&quot;</span>/&gt;</span></code></pre></div>
+<h2
+id="3-accumulated-tree-copying-accidental-quadratic-and-exponential-growth">3.
+Accumulated Tree Copying (Accidental Quadratic and Exponential
+Growth)</h2>
+<p>Recursively building result-tree fragments by copying previous
+results forward creates massive memory churn and degrades execution
+times drastically.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Anti-pattern: Passing an ever-expanding tree fragment --&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;build-structure&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;accumulated&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;items&quot;</span>/&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;empty($items)&quot;</span>&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;$accumulated&quot;</span>/&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;new-tree&quot;</span>&gt;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;$accumulated&quot;</span>/&gt;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">item</span> <span class="ot">value=</span><span class="st">&quot;{$items[1]}&quot;</span>/&gt;</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;build-structure&quot;</span>&gt;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;accumulated&quot;</span> <span class="ot">select=</span><span class="st">&quot;$new-tree&quot;</span>/&gt;</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;items&quot;</span> <span class="ot">select=</span><span class="st">&quot;$items[position() &gt; 1]&quot;</span>/&gt;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Because XSLT variables are immutable, deep-copying
+<code>$accumulated</code> inside each step forces the processor to
+re-allocate and copy every previously processed node. For deep inputs,
+this quickly consumes all available heap space and forces garbage
+collection thrashing that mirrors exponential degradation.</p>
+<p><strong>Solution:</strong> Emit elements directly to the result
+pipeline rather than capturing and re-copying intermediate trees in
+parameters.</p>
+<h2 id="4-inhibiting-tail-call-optimization-tco">4. Inhibiting Tail-Call
+Optimization (TCO)</h2>
+<p>Modern XSLT processors (like Saxon) optimize linear recursive
+templates into iterative loops via Tail-Call Optimization (TCO). This
+optimization is broken when operations occur <em>after</em> the
+recursive invocation.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Anti-pattern: Operation occurs after the recursive call --&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;count-nodes&quot;</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;nodes&quot;</span>/&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;not($nodes)&quot;</span>&gt;0&lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            <span class="co">&lt;!-- Processor cannot optimize: must hold frame open to add 1 --&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;sub-total&quot;</span>&gt;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;count-nodes&quot;</span>&gt;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;nodes&quot;</span> <span class="ot">select=</span><span class="st">&quot;$nodes[position() &gt; 1]&quot;</span>/&gt;</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$sub-total + 1&quot;</span>/&gt;</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>When an operation wraps a recursive call, the engine must maintain
+the execution context for every level on the call stack. While primarily
+an <span class="math inline">\(O(n)\)</span> memory issue, this triggers
+extreme CPU overhead and stack overflows when nested within multi-pass
+transformations or dynamic node evaluation.</p>
+<p><strong>Solution:</strong> Accumulate values in a parameter so that
+the recursive call is the absolute final expression evaluated in the
+execution branch:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;count-nodes&quot;</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;nodes&quot;</span>/&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;accumulator&quot;</span> <span class="ot">select=</span><span class="st">&quot;0&quot;</span>/&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;not($nodes)&quot;</span>&gt;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$accumulator&quot;</span>/&gt;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;count-nodes&quot;</span>&gt;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;nodes&quot;</span> <span class="ot">select=</span><span class="st">&quot;$nodes[position() &gt; 1]&quot;</span>/&gt;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;accumulator&quot;</span> <span class="ot">select=</span><span class="st">&quot;$accumulator + 1&quot;</span>/&gt;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="summary-checklist-for-linear-recursion">Summary Checklist for
+Linear Recursion</h2>
+<ul>
+<li><strong>Single path of execution:</strong> Ensure only one recursive
+step executes per branch.</li>
+<li><strong>TCO Compliance:</strong> Never perform string concatenation,
+arithmetic, or XML wrapping on the return value of a recursive call;
+pass the state forward using parameters.</li>
+<li><strong>Pre-calculated sequences:</strong> Avoid evaluating document
+axes inside recursive parameters; pass references to established
+sequences and slice them using index predicates.</li>
+<li><strong>Prefer Native Constructs:</strong> In XSLT 2.0 and 3.0,
+replace recursive templates with <code>xsl:for-each-group</code>,
+<code>tokenize()</code>, or <code>xsl:iterate</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using element-available() for XSLT Compatibility - xslt</title>
+    <meta name="description" content="The element-available() function in XSLT allows developers to determine whether a specific instruction or extension element is supported by the executing processor before invoking it. By returning a boolean value, this function enables stylesheets to dyn">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-element-available-for-xslt-compatibility">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using element-available() for XSLT Compatibility - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-element-available-for-xslt-compatibility" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The element-available() function in XSLT allows developers to determine whether a specific instruction or extension element is supported by the executing processor before invoking it. By returning a boolean value, this function enables stylesheets to dyn" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-element-available-for-xslt-compatibility">Using
+element-available() for XSLT Compatibility</h1>
+<p>The <code>element-available()</code> function in XSLT allows
+developers to determine whether a specific instruction or extension
+element is supported by the executing processor before invoking it. By
+returning a boolean value, this function enables stylesheets to
+dynamically adapt to varying XSLT versions (such as 1.0, 2.0, and 3.0)
+and vendor-specific extension mechanisms. Consequently, it prevents
+fatal processor errors and ensures cross-platform backward and forward
+compatibility across heterogeneous runtime environments.</p>
+<h3 id="the-challenge-of-heterogeneous-xslt-environments">The Challenge
+of Heterogeneous XSLT Environments</h3>
+<p>Enterprise systems and web applications often deploy stylesheets
+across disparate processors, including libxslt, Apache Xalan, and modern
+Saxon engines. When a stylesheet relies on features introduced in newer
+specifications (such as <code>xsl:analyze-string</code> from XSLT 2.0)
+or vendor-specific proprietary extensions, older or minimal processors
+typically encounter unknown instruction elements. In normal execution,
+encountering an unrecognized instruction element triggers a fatal static
+error, terminating the transformation entirely.</p>
+<h3 id="dynamic-capability-detection">Dynamic Capability Detection</h3>
+<p>The <code>element-available()</code> function resolves this issue by
+inspecting the processor's element registry at runtime or compile time.
+It takes a single string argument—the qualified name (QName) of an
+element—and evaluates whether the processor can execute it as an
+instruction:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;element-available(&#39;xsl:analyze-string&#39;)&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Advanced regex processing for XSLT 2.0+ engines --&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Fallback baseline logic for XSLT 1.0 processors --&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>By querying element support inside conditional blocks
+(<code>xsl:if</code> or <code>xsl:choose</code>), the stylesheet
+establishes branch logic. The processor ignores instructions enclosed
+within branches that evaluate to false, allowing newer features to be
+leveraged when available while maintaining uninterrupted execution on
+legacy engines.</p>
+<h3
+id="coexistence-with-xslfallback-and-forwards-compatible-mode">Coexistence
+with <code>xsl:fallback</code> and Forwards-Compatible Mode</h3>
+<p>The <code>element-available()</code> function frequently complements
+XSLT's native forwards-compatible behavior and the
+<code>&lt;xsl:fallback&gt;</code> element. When a stylesheet specifies a
+version higher than what the active engine supports (for instance, a
+<code>version="2.0"</code> stylesheet running on a 1.0 engine),
+forwards-compatible mode is activated.</p>
+<p>Under this mode:</p>
+<ol type="1">
+<li>Unknown top-level elements are ignored.</li>
+<li>Unknown instruction elements inside templates do not immediately
+trigger a fatal error if they contain an
+<code>&lt;xsl:fallback&gt;</code> child element.</li>
+<li>Combining forwards-compatible mode with
+<code>element-available()</code> allows developers to deliberately test
+capabilities and decide whether to structure logic via explicit
+conditionals or through nested <code>&lt;xsl:fallback&gt;</code>
+declarations.</li>
+</ol>
+<h3 id="bridging-proprietary-extensions-and-standards">Bridging
+Proprietary Extensions and Standards</h3>
+<p>Heterogeneous environments often feature differing proprietary
+element namespaces, such as EXSLT (<code>http://exslt.org/common</code>)
+versus processor-specific elements like <code>saxon:iterate</code>. The
+<code>element-available()</code> function acts as a discovery mechanism
+to detect which extension namespace is actively loaded:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;element-available(&#39;exsl:document&#39;)&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">exsl:document</span> <span class="ot">href=</span><span class="st">&quot;output.xml&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">exsl:document</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:message</span> <span class="ot">terminate=</span><span class="st">&quot;no&quot;</span>&gt;Multiple output document creation is not supported by this engine.&lt;/<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>By verifying that an extension element is recognized prior to
+execution, the stylesheet isolates processor-dependent behavior,
+ensuring consistent transformations across diverse production
+infrastructures.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

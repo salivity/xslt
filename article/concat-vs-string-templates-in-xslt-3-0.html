@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>concat() vs String Templates in XSLT 3.0 - xslt</title>
+    <meta name="description" content="This article compares traditional string concatenation using the XPath concat() function with string templates—specifically Text Value Templates (TVTs)—introduced in XSLT 3.0. While both approaches allow developers to combine dynamic expressions with">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/concat-vs-string-templates-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="concat() vs String Templates in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/concat-vs-string-templates-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article compares traditional string concatenation using the XPath concat() function with string templates—specifically Text Value Templates (TVTs)—introduced in XSLT 3.0. While both approaches allow developers to combine dynamic expressions with" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="concat-vs-string-templates-in-xslt-30">concat() vs String
+Templates in XSLT 3.0</h1>
+<p>This article compares traditional string concatenation using the
+XPath <code>concat()</code> function with string templates—specifically
+Text Value Templates (TVTs)—introduced in XSLT 3.0. While both
+approaches allow developers to combine dynamic expressions with static
+text, they differ significantly in syntax, readability, maintainability,
+and processor requirements. Understanding these differences enables
+developers to write cleaner, more expressive transformations when
+working with modern XSLT processors.</p>
+<h3 id="syntax-and-readability">Syntax and Readability</h3>
+<p>The <code>concat()</code> function requires passing every piece of
+literal text and dynamic expression as separate comma-delimited
+arguments. As the number of dynamic parts and delimiters increases,
+<code>concat()</code> statements quickly become cluttered with quotation
+marks, commas, and parentheses.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Using concat() --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;concat(&#39;Hello, &#39;, $firstName, &#39; &#39;, $lastName, &#39;! You have &#39;, count(items), &#39; items.&#39;)&quot;</span>/&gt;</span></code></pre></div>
+<p>XSLT 3.0 introduces Text Value Templates, enabled by setting
+<code>expand-text="yes"</code> on an element or stylesheet. This allows
+expressions to be embedded directly inside text nodes or attributes
+using curly braces (<code>{}</code>), functioning like string
+interpolation in languages such as JavaScript or C#.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Using String Templates (TVT) with expand-text=&quot;yes&quot; --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">p</span> <span class="ot">xsl:expand-text=</span><span class="st">&quot;yes&quot;</span>&gt;Hello, {$firstName} {$lastName}! You have {count(items)} items.&lt;/<span class="kw">p</span>&gt;</span></code></pre></div>
+<p>The resulting code is much easier to read and maintain because the
+literal text maintains its natural spacing and structure without broken
+quote boundaries.</p>
+<h3 id="handling-separators-and-sequences">Handling Separators and
+Sequences</h3>
+<p>When dealing with sequences of items, <code>concat()</code> expects
+individual atomic arguments or an explicit separator through XPath 3.1's
+<code>string-join()</code> function. Passing a sequence of more than one
+item to an argument in <code>concat()</code> results in a type error
+unless handled manually.</p>
+<p>In contrast, an expression evaluated inside <code>{}</code> within an
+XSLT 3.0 string template automatically converts sequences to strings by
+joining items with a single space separator by default. This makes
+outputting simple lists or series of values more direct:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Automatically separates items with a space --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">span</span> <span class="ot">xsl:expand-text=</span><span class="st">&quot;yes&quot;</span>&gt;{(&#39;Apple&#39;, &#39;Banana&#39;, &#39;Cherry&#39;)}&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Output: Apple Banana Cherry --&gt;</span></span></code></pre></div>
+<h3 id="escaping-curly-braces">Escaping Curly Braces</h3>
+<p>One key syntactic difference is the handling of literal curly
+braces:</p>
+<ul>
+<li>With <code>concat()</code>, curly braces require no special
+treatment and can be passed directly as string literals:
+<code>concat('{', $value, '}')</code>.</li>
+<li>With string templates and <code>expand-text="yes"</code>, literal
+curly braces must be doubled (<code>{{</code> and <code>}}</code>) so
+the processor does not mistake them for an expression container:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">script</span> <span class="ot">xsl:expand-text=</span><span class="st">&quot;yes&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  function run() {{</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    console.log(&quot;{$message}&quot;);</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  }}</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">script</span>&gt;</span></code></pre></div>
+<h3 id="backward-compatibility-and-processor-support">Backward
+Compatibility and Processor Support</h3>
+<p>The <code>concat()</code> function has been part of the core XPath
+specification since XPath 1.0. It works across any XSLT processor
+regardless of age or version (XSLT 1.0, 2.0, or 3.0).</p>
+<p>String templates and Text Value Templates require an XSLT
+3.0-compliant processor, such as Saxon-HE 9.8+ or higher. If a
+stylesheet must maintain compatibility with legacy XSLT 1.0 or 2.0
+runtimes, <code>concat()</code> remains the standard approach.</p>
+<h3 id="summary">Summary</h3>
+<p>Use <code>concat()</code> when writing backward-compatible
+stylesheets for XSLT 1.0 or 2.0 processors, or for very short, two-item
+combinations. Use XSLT 3.0 string templates
+(<code>expand-text="yes"</code>) for multi-variable strings, readable
+templates, markup generation, and cleaner stylesheet architecture.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

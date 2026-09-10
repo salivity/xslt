@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Large Log Files with XSLT 3.0 Streaming - xslt</title>
+    <meta name="description" content="Processing multi-gigabyte log files using XSLT 3.0 streaming enables transformations of massive datasets without exhausting system memory. By bypassing the traditional requirement to build an in-memory XML tree, XSLT 3.0 processes nodes sequentially as t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/process-large-log-files-with-xslt-3-0-streaming">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Process Large Log Files with XSLT 3.0 Streaming - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/process-large-log-files-with-xslt-3-0-streaming" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing multi-gigabyte log files using XSLT 3.0 streaming enables transformations of massive datasets without exhausting system memory. By bypassing the traditional requirement to build an in-memory XML tree, XSLT 3.0 processes nodes sequentially as t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="process-large-log-files-with-xslt-30-streaming">Process Large
+Log Files with XSLT 3.0 Streaming</h1>
+<p>Processing multi-gigabyte log files using XSLT 3.0 streaming enables
+transformations of massive datasets without exhausting system memory. By
+bypassing the traditional requirement to build an in-memory XML tree,
+XSLT 3.0 processes nodes sequentially as they arrive from the parser and
+discards them immediately after execution. This approach eliminates
+<code>OutOfMemoryError</code> failures, allowing processors to handle
+arbitrarily large files using a minimal, constant memory footprint.</p>
+<h2 id="the-memory-bottleneck-of-traditional-xslt">The Memory Bottleneck
+of Traditional XSLT</h2>
+<p>Standard XSLT 1.0 and 2.0 processors require the entire document to
+be parsed into an in-memory tree—the XQuery and XPath Data Model (XDM).
+In practice, an XML tree can consume four to ten times the raw file size
+in RAM. Attempting to parse a 20 GB log file would require up to 200 GB
+of memory, causing standard processors to crash.</p>
+<p>XSLT 3.0 solves this by introducing streaming: the processor reads an
+input document sequentially, emits output, and immediately releases
+processed nodes from memory.</p>
+<h2 id="core-mechanisms-of-xslt-30-streaming">Core Mechanisms of XSLT
+3.0 Streaming</h2>
+<p>Streaming relies on specific language constructs designed to enforce
+sequential, single-pass evaluation.</p>
+<h3 id="1-declaring-streamability">1. Declaring Streamability</h3>
+<p>To enable streaming, the stylesheet must explicitly declare a
+streamable mode using the <code>xsl:mode</code> directive:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:mode</span> <span class="ot">name=</span><span class="st">&quot;stream-log&quot;</span> <span class="ot">streamable=</span><span class="st">&quot;yes&quot;</span> <span class="ot">on-no-match=</span><span class="st">&quot;shallow-skip&quot;</span>/&gt;</span></code></pre></div>
+<p>Setting <code>on-no-match="shallow-skip"</code> ensures that the
+processor skips over large wrapper elements without attempting to retain
+them in memory, drilling down to the specific log entries.</p>
+<h3 id="2-using-copy-of-and-snapshot-on-bounded-nodes">2. Using
+<code>copy-of()</code> and <code>snapshot()</code> on Bounded Nodes</h3>
+<p>Because a streamed node cannot be revisited once passed, expressions
+cannot freely navigate forward and backward along axes like
+<code>preceding-sibling::</code> or
+<code>following-sibling::</code>.</p>
+<p>To process an individual log entry with standard, non-streamed XPath
+expressions, extract a bounded sub-tree using <code>copy-of()</code> or
+<code>snapshot()</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;log/entry&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Creates an in-memory copy of only this individual entry --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;currentEntry&quot;</span> <span class="ot">select=</span><span class="st">&quot;copy-of(.)&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$currentEntry/@level = &#39;ERROR&#39;&quot;</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">error-report</span> <span class="ot">timestamp=</span><span class="st">&quot;{$currentEntry/@timestamp}&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$currentEntry/message&quot;</span>/&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">error-report</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>The memory footprint remains limited to the size of a single
+<code>&lt;entry&gt;</code> node, regardless of the overall file
+size.</p>
+<h3 id="3-sequential-iteration-with-xsliterate">3. Sequential Iteration
+with <code>xsl:iterate</code></h3>
+<p>For tasks requiring sequence evaluation without deep recursive calls,
+<code>xsl:iterate</code> replaces standard <code>xsl:for-each</code>. It
+processes items sequentially, allowing state to be passed from one
+iteration to the next using parameters:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;log&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:iterate</span> <span class="ot">select=</span><span class="st">&quot;entry&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;errorCount&quot;</span> <span class="ot">select=</span><span class="st">&quot;0&quot;</span>/&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;@level = &#39;ERROR&#39;&quot;</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;errorCount&quot;</span> <span class="ot">select=</span><span class="st">&quot;$errorCount + 1&quot;</span>/&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;errorCount&quot;</span> <span class="ot">select=</span><span class="st">&quot;$errorCount&quot;</span>/&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:next-iteration</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:iterate</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="4-maintaining-state-with-accumulators">4. Maintaining State with
+Accumulators</h3>
+<p>Streaming prohibits looking backward to count previous events or
+retrieve past data. XSLT 3.0 uses <code>xsl:accumulator</code> to
+maintain state across the stream. Accumulators update values
+automatically as nodes are encountered:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:accumulator</span> <span class="ot">name=</span><span class="st">&quot;error-counter&quot;</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                 <span class="ot">as=</span><span class="st">&quot;xs:integer&quot;</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                 <span class="ot">initial-value=</span><span class="st">&quot;0&quot;</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                 <span class="ot">streamable=</span><span class="st">&quot;yes&quot;</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:accumulator-rule</span> <span class="ot">match=</span><span class="st">&quot;entry[@level=&#39;ERROR&#39;]&quot;</span> </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                          <span class="ot">select=</span><span class="st">&quot;$value + 1&quot;</span>/&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:accumulator</span>&gt;</span></code></pre></div>
+<p>The accumulator value can be queried at any point using
+<code>accumulator-before()</code> or <code>accumulator-after()</code>
+without retaining historical elements in memory.</p>
+<h2 id="rules-for-maintaining-constant-memory">Rules for Maintaining
+Constant Memory</h2>
+<p>To ensure a streaming transformation executes in constant memory:</p>
+<ul>
+<li><strong>Avoid downward navigation after reading:</strong> Do not
+reference child nodes multiple times if they are consumed sequentially.
+Wrap the context in <code>copy-of()</code> to create a small, transient
+local tree.</li>
+<li><strong>Avoid memory-retaining axes:</strong> Axes such as
+<code>following::</code>, <code>preceding::</code>, and unbounded
+<code>ancestor::</code> violate streamability constraints.</li>
+<li><strong>Keep buffers small:</strong> Ensure individual repeated
+elements (e.g., <code>&lt;entry&gt;</code>) remain reasonably sized. A
+single log entry spanning hundreds of megabytes will still strain heap
+memory when copied.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

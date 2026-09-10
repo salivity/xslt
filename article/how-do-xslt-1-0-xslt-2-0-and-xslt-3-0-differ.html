@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Do XSLT 1.0, XSLT 2.0, and XSLT 3.0 Differ? - xslt</title>
+    <meta name="description" content="XSLT (Extensible Stylesheet Language Transformations) has evolved significantly over two decades, transitioning from a basic XML-to-HTML presentation engine into a powerful, general-purpose functional programming language. While XSLT 1.0 introduced found">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-do-xslt-1-0-xslt-2-0-and-xslt-3-0-differ">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Do XSLT 1.0, XSLT 2.0, and XSLT 3.0 Differ? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-do-xslt-1-0-xslt-2-0-and-xslt-3-0-differ" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT (Extensible Stylesheet Language Transformations) has evolved significantly over two decades, transitioning from a basic XML-to-HTML presentation engine into a powerful, general-purpose functional programming language. While XSLT 1.0 introduced found" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-do-xslt-10-xslt-20-and-xslt-30-differ">How Do XSLT 1.0, XSLT
+2.0, and XSLT 3.0 Differ?</h1>
+<p>XSLT (Extensible Stylesheet Language Transformations) has evolved
+significantly over two decades, transitioning from a basic XML-to-HTML
+presentation engine into a powerful, general-purpose functional
+programming language. While XSLT 1.0 introduced foundational template
+matching for simple document transformations, XSLT 2.0 modernized the
+language with strong typing, regular expressions, and native grouping,
+and XSLT 3.0 expanded capabilities further by introducing streaming,
+native JSON processing, higher-order functions, and packaging
+modularity.</p>
+<h2 id="xslt-10-the-foundational-transformation-language">XSLT 1.0: The
+Foundational Transformation Language</h2>
+<p>Released as a W3C Recommendation in 1999, XSLT 1.0 was designed
+primarily to convert XML documents into HTML, plain text, or other XML
+structures. It relies on XPath 1.0 for node navigation and pattern
+matching.</p>
+<p>Key characteristics and limitations of XSLT 1.0 include:</p>
+<ul>
+<li><strong>Limited Data Model:</strong> The XSLT 1.0 data model
+consists of only four primitive types: string, number (floating-point
+IEEE 754), boolean, and node-set. It lacks native date/time or integer
+types.</li>
+<li><strong>Result Tree Fragments:</strong> When variables store tree
+structures, they are treated as non-navigable "result tree fragments"
+rather than proper node-sets. Performing multi-pass transformations
+required proprietary vendor extension functions such as
+<code>exsl:node-set()</code>.</li>
+<li><strong>Single Output Document:</strong> XSLT 1.0 can only generate
+a single output document from a transformation run. Splitting an XML
+document into multiple files required processor-specific
+extensions.</li>
+<li><strong>Primitive String and Grouping Capabilities:</strong> Complex
+string manipulation and grouping operations (such as the Muenchian
+method for grouping distinct values) required verbose, complex XPath
+workarounds.</li>
+<li><strong>Extension Mechanisms:</strong> Reusable logic was limited to
+named templates (<code>&lt;xsl:call-template&gt;</code>), without native
+support for user-defined functions or regular expressions.</li>
+</ul>
+<h2 id="xslt-20-strong-typing-and-functional-modernization">XSLT 2.0:
+Strong Typing and Functional Modernization</h2>
+<p>Published in 2007, XSLT 2.0 was paired with XPath 2.0 and the W3C XML
+Schema (XSD) type system. This release resolved most architectural
+bottlenecks present in XSLT 1.0.</p>
+<p>Key advancements in XSLT 2.0 include:</p>
+<ul>
+<li><strong>Sequences and Unified Data Model:</strong> Sequences
+replaced node-sets and abolished the distinction between node-sets and
+result tree fragments. An item can be an atomic value or a node, and
+sequences can contain heterogeneous items.</li>
+<li><strong>Schema Awareness and Rich Data Types:</strong> Built-in
+support for W3C XML Schema types (including <code>xs:dateTime</code>,
+<code>xs:integer</code>, and <code>xs:duration</code>) allows for strict
+type validation and type checking via <code>as</code> attributes.</li>
+<li><strong>Native Grouping:</strong> The
+<code>&lt;xsl:for-each-group&gt;</code> instruction introduced standard,
+high-performance grouping based on distinct values, common keys, or
+adjacent patterns (<code>group-by</code>, <code>group-adjacent</code>,
+<code>group-starting-with</code>, <code>group-ending-with</code>).</li>
+<li><strong>Multiple Output Files:</strong> The
+<code>&lt;xsl:result-document&gt;</code> instruction enables the
+creation of secondary output files directly within standard XSLT.</li>
+<li><strong>Regular Expressions:</strong> Native pattern matching,
+tokenization, and string replacement became standard through functions
+like <code>matches()</code>, <code>replace()</code>,
+<code>tokenize()</code>, and the <code>&lt;xsl:analyze-string&gt;</code>
+instruction.</li>
+<li><strong>User-Defined Functions:</strong> Stylesheets can declare
+reusable functions using <code>&lt;xsl:function&gt;</code>, which can be
+called directly from XPath expressions.</li>
+</ul>
+<h2 id="xslt-30-streaming-json-and-enterprise-architecture">XSLT 3.0:
+Streaming, JSON, and Enterprise Architecture</h2>
+<p>Finalized in 2017, XSLT 3.0 transformed the technology to handle
+modern web data formats and big data workflows. It aligns with XPath 3.0
+and 3.1.</p>
+<p>Major features introduced in XSLT 3.0 include:</p>
+<ul>
+<li><strong>Streaming Processing:</strong> XSLT 3.0 allows
+transformations on documents that exceed available memory. By defining
+streaming rules (<code>streamable="yes"</code>), the processor reads
+input as a continuous stream of events without building an in-memory
+document tree.</li>
+<li><strong>First-Class JSON Integration:</strong> XSLT 3.0 natively
+handles JSON data structures through the introduction of maps and arrays
+in XPath 3.1, along with built-in functions like
+<code>json-to-xml()</code>, <code>xml-to-json()</code>, and
+<code>parse-json()</code>.</li>
+<li><strong>Higher-Order and Anonymous Functions:</strong> Functions can
+be stored in variables, passed as arguments to other functions, and
+returned as dynamic values.</li>
+<li><strong>Packages and Modularity:</strong> The
+<code>&lt;xsl:package&gt;</code> and
+<code>&lt;xsl:use-package&gt;</code> declarations allow the development
+of independent, reusable libraries with private/public scoping and
+version management.</li>
+<li><strong>Robust Error Handling:</strong> The
+<code>&lt;xsl:try&gt;</code> and <code>&lt;xsl:catch&gt;</code>
+instructions provide standardized exception handling to intercept
+transformation errors gracefully.</li>
+<li><strong>Assertions and Schema Assertions:</strong> The
+<code>&lt;xsl:assert&gt;</code> instruction allows runtime validation of
+stylesheet conditions to assist in debugging and testing.</li>
+</ul>
+<h2 id="summary-comparison-of-key-capabilities">Summary Comparison of
+Key Capabilities</h2>
+<table>
+<thead>
+<tr>
+<th>Feature / Capability</th>
+<th>XSLT 1.0</th>
+<th>XSLT 2.0</th>
+<th>XSLT 3.0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>XPath Version</strong></td>
+<td>XPath 1.0</td>
+<td>XPath 2.0</td>
+<td>XPath 3.0 / 3.1</td>
+</tr>
+<tr>
+<td><strong>Primary Data Structure</strong></td>
+<td>Node-sets</td>
+<td>Sequences</td>
+<td>Sequences, Maps, Arrays</td>
+</tr>
+<tr>
+<td><strong>JSON Support</strong></td>
+<td>None</td>
+<td>Limited (via extensions)</td>
+<td>Native (maps, arrays, parsing)</td>
+</tr>
+<tr>
+<td><strong>Streaming Large Files</strong></td>
+<td>Not supported</td>
+<td>Not supported</td>
+<td>Native streamability rules</td>
+</tr>
+<tr>
+<td><strong>Multiple Outputs</strong></td>
+<td>Vendor extensions only</td>
+<td><code>&lt;xsl:result-document&gt;</code></td>
+<td><code>&lt;xsl:result-document&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Grouping Support</strong></td>
+<td>Muenchian technique</td>
+<td><code>&lt;xsl:for-each-group&gt;</code></td>
+<td><code>&lt;xsl:for-each-group&gt;</code> + Maps</td>
+</tr>
+<tr>
+<td><strong>Regular Expressions</strong></td>
+<td>Not supported</td>
+<td>Native support</td>
+<td>Native support</td>
+</tr>
+<tr>
+<td><strong>User Functions</strong></td>
+<td>Named templates only</td>
+<td><code>&lt;xsl:function&gt;</code></td>
+<td>Named, inline, higher-order</td>
+</tr>
+<tr>
+<td><strong>Error Handling</strong></td>
+<td>Processor termination</td>
+<td>Processor termination</td>
+<td><code>&lt;xsl:try&gt;</code> / <code>&lt;xsl:catch&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Modularity Model</strong></td>
+<td><code>include</code> / <code>import</code></td>
+<td><code>include</code> / <code>import</code></td>
+<td>Packages (<code>&lt;xsl:package&gt;</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Choosing between these versions largely depends on the runtime
+environment. XSLT 1.0 remains widely used in client-side web browsers
+due to native browser engine support. For backend server environments,
+data integration pipelines, and modern applications, XSLT 2.0 and 3.0
+are the standard choice due to their superior performance, type safety,
+JSON capabilities, and modern functional design.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

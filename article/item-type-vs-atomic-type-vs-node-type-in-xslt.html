@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Type vs Atomic Type vs Node Type in XSLT - xslt</title>
+    <meta name="description" content="In XSLT and XPath 2.0 and later, sequence validation relies on the XQuery and XPath Data Model (XDM) to constrain and verify variables, function parameters, and template outputs. Understanding sequence validation requires distinguishing between an item t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/item-type-vs-atomic-type-vs-node-type-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Item Type vs Atomic Type vs Node Type in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/item-type-vs-atomic-type-vs-node-type-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath 2.0 and later, sequence validation relies on the XQuery and XPath Data Model (XDM) to constrain and verify variables, function parameters, and template outputs. Understanding sequence validation requires distinguishing between an item t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="item-type-vs-atomic-type-vs-node-type-in-xslt">Item Type vs
+Atomic Type vs Node Type in XSLT</h1>
+<p>In XSLT and XPath 2.0 and later, sequence validation relies on the
+XQuery and XPath Data Model (XDM) to constrain and verify variables,
+function parameters, and template outputs. Understanding sequence
+validation requires distinguishing between an item type, an atomic type,
+and a node type. An item type is the generalized supertype representing
+any individual constituent of a sequence, whereas atomic types represent
+typed scalar data values and node types represent structural components
+of an XML tree.</p>
+<h3 id="the-xdm-hierarchy">The XDM Hierarchy</h3>
+<p>Everything in modern XSLT is a sequence of zero, one, or more items.
+The relationship between item types, node types, and atomic types forms
+a strict type hierarchy:</p>
+<ul>
+<li><strong><code>item()</code></strong>: The universal base type for
+all sequence entries.</li>
+<li><strong><code>node()</code></strong>: A subtype of
+<code>item()</code> representing document tree components.</li>
+<li><strong><code>xs:anyAtomicType</code></strong>: A subtype of
+<code>item()</code> representing scalar values.</li>
+</ul>
+<p>In the XDM, <code>node()</code> and <code>xs:anyAtomicType</code> are
+disjoint. A single item can be a node or an atomic value, but it cannot
+be both at the same time.</p>
+<h3 id="item-type-item">Item Type (<code>item()</code>)</h3>
+<p>An item type is the broadest categorization available for sequence
+validation. An item is any single object that can exist within an XSLT
+sequence.</p>
+<p>When validating sequences using <code>as="item()*"</code>, the
+processor accepts:</p>
+<ul>
+<li>Any kind of node (elements, attributes, text nodes, documents).</li>
+<li>Any atomic value (integers, strings, booleans, dates).</li>
+<li>Functions, maps, and arrays (in XSLT 3.0).</li>
+</ul>
+<p>Using an item type declaration provides the least strict type safety.
+It ensures only that an item exists, without enforcing whether it
+represents structured XML markup or simple scalar data.</p>
+<h3 id="node-type-node">Node Type (<code>node()</code>)</h3>
+<p>A node type represents a physical or virtual component of an XML
+document tree. Nodes possess node identity, a position within a document
+hierarchy, and document order.</p>
+<p>Node types can be specified broadly using <code>node()</code> or
+narrowed to specific kinds of nodes:</p>
+<ul>
+<li><code>element()</code> or <code>element(name, type)</code>:
+Represents XML elements, with optional name and schema constraints.</li>
+<li><code>attribute()</code>: Represents XML attributes.</li>
+<li><code>text()</code>: Represents character data nodes within elements
+or documents.</li>
+<li><code>document-node()</code>: Represents the root node of an XML
+document or document fragment.</li>
+<li><code>comment()</code> and <code>processing-instruction()</code>:
+Represent metadata markup.</li>
+</ul>
+<p>Validating an argument as <code>as="node()"</code> requires an actual
+node reference. If you pass a literal string like <code>"test"</code> to
+a parameter typed as <code>node()</code>, the XSLT processor raises a
+type error.</p>
+<h3 id="atomic-type-xsanyatomictype">Atomic Type
+(<code>xs:anyAtomicType</code>)</h3>
+<p>An atomic type represents a scalar, indivisible value without child
+nodes, attributes, or tree identity. Atomic types are derived from the
+W3C XML Schema specification and include:</p>
+<ul>
+<li><code>xs:string</code></li>
+<li><code>xs:integer</code>, <code>xs:decimal</code>,
+<code>xs:double</code></li>
+<li><code>xs:boolean</code></li>
+<li><code>xs:date</code>, <code>xs:dateTime</code></li>
+<li><code>xs:QName</code></li>
+</ul>
+<p>When validating a sequence with an atomic type such as
+<code>as="xs:string"</code>, the processor expects a typed value. While
+an element node containing the text <code>"123"</code> has a string
+value, it is not an atomic value itself. To pass a node to a parameter
+expecting an atomic type, the node must undergo atomization (extracting
+its typed value via functions like <code>data()</code> or automatic
+typed conversions in function calls).</p>
+<h3 id="key-differences-in-sequence-validation">Key Differences in
+Sequence Validation</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Characteristic</th>
+<th style="text-align: left;">Item Type (<code>item()</code>)</th>
+<th style="text-align: left;">Node Type (<code>node()</code>)</th>
+<th style="text-align: left;">Atomic Type
+(<code>xs:anyAtomicType</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Scope</strong></td>
+<td style="text-align: left;">Universal supertype; includes nodes,
+atomic values, and functions.</td>
+<td style="text-align: left;">Subtype of <code>item()</code>; restricted
+to XML tree constructs.</td>
+<td style="text-align: left;">Subtype of <code>item()</code>; restricted
+to scalar values.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Hierarchy</strong></td>
+<td style="text-align: left;">Root of the item hierarchy.</td>
+<td style="text-align: left;">Excludes atomic values and functions.</td>
+<td style="text-align: left;">Excludes nodes and functions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tree Identity</strong></td>
+<td style="text-align: left;">May or may not have identity depending on
+the item.</td>
+<td style="text-align: left;">Always possesses identity and document
+order.</td>
+<td style="text-align: left;">Never possesses identity or document
+order.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Atomization</strong></td>
+<td style="text-align: left;">Preserves items as-is without forced
+extraction.</td>
+<td style="text-align: left;">Requires explicit or implicit atomization
+to yield values.</td>
+<td style="text-align: left;">Already an atomic value; no atomization
+needed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Validation Example</strong></td>
+<td style="text-align: left;"><code>as="item()*"</code> allows
+<code>&lt;e/&gt;</code>, <code>42</code>, and <code>"text"</code>.</td>
+<td style="text-align: left;"><code>as="element()"</code> allows
+<code>&lt;e/&gt;</code>, rejects <code>"42"</code>.</td>
+<td style="text-align: left;"><code>as="xs:integer"</code> allows
+<code>42</code>, rejects <code>&lt;e&gt;42&lt;/e&gt;</code> without
+atomization.</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

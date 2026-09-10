@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSXML: Legacy XSL vs Modern XSLT Standards - xslt</title>
+    <meta name="description" content="The Microsoft XML Core Services (MSXML) processor manages the divide between legacy XSL and modern XSLT by using distinct processing engines triggered by the stylesheet's declared XML namespace. Early MSXML versions shipped with an implementation based o">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/msxml-legacy-xsl-vs-modern-xslt-standards">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MSXML: Legacy XSL vs Modern XSLT Standards - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/msxml-legacy-xsl-vs-modern-xslt-standards" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Microsoft XML Core Services (MSXML) processor manages the divide between legacy XSL and modern XSLT by using distinct processing engines triggered by the stylesheet's declared XML namespace. Early MSXML versions shipped with an implementation based o" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="msxml-legacy-xsl-vs-modern-xslt-standards">MSXML: Legacy XSL vs
+Modern XSLT Standards</h1>
+<p>The Microsoft XML Core Services (MSXML) processor manages the divide
+between legacy XSL and modern XSLT by using distinct processing engines
+triggered by the stylesheet's declared XML namespace. Early MSXML
+versions shipped with an implementation based on the 1998 W3C Working
+Draft of XSL, while later releases adopted the official 1999 W3C XSLT
+1.0 recommendation. This article examines how MSXML identifies these
+formats, how version history dictates engine behavior, the syntactical
+divergence between XSL Pattern and XPath, and the practical steps for
+handling legacy transformations in modern environments.</p>
+<h3 id="namespace-based-engine-selection">Namespace-Based Engine
+Selection</h3>
+<p>MSXML determines whether to parse a stylesheet as legacy XSL or
+standard XSLT entirely through the root element's namespace
+declaration.</p>
+<ul>
+<li><strong>Legacy XSL (WD-xsl):</strong> Identified by the namespace
+URI <code>http://www.w3.org/TR/WD-xsl</code>. When MSXML encounters this
+URI, it switches to a legacy execution engine that implements
+Microsoft's interpretation of the December 1998 W3C Working Draft.</li>
+<li><strong>Standard XSLT 1.0:</strong> Identified by the namespace URI
+<code>http://www.w3.org/1999/XSL/Transform</code>. This URI signals
+MSXML to use its W3C-compliant XSLT 1.0 processor.</li>
+</ul>
+<p>If an unsupported namespace or a typo exists within the URI, the
+processor will fail to recognize the document as a stylesheet, often
+returning an error indicating that the stylesheet format is invalid.</p>
+<h3 id="msxml-version-progression-and-support">MSXML Version Progression
+and Support</h3>
+<p>The evolution of MSXML reflects the shift from proprietary draft
+implementations to strict standard compliance:</p>
+<ul>
+<li><strong>MSXML 2.0 and 2.5:</strong> These early releases only
+supported the <code>WD-xsl</code> dialect. They lacked native support
+for the finalized XSLT 1.0 specification.</li>
+<li><strong>MSXML 3.0:</strong> A transitional release that provided
+dual-engine support. MSXML 3.0 achieved full W3C XSLT 1.0 compliance
+while maintaining backwards compatibility for legacy <code>WD-xsl</code>
+documents by routing stylesheets to the appropriate internal parser
+based on the namespace.</li>
+<li><strong>MSXML 4.0 and 5.0:</strong> These versions prioritized
+standard XSLT 1.0 and deprecated <code>WD-xsl</code>. While some
+backward compatibility remained, performance optimizations were
+concentrated strictly on the standard engine.</li>
+<li><strong>MSXML 6.0:</strong> The modern baseline for Windows
+applications completely removed support for the
+<code>http://www.w3.org/TR/WD-xsl</code> namespace. MSXML 6.0 operates
+exclusively as an XSLT 1.0 processor and throws a parsing failure if
+presented with a legacy <code>WD-xsl</code> stylesheet.</li>
+</ul>
+<h3 id="key-syntactic-and-behavioral-differences">Key Syntactic and
+Behavioral Differences</h3>
+<p>The processing differences between the two standards extend beyond
+the namespace declaration into syntax, pattern matching, and execution
+logic.</p>
+<h4 id="query-language-xsl-pattern-vs-xpath-10">Query Language: XSL
+Pattern vs. XPath 1.0</h4>
+<p>Legacy XSL relies on a preliminary query language called "XSL
+Pattern," whereas modern XSLT relies on standardized XPath 1.0.</p>
+<ul>
+<li><strong>Indexing:</strong> In legacy XSL Patterns, node indexes are
+zero-based (e.g., <code>item[0]</code>). In standard XPath 1.0, indexes
+are one-based (e.g., <code>item[1]</code>).</li>
+<li><strong>Filtering:</strong> Legacy XSL often used syntax like
+<code>context()</code> or proprietary comparison operators inside
+brackets, whereas XPath 1.0 uses standardized predicates and boolean
+functions (e.g., <code>[position() = 1]</code>).</li>
+</ul>
+<h4 id="conditional-logic">Conditional Logic</h4>
+<p>Legacy <code>WD-xsl</code> features an <code>&lt;xsl:eval&gt;</code>
+tag and distinct conditional tags that execute Microsoft JScript or
+VBScript directly inline. Standard XSLT replaces these with
+<code>&lt;xsl:if test="..."&gt;</code> and
+<code>&lt;xsl:choose&gt;</code>,
+<code>&lt;xsl:when test="..."&gt;</code>, and
+<code>&lt;xsl:otherwise&gt;</code>, operating purely through declarative
+XPath expressions rather than embedded script expressions.</p>
+<h4 id="extensibility-and-scripting">Extensibility and Scripting</h4>
+<p>While XSLT 1.0 natively encourages template-driven transformations,
+MSXML retains extensibility via the
+<code>urn:schemas-microsoft-com:xslt</code> namespace
+(<code>msxsl:script</code>). However, in standard XSLT, scripts are
+encapsulated within <code>&lt;msxsl:script&gt;</code> blocks and called
+as custom extension functions inside XPath expressions, unlike the
+inline execution style found in <code>WD-xsl</code>.</p>
+<h3 id="migrating-from-legacy-xsl-to-standard-xslt-in-msxml">Migrating
+from Legacy XSL to Standard XSLT in MSXML</h3>
+<p>To process legacy stylesheets using modern MSXML runtimes
+(specifically MSXML 6.0), templates must be updated to comply with XSLT
+1.0:</p>
+<ol type="1">
+<li><strong>Update the Namespace:</strong> Change the root element
+namespace to
+<code>xmlns:xsl="http://www.w3.org/1999/XSL/Transform"</code> and
+specify the attribute <code>version="1.0"</code>.</li>
+<li><strong>Adjust Collection Indexing:</strong> Increment all
+zero-based index queries by one to align with 1-based XPath
+indexing.</li>
+<li><strong>Refactor Methods and Scripting:</strong> Replace legacy
+<code>&lt;xsl:eval&gt;</code> blocks with pure XPath functions or wrap
+custom logic in <code>&lt;msxsl:script&gt;</code> blocks declared at the
+top level of the stylesheet.</li>
+<li><strong>Replace Deprecated Directives:</strong> Convert legacy
+structural elements, such as <code>&lt;xsl:order-by&gt;</code>, into
+modern <code>&lt;xsl:sort&gt;</code> child elements placed inside
+<code>&lt;xsl:apply-templates&gt;</code> or
+<code>&lt;xsl:for-each&gt;</code>.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

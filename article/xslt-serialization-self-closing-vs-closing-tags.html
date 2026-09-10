@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Serialization: Self-Closing vs Closing Tags - xslt</title>
+    <meta name="description" content="This article explains how XSLT processors handle self-closing tags versus explicit opening and closing tags when serializing XML output. While the W3C XML specification treats both syntaxes as semantically identical, downstream systems often require one">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-serialization-self-closing-vs-closing-tags">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Serialization: Self-Closing vs Closing Tags - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-serialization-self-closing-vs-closing-tags" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how XSLT processors handle self-closing tags versus explicit opening and closing tags when serializing XML output. While the W3C XML specification treats both syntaxes as semantically identical, downstream systems often require one" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-serialization-self-closing-vs-closing-tags">XSLT
+Serialization: Self-Closing vs Closing Tags</h1>
+<p>This article explains how XSLT processors handle self-closing tags
+versus explicit opening and closing tags when serializing XML output.
+While the W3C XML specification treats both syntaxes as semantically
+identical, downstream systems often require one specific form. Below is
+an overview of how the XSLT data model functions during transformation,
+how the serialization phase determines tag formatting, and the practical
+methods developers use to force explicit closing tags when
+necessary.</p>
+<h2 id="the-abstract-data-model-vs-serialization">The Abstract Data
+Model vs. Serialization</h2>
+<p>In XSLT, transformations operate on an abstract tree representation
+known as the XQuery and XPath Data Model (XDM). Within this data model,
+an element node with no child nodes is simply an empty element. The data
+model makes no distinction between <code>&lt;item/&gt;</code> and
+<code>&lt;item&gt;&lt;/item&gt;</code>.</p>
+<p>Because this internal representation does not record how the element
+was originally written in the source document, the decision to output a
+self-closing tag or an explicit pair of tags is deferred entirely to the
+serializer—the component responsible for converting the result tree back
+into raw text.</p>
+<h2 id="default-xml-serialization-behavior">Default XML Serialization
+Behavior</h2>
+<p>When using standard XML output:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p>The serializer is permitted by the W3C XML specification to represent
+any empty element using either syntax:</p>
+<ul>
+<li>Self-closing: <code>&lt;element/&gt;</code></li>
+<li>Full pair: <code>&lt;element&gt;&lt;/element&gt;</code></li>
+</ul>
+<p>Most modern XSLT processors (such as Saxon, Xalan, or xsltproc)
+default to the self-closing syntax (<code>&lt;element/&gt;</code>) for
+empty elements to minimize file size and improve processing speed.
+Standard XSLT 1.0 and 2.0 specifications provide no native attribute
+within <code>&lt;xsl:output&gt;</code> to mandate explicit closing tags
+for empty XML elements.</p>
+<h2 id="serialization-modes-and-their-effects">Serialization Modes and
+Their Effects</h2>
+<p>The choice of serialization method via the
+<code>&lt;xsl:output&gt;</code> element directly impacts how tags are
+written:</p>
+<h3 id="1-methodxml">1. <code>method="xml"</code></h3>
+<p>The processor treats empty tags as candidates for the abbreviated
+self-closing form. Unless children (text, comments, or other elements)
+exist, <code>&lt;tag/&gt;</code> is the default output.</p>
+<h3 id="2-methodhtml">2. <code>method="html"</code></h3>
+<p>The serializer applies traditional HTML 4.01/HTML5 rules. Void
+elements (such as <code>&lt;br&gt;</code>, <code>&lt;img&gt;</code>,
+<code>&lt;input&gt;</code>, and <code>&lt;hr&gt;</code>) are written
+without closing tags or with self-closing slashes depending on the
+configuration. Non-void elements (such as
+<code>&lt;div&gt;&lt;/div&gt;</code>,
+<code>&lt;script&gt;&lt;/script&gt;</code>, and
+<code>&lt;p&gt;&lt;/p&gt;</code>) are explicitly closed, even when
+empty, because self-closing non-void tags are invalid in standard
+HTML.</p>
+<h3 id="3-methodxhtml">3. <code>method="xhtml"</code></h3>
+<p>The serializer follows XHTML guidelines (such as Appendix C of XHTML
+1.0). It renders void elements as self-closing with a preceding space
+(e.g., <code>&lt;br /&gt;</code>) and empty non-void elements with
+explicit closing tags (e.g., <code>&lt;p&gt;&lt;/p&gt;</code>).</p>
+<h2 id="how-to-force-explicit-closing-tags-in-xml-output">How to Force
+Explicit Closing Tags in XML Output</h2>
+<p>Because some legacy parsers or client-side tools incorrectly fail
+when encountering self-closing tags like <code>&lt;script/&gt;</code> or
+<code>&lt;div/&gt;</code> inside XML or XHTML data streams, developers
+use several techniques to force explicit closing tags.</p>
+<h3 id="technique-1-adding-an-empty-comment">Technique 1: Adding an
+Empty Comment</h3>
+<p>Inserting an empty comment inside an element ensures the element is
+not technically empty in the node tree, forcing the serializer to
+generate both start and end tags without altering the visual text
+output:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">script</span> <span class="ot">type=</span><span class="st">&quot;text/javascript&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:comment</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">script</span>&gt;</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="dt">&gt;</span><span class="op">&lt;!--</span>\<span class="op">--&gt;</span><span class="dt">&lt;/</span><span class="kw">script</span><span class="dt">&gt;</span></span></code></pre></div>
+<h3
+id="technique-2-injecting-a-zero-width-space-or-empty-character-reference">Technique
+2: Injecting a Zero-Width Space or Empty Character Reference</h3>
+<p>Adding an invisible entity or a controlled text node prevents the
+processor from collapsing the element:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">div</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;<span class="dv">&amp;#x200B;</span>&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">div</span>&gt;</span></code></pre></div>
+<p><em>Note: This alters the character content of the element and should
+be avoided if strict data validation or string-length checks are applied
+downstream.</em></p>
+<h3
+id="technique-3-using-processor-specific-serialization-properties">Technique
+3: Using Processor-Specific Serialization Properties</h3>
+<p>Advanced XSLT engines provide vendor extensions to control tag
+minimization during serialization.</p>
+<p>For example, Saxon allows developers to control whether empty
+elements are collapsed via output properties or custom character
+mapping, though standard configurations generally recommend switching
+the output method to <code>xhtml</code> or <code>html</code> if the
+intended consumer is a web browser.</p>
+<h2 id="summary">Summary</h2>
+<p>XSLT manages tag closing strictly at the serialization stage rather
+than during tree construction. While <code>method="xml"</code> will
+almost always collapse empty elements into self-closing tags, developers
+targeting environments that require explicit closing tags must either
+switch to <code>method="xhtml"</code>/<code>method="html"</code> or
+populate elements with benign nodes—such as comments—to prevent the
+serializer from collapsing them.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

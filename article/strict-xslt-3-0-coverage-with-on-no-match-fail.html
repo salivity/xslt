@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strict XSLT 3.0 Coverage with on-no-match="fail" - xslt</title>
+    <meta name="description" content="In XSLT 3.0, setting the on-no-match="fail" attribute on the xsl:mode declaration transforms the stylesheet's default fallback behavior into an explicit validation safeguard. Instead of silently processing or discarding unmatched nodes using standard bui">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/strict-xslt-3-0-coverage-with-on-no-match-fail">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Strict XSLT 3.0 Coverage with on-no-match="fail" - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/strict-xslt-3-0-coverage-with-on-no-match-fail" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, setting the on-no-match="fail" attribute on the xsl:mode declaration transforms the stylesheet's default fallback behavior into an explicit validation safeguard. Instead of silently processing or discarding unmatched nodes using standard bui" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="strict-xslt-30-coverage-with-on-no-matchfail">Strict XSLT 3.0
+Coverage with on-no-match="fail"</h1>
+<p>In XSLT 3.0, setting the <code>on-no-match="fail"</code> attribute on
+the <code>xsl:mode</code> declaration transforms the stylesheet's
+default fallback behavior into an explicit validation safeguard. Instead
+of silently processing or discarding unmatched nodes using standard
+built-in template rules, the processor immediately raises a dynamic
+error whenever it encounters a node that lacks an explicit template
+rule. This article explains how this setting guarantees complete
+transformation coverage, eliminates silent data loss, and simplifies
+debugging in complex XML pipelines.</p>
+<h3 id="understanding-default-behavior-vs-strict-mode">Understanding
+Default Behavior vs. Strict Mode</h3>
+<p>In earlier XSLT specifications and standard XSLT 3.0 modes, the
+processor applies built-in template rules when no explicit
+<code>&lt;xsl:template&gt;</code> matches a given node. By default, XSLT
+3.0 uses <code>on-no-match="shallow-copy"</code> or
+<code>on-no-match="text-only-copy"</code>.</p>
+<p>Under these default policies:</p>
+<ul>
+<li>Unmatched elements either copy themselves or silently traverse down
+to their children.</li>
+<li>Unmatched text nodes are copied directly into the result tree.</li>
+<li>Structural deviations or unexpected elements pass through
+undetected, resulting in corrupted output or silent omissions.</li>
+</ul>
+<p>By declaring <code>&lt;xsl:mode on-no-match="fail"/&gt;</code>, you
+instruct the XSLT processor to terminate execution with error code
+<code>XTDE0548</code> whenever an input item does not match any
+user-defined template.</p>
+<h3 id="what-on-no-matchfail-achieves">What
+<code>on-no-match="fail"</code> Achieves</h3>
+<h4 id="1-complete-transformation-coverage">1. Complete Transformation
+Coverage</h4>
+<p>Using <code>on-no-match="fail"</code> enforces a closed-world
+assumption: every single node in the input document must be accounted
+for by the stylesheet author. A transformation will not succeed until an
+explicit handling rule is written for every element, attribute, comment,
+or text node processed by <code>&lt;xsl:apply-templates/&gt;</code>.</p>
+<h4 id="2-intentional-data-discarding">2. Intentional Data
+Discarding</h4>
+<p>When transforming data from expansive schemas where only a subset of
+elements is needed, developers often rely on built-in rules to drop
+unwanted elements. With <code>on-no-match="fail"</code>, discarding data
+must be intentional. If an element should be ignored, the developer must
+explicitly create an empty template:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;unwanted-element&quot;</span> /&gt;</span></code></pre></div>
+<p>This guarantees that data is never omitted by mistake, making the
+transformation logic completely auditable.</p>
+<h4 id="3-early-detection-of-schema-drift-and-malformed-input">3. Early
+Detection of Schema Drift and Malformed Input</h4>
+<p>In enterprise pipelines, upstream services often introduce schema
+additions or subtle data variations without notice. Under relaxed
+matching rules, these new structures may either break downstream
+consumers or produce invisible data loss. With
+<code>on-no-match="fail"</code>, unexpected nodes trigger an immediate
+processing failure at the transformation stage, highlighting the exact
+node that requires attention.</p>
+<h3 id="practical-implementation">Practical Implementation</h3>
+<p>To enforce strict coverage across your stylesheet, specify the rule
+in the <code>&lt;xsl:mode&gt;</code> element near the top of your
+document:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Enforce strict coverage for the default mode --&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:mode</span> <span class="ot">on-no-match=</span><span class="st">&quot;fail&quot;</span> /&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Explicit rule for the root node --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">output</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;catalog/item&quot;</span> /&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">output</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Explicit handling for target elements --&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">product</span> <span class="ot">id=</span><span class="st">&quot;{@id}&quot;</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;name | price&quot;</span> /&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">product</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;name | price&quot;</span>&gt;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span> /&gt;</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>In this setup, if a source document introduces an unhandled sibling
+such as <code>&lt;discount&gt;</code> inside <code>&lt;item&gt;</code>,
+or if <code>&lt;xsl:apply-templates/&gt;</code> encounters an unhandled
+text node, the processor halts execution immediately. This fail-fast
+mechanism turns your XSLT transformation into a robust, self-validating
+mapping layer.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

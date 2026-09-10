@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How the nilled() Function Works in XSLT - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and later, the nilled() function (fn:nilled()) verifies whether an XML element is explicitly marked as nil according to its associated W3C XML Schema. This article explains how the function operates, its dependence on schema-aware processing,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-the-nilled-function-works-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How the nilled() Function Works in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-the-nilled-function-works-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and later, the nilled() function (fn:nilled()) verifies whether an XML element is explicitly marked as nil according to its associated W3C XML Schema. This article explains how the function operates, its dependence on schema-aware processing," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-the-nilled-function-works-in-xslt">How the nilled() Function
+Works in XSLT</h1>
+<p>In XSLT 2.0 and later, the <code>nilled()</code> function
+(<code>fn:nilled()</code>) verifies whether an XML element is explicitly
+marked as nil according to its associated W3C XML Schema. This article
+explains how the function operates, its dependence on schema-aware
+processing, the conditions required for it to return <code>true</code>,
+and how it differs from a simple attribute check.</p>
+<h3
+id="understanding-the-function-signature-and-return-values">Understanding
+the Function Signature and Return Values</h3>
+<p>The function is defined in the standard XPath/XSLT functions
+namespace as:</p>
+<pre class="text"><code>fn:nilled($arg as node()?) as xs:boolean?</code></pre>
+<p>The function evaluates the nilled property of the supplied node
+according to the XQuery and XPath Data Model (XDM):</p>
+<ul>
+<li><strong>Returns <code>true</code>:</strong> If the argument is an
+element node that has been schema-validated and determined to be
+nil.</li>
+<li><strong>Returns <code>false</code>:</strong> If the argument is an
+element node that is not nilled, or if the document has not undergone
+schema validation.</li>
+<li><strong>Returns an empty sequence (<code>()</code>):</strong> If the
+argument is an empty sequence or is not an element node (such as an
+attribute, text node, or document node).</li>
+</ul>
+<h3 id="the-role-of-schema-validation-and-the-psvi">The Role of Schema
+Validation and the PSVI</h3>
+<p>Unlike standard string or attribute matching, <code>nilled()</code>
+does not simply check for the presence of the literal text
+<code>xsi:nil="true"</code>. Instead, it inspects the
+Post-Schema-Validation Infoset (PSVI) constructed by a schema-aware XSLT
+processor (such as Saxon-EE).</p>
+<p>For <code>nilled($element)</code> to return <code>true</code>, two
+distinct criteria must be satisfied during processing:</p>
+<ol type="1">
+<li><strong>Schema Definition:</strong> The XML Schema definition
+(<code>.xsd</code>) governing the element must explicitly declare the
+element with the attribute <code>nillable="true"</code>.</li>
+<li><strong>Instance Document:</strong> The instance XML element must
+include the attribute <code>xsi:nil="true"</code> (where
+<code>xsi</code> maps to the standard XML Schema Instance namespace
+<code>http://www.w3.org/2001/XMLSchema-instance</code>), and the element
+must contain no child elements or text content that would violate the
+nilled constraint.</li>
+</ol>
+<p>If an element contains <code>xsi:nil="true"</code> but the schema
+defines <code>nillable="false"</code> (or omits the attribute,
+defaulting to <code>false</code>), the document is schema-invalid.</p>
+<h3 id="behavior-in-non-schema-aware-processors">Behavior in
+Non-Schema-Aware Processors</h3>
+<p>If you execute an XSLT transformation using a basic
+(non-schema-aware) processor or process an untyped XML document without
+schema validation:</p>
+<ul>
+<li>The nilled property of every element node is assigned the default
+value of <code>false</code>.</li>
+<li>As a result, <code>nilled($element)</code> returns
+<code>false</code>, even if the XML source text explicitly contains
+<code>xsi:nil="true"</code>.</li>
+</ul>
+<p>When working without schema validation, developers must bypass
+<code>nilled()</code> and check the attribute directly using XPath:</p>
+<pre class="xpath"><code>$element/@*[local-name() = &#39;nil&#39; and namespace-uri() = &#39;http://www.w3.org/2001/XMLSchema-instance&#39;] = &#39;true&#39;</code></pre>
+<h3 id="practical-usage-in-xslt">Practical Usage in XSLT</h3>
+<p>In a schema-aware stylesheet, <code>nilled()</code> is commonly used
+in template match patterns or conditional statements to handle empty
+elements that intentionally convey the absence of a value:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;employee[nilled(salary)]&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Handles cases where salary is explicitly nilled by schema rules --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;no-data&quot;</span>&gt;Salary not disclosed&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;employee[not(nilled(salary))]&quot;</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Handles cases where a valid salary value exists --&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;data&quot;</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;salary&quot;</span>/&gt;&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>By querying the PSVI directly, <code>nilled()</code> ensures that
+your transformation logic adheres strictly to the data types and
+validation constraints established by the underlying XML Schema.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

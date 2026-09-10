@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 3.0 Conditional Compilation with Static Variables - xslt</title>
+    <meta name="description" content="In XSLT 3.0, setting the static attribute to "yes" on an <xsl:variable> or <xsl:param> element enables conditional compilation by binding values during the stylesheet compilation phase rather than at runtime. These static variables can be referenced in u">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-3-0-conditional-compilation-with-static-variables">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 3.0 Conditional Compilation with Static Variables - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-3-0-conditional-compilation-with-static-variables" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, setting the static attribute to "yes" on an <xsl:variable> or <xsl:param> element enables conditional compilation by binding values during the stylesheet compilation phase rather than at runtime. These static variables can be referenced in u" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-30-conditional-compilation-with-static-variables">XSLT 3.0
+Conditional Compilation with Static Variables</h1>
+<p>In XSLT 3.0, setting the <code>static</code> attribute to
+<code>"yes"</code> on an <code>&lt;xsl:variable&gt;</code> or
+<code>&lt;xsl:param&gt;</code> element enables conditional compilation
+by binding values during the stylesheet compilation phase rather than at
+runtime. These static variables can be referenced in
+<code>use-when</code> attributes across the stylesheet, allowing
+developers to include or exclude templates, functions, imports, and
+other stylesheet components before the transformation executes. This
+mechanism provides a native way to handle environment-specific
+configurations, cross-version compatibility, and debugging logic without
+runtime performance penalties.</p>
+<h3 id="the-static-analysis-phase-in-xslt-30">The Static Analysis Phase
+in XSLT 3.0</h3>
+<p>XSLT 3.0 distinguishes between two processing phases: the static
+analysis phase (compile time) and the dynamic evaluation phase
+(runtime).</p>
+<p>Standard XSLT variables are evaluated dynamically; they depend on
+runtime context, such as source document nodes or dynamic parameters.
+Consequently, standard variables cannot be used to determine the
+structure of the compiled stylesheet itself. By defining
+<code>&lt;xsl:variable name="..." select="..." static="yes"/&gt;</code>,
+the XSLT processor evaluates the variable's value during static
+analysis. Because static variables are resolved at compile time, their
+values must be determinable strictly from static expressions, literals,
+system properties, or static parameters passed into the processor.</p>
+<h3 id="how-static-works-with-use-when">How <code>static</code> Works
+with <code>use-when</code></h3>
+<p>Conditional compilation in XSLT is driven by the
+<code>use-when</code> attribute, which can be placed on virtually any
+XSLT element. The expression inside a <code>use-when</code> attribute is
+evaluated statically during compilation. If the expression evaluates to
+<code>false()</code>, the XSLT processor strips that element (and its
+children) from the stylesheet tree entirely, as if it were never
+written.</p>
+<p>Because <code>use-when</code> expressions execute during the static
+phase, they do not have access to ordinary runtime variables, the
+context item, or source document data. They can, however, access static
+variables.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Static variable definition --&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;DEBUG_MODE&quot;</span> <span class="ot">select=</span><span class="st">&quot;true()&quot;</span> <span class="ot">static=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Compiled only when DEBUG_MODE is true --&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;record&quot;</span> <span class="ot">use-when=</span><span class="st">&quot;$DEBUG_MODE&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:message</span>&gt;Processing record: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@id&quot;</span>/&gt;&lt;/<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:next-match</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Compiled only when DEBUG_MODE is false --&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;record&quot;</span> <span class="ot">use-when=</span><span class="st">&quot;not($DEBUG_MODE)&quot;</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:next-match</span>/&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>In this example, if <code>$DEBUG_MODE</code> evaluates to
+<code>false()</code>, the processor completely discards the first
+template during compilation. No runtime evaluation of the condition
+takes place during document processing.</p>
+<h3 id="overriding-values-with-static-parameters">Overriding Values with
+Static Parameters</h3>
+<p>While static variables provide fixed compilation flags, conditional
+compilation becomes significantly more versatile when paired with static
+parameters (<code>&lt;xsl:param static="yes"&gt;</code>).</p>
+<p>Most XSLT 3.0 processors (such as Saxon) allow users to supply values
+for static parameters via command-line arguments, API configuration, or
+build scripts prior to compiling the stylesheet. This enables developers
+to maintain a single codebase that can be compiled differently depending
+on target targets:</p>
+<ul>
+<li><strong>Target Environments:</strong> Compiling different base URIs
+or endpoints for development, staging, or production.</li>
+<li><strong>Processor Capabilities:</strong> Conditionally importing
+modules based on supported XSLT versions, schema awareness, or vendor
+extensions using <code>element-available()</code> or
+<code>function-available()</code>.</li>
+<li><strong>Dead Code Elimination:</strong> Omitting heavy diagnostic or
+legacy fallback templates from production builds to minimize memory
+consumption and maximize execution speed.</li>
+</ul>
+<p>By evaluating expressions before building the execution tree, the
+<code>static</code> attribute turns <code>&lt;xsl:variable&gt;</code>
+into a powerful preprocessor directive native to the XSLT 3.0
+language.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

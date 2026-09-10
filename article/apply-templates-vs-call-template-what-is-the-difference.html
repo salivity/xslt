@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>apply-templates vs call-template: What Is the Difference? - xslt</title>
+    <meta name="description" content="In Extensible Stylesheet Language Transformations (XSLT), both <xsl:apply-templates> and <xsl:call-template> are used to invoke templates, but they operate on fundamentally different execution models. The primary difference is that <xsl:apply-templates>">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/apply-templates-vs-call-template-what-is-the-difference">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="apply-templates vs call-template: What Is the Difference? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/apply-templates-vs-call-template-what-is-the-difference" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Extensible Stylesheet Language Transformations (XSLT), both <xsl:apply-templates> and <xsl:call-template> are used to invoke templates, but they operate on fundamentally different execution models. The primary difference is that <xsl:apply-templates>" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="apply-templates-vs-call-template-what-is-the-difference">apply-templates
+vs call-template: What Is the Difference?</h1>
+<p>In Extensible Stylesheet Language Transformations (XSLT), both
+<code>&lt;xsl:apply-templates&gt;</code> and
+<code>&lt;xsl:call-template&gt;</code> are used to invoke templates, but
+they operate on fundamentally different execution models. The primary
+difference is that <code>&lt;xsl:apply-templates&gt;</code> uses
+declarative pattern matching to process nodes dynamically based on the
+input XML structure, whereas <code>&lt;xsl:call-template&gt;</code>
+operates imperatively, executing a specific named template directly like
+a traditional subroutine or function. Understanding how each manages
+context, rules, and document flow is critical for writing maintainable,
+idiomatic XSLT stylesheets.</p>
+<h2 id="understanding-xslapply-templates">Understanding
+<code>&lt;xsl:apply-templates&gt;</code></h2>
+<p>The <code>&lt;xsl:apply-templates&gt;</code> instruction tells the
+XSLT processor to select a set of nodes and find the best-matching
+template rule defined with a <code>match</code> attribute.</p>
+<p>Key characteristics include:</p>
+<ul>
+<li><strong>Declarative and Data-Driven:</strong> The processor
+evaluates the XML document hierarchy. You do not specify which template
+will execute; instead, the processor selects the most specific template
+matching the selected node.</li>
+<li><strong>Context Node Switching:</strong> When processing a selected
+node set, each node in the set becomes the current context node
+(<code>.</code>) inside the matched template.</li>
+<li><strong>Polymorphism:</strong> Different node types (elements,
+attributes, text) automatically map to their respective matching
+templates without conditional <code>if/else</code> or
+<code>choose</code> statements.</li>
+<li><strong>Modes and Priorities:</strong> It supports attributes like
+<code>mode</code> (to process the same nodes differently in different
+passes) and <code>priority</code> (to resolve conflicts when multiple
+templates match the same node).</li>
+</ul>
+<p>Example:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Invocation --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;book/chapter&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Template Definition --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;chapter&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">section</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;title | paragraph&quot;</span> /&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">section</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="understanding-xslcall-template">Understanding
+<code>&lt;xsl:call-template&gt;</code></h2>
+<p>The <code>&lt;xsl:call-template&gt;</code> instruction directly
+invokes a template identified by its <code>name</code> attribute,
+bypassing pattern matching entirely.</p>
+<p>Key characteristics include:</p>
+<ul>
+<li><strong>Procedural and Explicit:</strong> It functions identically
+to a procedure or function call in procedural programming languages. The
+template executed is hard-coded by name.</li>
+<li><strong>Context Preservation:</strong> Calling a named template does
+not change the current context node or position. The called template
+executes within the exact same node context as the caller unless
+explicit parameters are passed.</li>
+<li><strong>Code Reusability:</strong> It is primarily used for shared
+utility logic, string manipulation routines, mathematical helpers, or
+rendering standardized user interface wrappers.</li>
+<li><strong>Explicit Parameter Passing:</strong> Data must typically be
+passed explicitly into the called template using
+<code>&lt;xsl:with-param&gt;</code>.</li>
+</ul>
+<p>Example:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Invocation --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;render-header&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;title&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;Summary Report&#39;&quot;</span> /&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Template Definition --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;render-header&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;title&quot;</span> /&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">header</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">h1</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$title&quot;</span> /&gt;&lt;/<span class="kw">h1</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">header</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="side-by-side-comparison">Side-by-Side Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>&lt;xsl:apply-templates&gt;</code></th>
+<th><code>&lt;xsl:call-template&gt;</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Programming Paradigm</strong></td>
+<td>Declarative / Rule-based</td>
+<td>Imperative / Procedural</td>
+</tr>
+<tr>
+<td><strong>Target Resolution</strong></td>
+<td>Resolved dynamically via <code>match</code> attribute</td>
+<td>Resolved explicitly via <code>name</code> attribute</td>
+</tr>
+<tr>
+<td><strong>Context Node</strong></td>
+<td>Changes to the node being processed</td>
+<td>Stays the same as the calling instruction</td>
+</tr>
+<tr>
+<td><strong>Node Set Iteration</strong></td>
+<td>Iterates over selected node sets automatically</td>
+<td>Does not iterate; executes once per call</td>
+</tr>
+<tr>
+<td><strong>Coupling</strong></td>
+<td>Loosely coupled with input XML structure</td>
+<td>Tightly coupled with the target template name</td>
+</tr>
+<tr>
+<td><strong>Support for Modes</strong></td>
+<td>Supported (<code>mode="..."</code>)</td>
+<td>Not supported</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-use-which-directive">When to Use Which Directive</h2>
+<p>Use <code>&lt;xsl:apply-templates&gt;</code> when transforming
+document hierarchies, reordering or filtering elements, and leveraging
+recursive descent through arbitrary XML trees. It enables modular
+stylesheets that can adapt to structural variations without rewriting
+control flow.</p>
+<p>Use <code>&lt;xsl:call-template&gt;</code> when creating isolated
+helper functions, performing recursive mathematical or string-processing
+calculations, or generating fixed structural components that do not
+depend on matching specific XML input nodes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

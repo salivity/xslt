@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using the instance of Operator in XSLT Conditions - xslt</title>
+    <meta name="description" content="The instance of operator in XSLT and XPath provides a robust way to inspect and verify the runtime data type of values or nodes before processing them. By evaluating whether an expression conforms to a specific SequenceType, developers can safely route e">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-the-instance-of-operator-in-xslt-conditions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using the instance of Operator in XSLT Conditions - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-the-instance-of-operator-in-xslt-conditions" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The instance of operator in XSLT and XPath provides a robust way to inspect and verify the runtime data type of values or nodes before processing them. By evaluating whether an expression conforms to a specific SequenceType, developers can safely route e" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-the-instance-of-operator-in-xslt-conditions">Using the
+instance of Operator in XSLT Conditions</h1>
+<p>The <code>instance of</code> operator in XSLT and XPath provides a
+robust way to inspect and verify the runtime data type of values or
+nodes before processing them. By evaluating whether an expression
+conforms to a specific SequenceType, developers can safely route
+execution paths within conditional structures such as
+<code>&lt;xsl:if&gt;</code> and <code>&lt;xsl:choose&gt;</code>. This
+article explains how the operator functions, how occurrence indicators
+affect evaluation, and how to implement it directly within conditional
+branches.</p>
+<h2 id="understanding-the-instance-of-operator">Understanding the
+<code>instance of</code> Operator</h2>
+<p>Introduced in XPath 2.0 and supported natively in XSLT 2.0 and 3.0,
+<code>instance of</code> is a boolean operator that tests whether an
+item or sequence matches a specified data type.</p>
+<p>The syntax follows this structure:</p>
+<pre class="xpath"><code>expression instance of SequenceType</code></pre>
+<p>The operator returns <code>true</code> if the evaluated value matches
+the expected type and cardinality; otherwise, it returns
+<code>false</code>. Unlike casting functions, <code>instance of</code>
+does not convert the data—it merely inspects it.</p>
+<h2 id="syntax-and-sequencetypes">Syntax and SequenceTypes</h2>
+<p>A SequenceType consists of an ItemType and an optional occurrence
+indicator.</p>
+<ul>
+<li><strong>Atomic Types:</strong> Built-in XML Schema types such as
+<code>xs:string</code>, <code>xs:integer</code>,
+<code>xs:decimal</code>, <code>xs:boolean</code>, or
+<code>xs:date</code>.</li>
+<li><strong>Node Types:</strong> Structural XML components like
+<code>node()</code>, <code>element()</code>, <code>attribute()</code>,
+<code>text()</code>, or <code>document-node()</code>.</li>
+<li><strong>Occurrence Indicators:</strong>
+<ul>
+<li>No indicator: Exactly one item.</li>
+<li><code>?</code>: Zero or one item.</li>
+<li><code>*</code>: Zero or more items.</li>
+<li><code>+</code>: One or more items.</li>
+</ul></li>
+</ul>
+<p>For example, <code>$input instance of xs:integer+</code> returns
+<code>true</code> only if <code>$input</code> contains a sequence of one
+or more integers.</p>
+<h2 id="implementing-instance-of-in-xslif">Implementing
+<code>instance of</code> in <code>&lt;xsl:if&gt;</code></h2>
+<p>To conditionally execute a template block based on a data type, place
+the <code>instance of</code> expression inside the <code>test</code>
+attribute of an <code>&lt;xsl:if&gt;</code> element:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;dynamicInput&quot;</span> /&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$dynamicInput instance of xs:date&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">formatted-date</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;format-date($dynamicInput, &#39;[Y0001]-[M01]-[D01]&#39;)&quot;</span> /&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">formatted-date</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>If <code>$dynamicInput</code> is not an instance of
+<code>xs:date</code>, the engine skips the inner block, avoiding runtime
+evaluation errors that occur when passing invalid types to
+type-sensitive functions.</p>
+<h2 id="type-routing-with-xslchoose">Type Routing with
+<code>&lt;xsl:choose&gt;</code></h2>
+<p>The operator is particularly useful inside
+<code>&lt;xsl:choose&gt;</code> constructs to handle polymorphic
+parameters, mixed content, or diverse function returns:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;payload&quot;</span> <span class="ot">select=</span><span class="st">&quot;get-data()&quot;</span> /&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;$payload instance of element(record)&quot;</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;$payload&quot;</span> <span class="ot">mode=</span><span class="st">&quot;process-record&quot;</span> /&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;$payload instance of xs:string&quot;</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">output-text</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$payload&quot;</span> /&gt;&lt;/<span class="kw">output-text</span>&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;$payload instance of xs:numeric&quot;</span>&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">output-number</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$payload * 2&quot;</span> /&gt;&lt;/<span class="kw">output-number</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:message</span> <span class="ot">terminate=</span><span class="st">&quot;yes&quot;</span>&gt;Unsupported payload type encountered.&lt;/<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>Evaluation occurs from top to bottom. The first
+<code>&lt;xsl:when&gt;</code> condition that evaluates to
+<code>true</code> is executed.</p>
+<h2 id="schema-aware-considerations">Schema-Aware Considerations</h2>
+<p>When working with standard, non-schema-aware XSLT processors,
+elements and attributes parsed directly from source XML documents
+typically carry the type <code>xs:untyped</code> or
+<code>xs:untypedAtomic</code>.</p>
+<p>To verify such values against specific schema types, cast or convert
+them first, or configure a schema-aware processor (such as Saxon-EE)
+with an active XML Schema (<code>xsl:import-schema</code>). Once schema
+validation is active, typed nodes retain their specific types, allowing
+expressions like <code>price instance of xs:decimal</code> to evaluate
+accurately based on the source document's schema definitions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

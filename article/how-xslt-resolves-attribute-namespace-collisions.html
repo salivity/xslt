@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How XSLT Resolves Attribute Namespace Collisions - xslt</title>
+    <meta name="description" content="This article explains how XSLT processors resolve attribute namespace collisions during XML serialization. It covers the distinctions between expanded QName duplicates and prefix conflicts, the automated "namespace fixup" algorithm, the synthesis of gene">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-xslt-resolves-attribute-namespace-collisions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How XSLT Resolves Attribute Namespace Collisions - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-xslt-resolves-attribute-namespace-collisions" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how XSLT processors resolve attribute namespace collisions during XML serialization. It covers the distinctions between expanded QName duplicates and prefix conflicts, the automated "namespace fixup" algorithm, the synthesis of gene" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-xslt-resolves-attribute-namespace-collisions">How XSLT
+Resolves Attribute Namespace Collisions</h1>
+<p>This article explains how XSLT processors resolve attribute namespace
+collisions during XML serialization. It covers the distinctions between
+expanded QName duplicates and prefix conflicts, the automated "namespace
+fixup" algorithm, the synthesis of generated prefixes, and the standard
+rules dictating how processors ensure the output document remains
+well-formed and compliant with the W3C Namespaces in XML
+specification.</p>
+<h3 id="expanded-qnames-and-duplicate-attribute-overwriting">Expanded
+QNames and Duplicate Attribute Overwriting</h3>
+<p>XML elements cannot contain two attributes with the same expanded
+QName (the combination of a namespace URI and a local name). When an
+XSLT transformation attempts to add multiple attributes with identical
+namespace URIs and local names to the same element:</p>
+<ul>
+<li><strong>Last-Write-Wins Rule:</strong> Under the XSLT specification
+(XSLT 2.0 and later, Section 5.7.1), if two attributes have identical
+expanded QNames, the processor does not emit both. Instead, the
+attribute added later in document order or instruction execution
+replaces the preceding one.</li>
+<li><strong>Prefix Irrelevance for Identity:</strong> The specific
+prefix used does not matter for this check. If an element receives
+<code>a:id</code> (where prefix <code>a</code> maps to
+<code>urn:example:ns</code>) and later <code>b:id</code> (where prefix
+<code>b</code> maps to <code>urn:example:ns</code>), the processor
+treats them as the same attribute. The second declaration replaces the
+first.</li>
+</ul>
+<h3 id="prefix-collisions-and-namespace-fixup">Prefix Collisions and
+Namespace Fixup</h3>
+<p>A collision also occurs when two attributes use the same prefix to
+represent different namespace URIs, or when an attribute prefix
+conflicts with an in-scope element namespace declaration. The XSLT
+serializer resolves this via <strong>namespace fixup</strong>:</p>
+<ol type="1">
+<li><strong>Conflict Detection:</strong> The serializer checks if an
+attribute’s prefix is already bound to a different namespace URI in the
+current element scope.</li>
+<li><strong>Synthetic Prefix Generation:</strong> If a prefix collision
+is detected, the serializer preserves the attribute's namespace URI by
+generating an arbitrary, unique prefix (commonly following formats like
+<code>ns0</code>, <code>ns1</code>, <code>xp_0</code>, or
+<code>_1</code>).</li>
+<li><strong>Prefix Re-declaration:</strong> The serializer outputs a
+namespace declaration attribute
+(<code>xmlns:generatedPrefix="URI"</code>) on the current element and
+binds the attribute to this newly minted prefix.</li>
+</ol>
+<p>For example, if an element already defines
+<code>xmlns:data="urn:first"</code> and an attribute is written as
+<code>data:id</code> mapped to <code>urn:second</code>, the serializer
+changes the attribute output to something like <code>ns0:id</code> and
+outputs <code>xmlns:ns0="urn:second"</code> on that element.</p>
+<h3 id="unprefixed-attributes-and-the-default-namespace">Unprefixed
+Attributes and the Default Namespace</h3>
+<p>In XML, unprefixed attributes never inherit the default namespace
+(<code>xmlns="..."</code>) of their containing element; an unprefixed
+attribute always resides in <em>no namespace</em> (a null URI).</p>
+<ul>
+<li>If an attribute is generated with a non-null namespace URI but
+without a defined prefix, the serializer cannot output it as a plain,
+unprefixed attribute.</li>
+<li>The serializer automatically manufactures a new prefix and adds the
+corresponding namespace declaration to the containing element to ensure
+the attribute is properly qualified without altering the element’s
+default namespace.</li>
+</ul>
+<h3 id="preservation-of-semantic-equivalence">Preservation of Semantic
+Equivalence</h3>
+<p>Throughout the serialization process, XSLT engines prioritize the
+data model's expanded QNames over lexical representations. Serializers
+guarantee that:</p>
+<ul>
+<li>No well-formedness constraints of the XML specification are violated
+(no duplicate attribute names within a single tag).</li>
+<li>The association between an attribute's local name and its resolved
+namespace URI remains identical to the transformation's internal result
+tree, regardless of whether original prefixes are altered or synthetic
+prefixes are introduced.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

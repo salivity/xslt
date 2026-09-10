@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Compile-Time Warnings vs Runtime Exceptions - xslt</title>
+    <meta name="description" content="Modern XSLT processors separate stylesheet compilation from stylesheet execution, creating a clear distinction between compile-time warnings and runtime evaluation exceptions. While compile-time warnings flag non-fatal static anomalies, deprecations, and">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-compile-time-warnings-vs-runtime-exceptions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Compile-Time Warnings vs Runtime Exceptions - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-compile-time-warnings-vs-runtime-exceptions" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Modern XSLT processors separate stylesheet compilation from stylesheet execution, creating a clear distinction between compile-time warnings and runtime evaluation exceptions. While compile-time warnings flag non-fatal static anomalies, deprecations, and" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-compile-time-warnings-vs-runtime-exceptions">XSLT
+Compile-Time Warnings vs Runtime Exceptions</h1>
+<p>Modern XSLT processors separate stylesheet compilation from
+stylesheet execution, creating a clear distinction between compile-time
+warnings and runtime evaluation exceptions. While compile-time warnings
+flag non-fatal static anomalies, deprecations, and potential logic
+errors during the analysis of the stylesheet structure, runtime
+evaluation exceptions are fatal errors triggered by dynamic data
+mismatches, invalid operations, or structural failures during the actual
+transformation of an XML document.</p>
+<h3 id="the-compile-time-phase-static-analysis-and-warnings">The
+Compile-Time Phase: Static Analysis and Warnings</h3>
+<p>During the compilation phase, an XSLT processor (such as Saxon,
+Exselt, or the Altova XML engine) parses the XSLT document, validates
+its syntax against the XSLT and XPath specifications, and constructs an
+optimized execution tree.</p>
+<p>Compile-time warnings occur when the processor identifies construct
+patterns that are syntactically valid but suspicious, inefficient, or
+likely erroneous. Key characteristics of compile-time warnings
+include:</p>
+<ul>
+<li><strong>Data Independence:</strong> These warnings are generated
+solely from the stylesheet code, without evaluating the source XML
+document.</li>
+<li><strong>Non-Blocking Nature:</strong> A warning does not halt the
+compilation pipeline; the processor still generates an executable
+representation of the stylesheet.</li>
+<li><strong>Common Causes:</strong>
+<ul>
+<li>Unused variables, parameters, or functions.</li>
+<li>Static type mismatches when using strict typing in XSLT 2.0/3.0
+(e.g., passing an <code>xs:string</code> literal to a function expecting
+an <code>xs:integer</code>).</li>
+<li>Use of deprecated functions, elements, or attributes.</li>
+<li>Ambiguous rule precedence, such as multiple template rules matching
+the same pattern with identical import precedence and default
+priorities.</li>
+<li>XPath expressions that can never match anything based on static
+schema awareness.</li>
+</ul></li>
+</ul>
+<h3 id="the-runtime-phase-dynamic-evaluation-and-exceptions">The Runtime
+Phase: Dynamic Evaluation and Exceptions</h3>
+<p>The runtime phase begins after compilation succeeds and the processor
+applies the compiled stylesheet to the input XML document. Runtime
+evaluation exceptions occur when an operation fails during the dynamic
+traversal, node selection, or data manipulation of the source tree.</p>
+<p>Unless explicitly intercepted, runtime exceptions terminate the
+transformation immediately. Key characteristics include:</p>
+<ul>
+<li><strong>Data Dependence:</strong> These errors are typically
+provoked by the actual values, structures, or absence of nodes within
+the input XML instance.</li>
+<li><strong>Fatal Interruption:</strong> A runtime exception disrupts
+the processing pipeline immediately, generating an execution stack trace
+with context regarding the current template, line number, and node
+context.</li>
+<li><strong>Mitigation Mechanisms:</strong> Modern XSLT (specifically
+XSLT 3.0) allows developers to handle runtime exceptions dynamically
+using the <code>xsl:try</code> and <code>xsl:catch</code> instructions,
+preventing process termination.</li>
+<li><strong>Common Causes:</strong>
+<ul>
+<li>Dynamic casting failures, such as attempting to cast an empty or
+non-numeric XML text node to an <code>xs:decimal</code>.</li>
+<li>Division by zero in XPath numeric calculations.</li>
+<li>Missing external resources referenced by <code>fn:doc()</code>,
+<code>fn:collection()</code>, or <code>fn:unparsed-text()</code>.</li>
+<li>Exceeding recursion limits in recursive named templates or
+stylesheet functions.</li>
+<li>Explicitly triggered errors using the
+<code>xsl:message terminate="yes"</code> or <code>fn:error()</code>
+instructions.</li>
+</ul></li>
+</ul>
+<h3 id="core-differences-at-a-glance">Core Differences at a Glance</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Compile-Time Warnings</th>
+<th style="text-align: left;">Runtime Evaluation Exceptions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Phase of Occurrence</strong></td>
+<td style="text-align: left;">Static analysis / compilation</td>
+<td style="text-align: left;">Document evaluation / transformation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Input Dependency</strong></td>
+<td style="text-align: left;">Stylesheet code only</td>
+<td style="text-align: left;">Stylesheet code, input XML, and external
+parameters</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Impact on Execution</strong></td>
+<td style="text-align: left;">Informational; transformation
+continues</td>
+<td style="text-align: left;">Fatal by default; halts
+transformation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Error Recovery</strong></td>
+<td style="text-align: left;">Correcting stylesheet code</td>
+<td style="text-align: left;">Data validation, fallback logic, or
+<code>xsl:try</code>/<code>xsl:catch</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Detection Scope</strong></td>
+<td style="text-align: left;">Syntax, static types, optimization
+anomalies</td>
+<td style="text-align: left;">Dynamic types, I/O errors, arithmetic
+limits</td>
+</tr>
+</tbody>
+</table>
+<p>Understanding this boundary allows developers to eliminate code
+smells and maintain typing contracts early during the build phase while
+utilizing robust error-handling mechanisms for unexpected variations in
+live source data.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

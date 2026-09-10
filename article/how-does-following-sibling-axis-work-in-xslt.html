@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does following-sibling Axis Work in XSLT? - xslt</title>
+    <meta name="description" content="This article explores the mechanics and practical applications of the following-sibling axis in Extensible Stylesheet Language Transformations (XSLT). It examines how the axis selects adjacent nodes sharing the same parent, details its critical role in a">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-following-sibling-axis-work-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does following-sibling Axis Work in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-following-sibling-axis-work-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the mechanics and practical applications of the following-sibling axis in Extensible Stylesheet Language Transformations (XSLT). It examines how the axis selects adjacent nodes sharing the same parent, details its critical role in a" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-following-sibling-axis-work-in-xslt">How Does
+following-sibling Axis Work in XSLT?</h1>
+<p>This article explores the mechanics and practical applications of the
+<code>following-sibling</code> axis in Extensible Stylesheet Language
+Transformations (XSLT). It examines how the axis selects adjacent nodes
+sharing the same parent, details its critical role in advanced tree
+navigation, illustrates classic recursive grouping and
+boundary-detection patterns, and compares its behavior across different
+XSLT versions.</p>
+<h2 id="understanding-the-following-sibling-axis">Understanding the
+following-sibling Axis</h2>
+<p>In XPath and XSLT, axes define the directional relationship between
+the current context node and other nodes in the document tree. The
+<code>following-sibling</code> axis specifically selects all nodes that
+appear after the context node in document order and share the same
+parent node. It excludes attribute nodes, namespace nodes, descendants,
+and preceding siblings.</p>
+<p>When an XSLT processor evaluates
+<code>following-sibling::node()</code>, it scans forward among immediate
+peers until it reaches the end of the parent container. This behavior
+provides a targeted mechanism for evaluating structural context without
+navigating up to the parent or inspecting the entire descendant
+tree.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Example XML structure --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">document</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">h1</span> <span class="ot">id=</span><span class="st">&quot;sec1&quot;</span>&gt;Introduction&lt;/<span class="kw">h1</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">p</span>&gt;First paragraph.&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">p</span>&gt;Second paragraph.&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">h1</span> <span class="ot">id=</span><span class="st">&quot;sec2&quot;</span>&gt;Details&lt;/<span class="kw">h1</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">p</span>&gt;Third paragraph.&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">document</span>&gt;</span></code></pre></div>
+<p>In the structure above, evaluating <code>following-sibling::*</code>
+from the perspective of <code>&lt;h1 id="sec1"&gt;</code> yields both
+following <code>&lt;p&gt;</code> elements and
+<code>&lt;h1 id="sec2"&gt;</code>, but stops before exiting
+<code>&lt;document&gt;</code>.</p>
+<h2 id="key-capabilities-in-complex-transformations">Key Capabilities in
+Complex Transformations</h2>
+<p>Traversing siblings sequentially is essential when dealing with
+semantically flat or irregularly structured XML. Several standard
+workflows rely heavily on this axis.</p>
+<h3
+id="positional-filtering-and-immediate-next-sibling-selection">Positional
+Filtering and Immediate Next Sibling Selection</h3>
+<p>A common requirement is selecting only the single node immediately
+following the current node. By combining the axis with a predicate
+index, developers target immediate adjacent elements:</p>
+<pre class="xpath"><code>following-sibling::*[1]
+</code></pre>
+<p>Because predicates on forward axes evaluate in document order, index
+<code>[1]</code> consistently resolves to the nearest following sibling,
+enabling lookahead operations, conditional delimiters, and
+context-sensitive token rendering.</p>
+<h3 id="sibling-based-grouping-xslt-10-pattern">Sibling-Based Grouping
+(XSLT 1.0 Pattern)</h3>
+<p>Before the introduction of <code>&lt;xsl:for-each-group&gt;</code> in
+XSLT 2.0, grouping flat sequences of markup into nested hierarchies
+required recursive traversal using the <code>following-sibling</code>
+axis.</p>
+<p>In documents where sections are marked by heading tags followed by
+flat paragraph tags, <code>following-sibling</code> allows a template to
+select only the content belonging to the active heading:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;h1&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">section</span> <span class="ot">title=</span><span class="st">&quot;{.}&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">      following-sibling::p[</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">        generate-id(preceding-sibling::h1[1]) = generate-id(current())</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">      ]&quot;</span> /&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">section</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this pattern, the stylesheet collects all subsequent
+<code>&lt;p&gt;</code> elements whose most recent preceding
+<code>&lt;h1&gt;</code> matches the current <code>&lt;h1&gt;</code>
+node, effectively creating a clean parent-child relationship from a flat
+input stream.</p>
+<h3 id="boundary-detection-and-delimiter-processing">Boundary Detection
+and Delimiter Processing</h3>
+<p>Complex workflows often require processing items until a specific
+terminal element or boundary is encountered. The
+<code>following-sibling</code> axis facilitates this by serving as a
+search space for boundaries.</p>
+<p>Using set operations and intersection logic, XSLT can identify all
+nodes positioned between the current node and the next delimiter:</p>
+<pre class="xpath"><code>following-sibling::node()[
+  count(preceding-sibling::boundary | current()) = 1
+]
+</code></pre>
+<p>This ensures transformations handle mixed content, inline markup
+variations, and variable segment lengths dynamically.</p>
+<h2 id="positional-semantics-and-performance-considerations">Positional
+Semantics and Performance Considerations</h2>
+<p>Understanding how position predicates interact with
+<code>following-sibling</code> is critical for accurate queries:</p>
+<ul>
+<li><strong>Forward Evaluation:</strong> Predicates such as
+<code>[position() &lt; 3]</code> count forward from the context node,
+selecting the next two siblings.</li>
+<li><strong>Document Order:</strong> Node sets returned by
+<code>following-sibling</code> retain natural document order unless
+explicitly re-sorted using <code>&lt;xsl:sort&gt;</code>.</li>
+<li><strong>Algorithmic Complexity:</strong> Overusing unindexed sibling
+searches within nested loops can lead to quadratic time complexity
+(<span class="math inline">\(O(n^2)\)</span>). In large documents,
+pairing sibling queries with keys (<code>&lt;xsl:key&gt;</code>) or
+native XSLT 2.0/3.0 grouping instructions
+(<code>group-starting-with</code>, <code>group-adjacent</code>)
+significantly improves processing efficiency.</li>
+</ul>
+<p>The <code>following-sibling</code> axis remains a foundational
+construct in XSLT development, providing precise, forward-looking tree
+navigation for flattening, nesting, and restructuring complex data
+models.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

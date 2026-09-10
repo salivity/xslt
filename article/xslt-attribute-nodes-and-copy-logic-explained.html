@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Attribute Nodes and Copy Logic Explained - xslt</title>
+    <meta name="description" content="In the XPath and XSLT Data Model (XDM), attributes are treated as first-class nodes rather than secondary key-value metadata attached to element tags. This architectural decision fundamentally dictates how stylesheets select, transform, and replicate dat">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-attribute-nodes-and-copy-logic-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Attribute Nodes and Copy Logic Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-attribute-nodes-and-copy-logic-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In the XPath and XSLT Data Model (XDM), attributes are treated as first-class nodes rather than secondary key-value metadata attached to element tags. This architectural decision fundamentally dictates how stylesheets select, transform, and replicate dat" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-attribute-nodes-and-copy-logic-explained">XSLT Attribute
+Nodes and Copy Logic Explained</h1>
+<p>In the XPath and XSLT Data Model (XDM), attributes are treated as
+first-class nodes rather than secondary key-value metadata attached to
+element tags. This architectural decision fundamentally dictates how
+stylesheets select, transform, and replicate data. Because attributes
+possess node identity, node types, and distinct parent-child
+relationships, copying them requires adhering to specific
+tree-construction rules, template matching behaviors, and serialization
+constraints that differ significantly from simple string-based
+templating.</p>
+<h3 id="unified-template-matching-and-identity-transforms">Unified
+Template Matching and Identity Transforms</h3>
+<p>Because attributes are first-class nodes, they can be matched by
+pattern rules just like element, text, and comment nodes. This allows
+XSLT developers to use polymorphic identity templates:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;@* | node()&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@* | node()&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this pattern, the expression <code>@*</code> explicitly selects
+all attribute nodes of the current context. Treating attributes as nodes
+allows developers to override the copying logic of a single attribute
+via <code>&lt;xsl:template match="@target-attribute"&gt;</code> without
+needing custom conditional branching inside the parent element's
+template.</p>
+<h3 id="tree-construction-constraints-and-temporal-ordering">Tree
+Construction Constraints and Temporal Ordering</h3>
+<p>The most significant impact of first-class attribute nodes on copying
+logic is the strict lifecycle of element construction. In XSLT, an
+element node is built sequentially:</p>
+<ol type="1">
+<li>The target element node is instantiated.</li>
+<li>Attribute nodes are copied or added to the element.</li>
+<li>Child nodes (element, text, comment, processing-instruction) are
+appended.</li>
+</ol>
+<p>Because attributes are discrete nodes that belong exclusively to an
+element's attribute set, an XSLT processor will raise a runtime error
+(or ignore the operation, depending on the XSLT version and recovery
+settings) if a stylesheet attempts to copy an attribute node to an
+element <em>after</em> child content has already been generated. This
+means all <code>&lt;xsl:copy-of select="@*"/&gt;</code> or
+<code>&lt;xsl:apply-templates select="@*"/&gt;</code> instructions must
+execute before any text or child elements are written to the result
+tree.</p>
+<h3 id="overwrite-semantics-versus-node-appending">Overwrite Semantics
+Versus Node Appending</h3>
+<p>When copying multiple child element nodes or text nodes with
+identical names or content, the result tree appends each node
+sequentially as siblings. Attributes, however, enforce a uniqueness
+constraint based on their expanded QName (Namespace URI + Local
+Name).</p>
+<p>When copying attribute nodes:</p>
+<ul>
+<li>If multiple attribute nodes with the same expanded QName are copied
+to the same element, the last attribute node processed overwrites any
+previously copied attributes with that name.</li>
+<li>Unlike text nodes, which merge or accumulate, attribute node copying
+represents an atomic replacement of the name-value pair on the target
+element.</li>
+</ul>
+<h3 id="namespace-binding-and-prefix-reconciliation">Namespace Binding
+and Prefix Reconciliation</h3>
+<p>Attribute nodes maintain an intrinsic association with their
+namespace URI. When an attribute node is copied to a target
+element—whether through <code>&lt;xsl:copy&gt;</code> or
+<code>&lt;xsl:copy-of&gt;</code>—the XSLT processor must copy not only
+the attribute's local name and string value, but also its namespace
+node.</p>
+<p>If the target element does not already have an in-scope namespace
+declaration corresponding to the copied attribute's prefix and URI, the
+processor automatically synthesizes the necessary
+<code>xmlns:prefix</code> declaration on the enclosing element. This
+ensures that the attribute node retains its precise semantic identity
+across different tree contexts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT last() Function: Evaluating Node Boundaries - xslt</title>
+    <meta name="description" content="In XSLT and XPath, the last() function returns the context size, representing the total number of nodes in the currently evaluated node-set. When working with node boundaries, last() serves as the primary mechanism for detecting the end of a sequence, en">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-last-function-evaluating-node-boundaries">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT last() Function: Evaluating Node Boundaries - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-last-function-evaluating-node-boundaries" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, the last() function returns the context size, representing the total number of nodes in the currently evaluated node-set. When working with node boundaries, last() serves as the primary mechanism for detecting the end of a sequence, en" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-last-function-evaluating-node-boundaries">XSLT last()
+Function: Evaluating Node Boundaries</h1>
+<p>In XSLT and XPath, the <code>last()</code> function returns the
+context size, representing the total number of nodes in the currently
+evaluated node-set. When working with node boundaries,
+<code>last()</code> serves as the primary mechanism for detecting the
+end of a sequence, enabling developers to identify terminal nodes,
+control conditional delimiters, and structure output documents
+correctly. This article explains how <code>last()</code> functions at
+node boundaries, its common practical applications, and the performance
+implications of using it.</p>
+<h2 id="understanding-the-role-of-last">Understanding the Role of
+last()</h2>
+<p>The <code>last()</code> function returns an integer equal to the
+number of items in the current context sequence. When combined with the
+<code>position()</code> function, it allows an XSLT processor to
+determine whether the node currently being processed is at the upper
+boundary of its set:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;position() = last()&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Actions applied only to the final node --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>While the lower boundary is always constant
+(<code>position() = 1</code>), the upper boundary is dynamic and varies
+depending on the size of the filtered or selected sequence.</p>
+<h2 id="key-use-cases-for-node-boundary-evaluation">Key Use Cases for
+Node Boundary Evaluation</h2>
+<h3 id="1-managing-punctuation-and-delimiters">1. Managing Punctuation
+and Delimiters</h3>
+<p>The most common application of <code>last()</code> is omitting
+trailing separators (such as commas, slashes, or line breaks) in
+serialized lists. By checking if the current position is less than
+<code>last()</code>, XSLT avoids fencepost errors:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;item&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;position() != last()&quot;</span>&gt;, &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<h3 id="2-structural-and-layout-termination">2. Structural and Layout
+Termination</h3>
+<p>Document structures often require distinct markup for the final
+element in a section, such as closing wrapper elements, appending
+summary rows to a table, or attaching specific CSS classes for
+styling:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;paragraph&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;position() = last()&quot;</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:attribute</span> <span class="ot">name=</span><span class="st">&quot;class&quot;</span>&gt;last-paragraph&lt;/<span class="kw">xsl:attribute</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span>/&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="3-contextual-scope-adjustments">3. Contextual Scope
+Adjustments</h3>
+<p>The boundary returned by <code>last()</code> depends strictly on the
+current context established by predicates or selection axes. When used
+inside a predicate, <code>last()</code> re-evaluates to match the subset
+defined by that predicate:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Selects the last active user only --&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;users/user[@status=&#39;active&#39;][last()]&quot;</span>/&gt;</span></code></pre></div>
+<p>Here, <code>last()</code> represents the final node of the filtered
+<code>@status='active'</code> node-set rather than the total count of
+all <code>user</code> elements.</p>
+<h2 id="processing-and-performance-considerations">Processing and
+Performance Considerations</h2>
+<p>Using <code>last()</code> prevents an XSLT processor from processing
+nodes in a purely streamed or pipelined fashion. To calculate the value
+of <code>last()</code>, the processor must evaluate the entire sequence
+to determine its complete size before executing expressions that depend
+on it.</p>
+<p>In large documents or when processing streamed inputs (such as in
+XSLT 3.0), evaluating <code>last()</code> forces buffering of the entire
+node-set into memory, which can increase latency and memory consumption.
+When boundary evaluation on massive datasets is required, structural
+restructuring or alternative techniques—such as matching preceding or
+following siblings—may be used to maintain performance.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

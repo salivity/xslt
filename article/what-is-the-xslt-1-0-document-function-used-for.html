@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the XSLT 1.0 document() Function Used For? - xslt</title>
+    <meta name="description" content="The document() function in XSLT 1.0 enables stylesheets to access and process XML data from external files, secondary sources, or multiple documents within a single transformation. While standard XSLT processing operates on a single primary input source,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-xslt-1-0-document-function-used-for">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the XSLT 1.0 document() Function Used For? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-xslt-1-0-document-function-used-for" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The document() function in XSLT 1.0 enables stylesheets to access and process XML data from external files, secondary sources, or multiple documents within a single transformation. While standard XSLT processing operates on a single primary input source," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-the-xslt-10-document-function-used-for">What Is the XSLT
+1.0 document() Function Used For?</h1>
+<p>The <code>document()</code> function in XSLT 1.0 enables stylesheets
+to access and process XML data from external files, secondary sources,
+or multiple documents within a single transformation. While standard
+XSLT processing operates on a single primary input source,
+<code>document()</code> breaks this limitation by loading external XML
+trees dynamically via URIs. This capability is essential for
+multi-document workflows such as merging separate data sources,
+performing cross-reference lookups, managing modular configuration
+files, and batch processing collections of XML files.</p>
+<h2 id="overcoming-single-input-limitations">Overcoming Single-Input
+Limitations</h2>
+<p>By default, an XSLT transformation receives one principal XML
+document and navigates its node tree. In enterprise workflows, data is
+frequently distributed across multiple files—such as separate catalog,
+customer, and localization resources.</p>
+<p>The <code>document()</code> function allows an XSLT processor to
+retrieve nodes from external resources, returning a node-set
+corresponding to the root of the targeted document. Once loaded, these
+external nodes can be traversed, filtered, and transformed using
+standard XPath expressions, just like the primary input document.</p>
+<h2 id="syntax-and-uri-resolution">Syntax and URI Resolution</h2>
+<p>The function supports one or two arguments to locate and load
+resources:</p>
+<ul>
+<li><strong><code>document(URI)</code></strong>: Takes a string,
+node-set, or URI reference pointing to an external document.</li>
+<li><strong><code>document(URI, base-node-set)</code></strong>: Uses the
+second argument’s base URI to resolve relative paths if the primary URI
+is relative.</li>
+</ul>
+<p>When supplied with a node-set containing multiple URI values,
+<code>document()</code> resolves each URI and returns a combined
+node-set containing the root nodes of all referenced documents.
+Supplying an empty string as the
+argument—<code>document('')</code>—references the stylesheet document
+itself, allowing templates to read embedded lookup tables or metadata
+directly.</p>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<h3 id="1-data-aggregation-and-merging">1. Data Aggregation and
+Merging</h3>
+<p>When separate XML files hold related information, the
+<code>document()</code> function pulls these disparate streams into a
+unified output structure. For instance, an order report can iterate over
+invoice items from the main document while fetching full item
+descriptions from an external <code>catalog.xml</code> file.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;catalog&quot;</span> <span class="ot">select=</span><span class="st">&quot;document(&#39;catalog.xml&#39;)&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;order-item&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">item</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">id</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@sku&quot;</span>/&gt;&lt;/<span class="kw">id</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$catalog/products/product[@id=current()/@sku]/name&quot;</span>/&gt;&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">item</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="2-localization-and-reference-lookups">2. Localization and
+Reference Lookups</h3>
+<p>Dynamic translation workflows rely on external dictionary XML files
+containing locale-specific strings. The stylesheet accesses
+<code>messages_en.xml</code> or <code>messages_es.xml</code> based on a
+parameter, retrieving translated labels without hardcoding values into
+the transform logic.</p>
+<h3 id="3-processing-document-manifests">3. Processing Document
+Manifests</h3>
+<p>Workflows often require transforming a collection of XML files listed
+inside an index or manifest file. A stylesheet can iterate over each
+entry in the manifest, load the corresponding file using
+<code>select="document(@href)"</code>, and apply uniform templates
+across all files in a single pass.</p>
+<h2 id="core-processing-considerations">Core Processing
+Considerations</h2>
+<ul>
+<li><strong>Context Switching:</strong> Nodes retrieved by
+<code>document()</code> belong to separate document trees. Functions
+like <code>current()</code> are often required to compare nodes from the
+main document with nodes inside the external document.</li>
+<li><strong>Performance and Caching:</strong> Most XSLT 1.0 processors
+cache retrieved documents in memory. Calling <code>document()</code>
+multiple times with the same URI typically reuses the previously parsed
+tree rather than re-fetching the resource.</li>
+<li><strong>Security Constraints:</strong> Because the function can
+request external web resources via HTTP or local filesystem paths via
+<code>file://</code>, server-side transformations should restrict URI
+resolvers when handling untrusted input to avoid unauthorized resource
+access.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

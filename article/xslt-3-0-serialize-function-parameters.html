@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 3.0 serialize Function Parameters - xslt</title>
+    <meta name="description" content="This article provides an overview of the serialization parameters available for the fn:serialize() function in XSLT 3.0 and XPath 3.0/3.1. It covers the two formats used to define these parameters—XML parameter elements and XPath 3.1 maps—followed by">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-3-0-serialize-function-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 3.0 serialize Function Parameters - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-3-0-serialize-function-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the serialization parameters available for the fn:serialize() function in XSLT 3.0 and XPath 3.0/3.1. It covers the two formats used to define these parameters—XML parameter elements and XPath 3.1 maps—followed by" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-30-serialize-function-parameters">XSLT 3.0 serialize
+Function Parameters</h1>
+<p>This article provides an overview of the serialization parameters
+available for the <code>fn:serialize()</code> function in XSLT 3.0 and
+XPath 3.0/3.1. It covers the two formats used to define these
+parameters—XML parameter elements and XPath 3.1 maps—followed by a
+comprehensive breakdown of each standard parameter and its effect on the
+serialized output.</p>
+<h2 id="supplying-serialization-parameters">Supplying Serialization
+Parameters</h2>
+<p>In XSLT 3.0, the <code>fn:serialize()</code> function accepts an
+input sequence as its first argument and an optional set of
+serialization parameters as its second argument. These parameters can be
+supplied in two ways:</p>
+<ol type="1">
+<li><strong>An XML Node:</strong> An
+<code>&lt;output:serialization-parameters&gt;</code> element belonging
+to the <code>http://www.w3.org/2010/xslt-xquery-serialization</code>
+namespace containing child elements named after the parameters.</li>
+<li><strong>A Map (XPath 3.1 / XSLT 3.0):</strong> An XDM map where keys
+match the parameter names (either as strings or QNames) and values
+correspond to the parameter settings.</li>
+</ol>
+<h2 id="standard-serialization-parameters">Standard Serialization
+Parameters</h2>
+<h3 id="output-method-and-formatting">Output Method and Formatting</h3>
+<ul>
+<li><strong><code>method</code></strong>: Specifies the output format.
+Standard values are <code>"xml"</code>, <code>"html"</code>,
+<code>"xhtml"</code>, <code>"text"</code>, <code>"json"</code>, and
+<code>"adaptive"</code>. Vendor-specific QNames are also permitted.</li>
+<li><strong><code>indent</code></strong>: A boolean
+(<code>true()</code>/<code>false()</code> in maps, or
+<code>"yes"</code>/<code>"no"</code> in XML) indicating whether
+whitespace should be added to pretty-print the resulting structure.</li>
+<li><strong><code>suppress-indentation</code></strong>: A list of
+element QNames for which whitespace indentation should not be applied,
+even if <code>indent</code> is enabled.</li>
+<li><strong><code>item-separator</code></strong>: A string inserted
+between individual items in the serialized sequence. If unspecified, it
+defaults to a space or implementation-defined delimiter.</li>
+</ul>
+<h3 id="document-and-declaration-options">Document and Declaration
+Options</h3>
+<ul>
+<li><strong><code>omit-xml-declaration</code></strong>: Specifies
+whether the XML declaration (<code>&lt;?xml ... ?&gt;</code>) is omitted
+from the output. Accepts a boolean or
+<code>"yes"</code>/<code>"no"</code>.</li>
+<li><strong><code>standalone</code></strong>: Defines the
+<code>standalone</code> pseudo-attribute in the XML declaration. Values
+can be <code>"yes"</code>, <code>"no"</code>, or
+<code>"omit"</code>.</li>
+<li><strong><code>doctype-public</code></strong>: A string containing
+the public identifier used in the generated
+<code>&lt;!DOCTYPE&gt;</code> declaration.</li>
+<li><strong><code>doctype-system</code></strong>: A string containing
+the system identifier used in the generated
+<code>&lt;!DOCTYPE&gt;</code> declaration.</li>
+<li><strong><code>html-version</code></strong>: A decimal value (such as
+<code>5.0</code>) specifying the targeted version of HTML when
+<code>method</code> is set to <code>"html"</code> or
+<code>"xhtml"</code>.</li>
+</ul>
+<h3 id="character-encoding-and-escaping">Character Encoding and
+Escaping</h3>
+<ul>
+<li><strong><code>encoding</code></strong>: The character encoding used
+for the output string or byte sequence (e.g., <code>"UTF-8"</code>,
+<code>"ISO-8859-1"</code>).</li>
+<li><strong><code>byte-order-mark</code></strong>: Determines whether a
+Byte Order Mark (BOM) should be prepended to the serialized output
+(applicable to encodings like UTF-8 or UTF-16).</li>
+<li><strong><code>cdata-section-elements</code></strong>: A sequence of
+element QNames whose text node children should be emitted inside CDATA
+sections instead of standard escaped characters.</li>
+<li><strong><code>normalization-form</code></strong>: Applies Unicode
+normalization to the output. Standard values include <code>"NFC"</code>,
+<code>"NFD"</code>, <code>"NFKC"</code>, <code>"NFKD"</code>,
+<code>"fully-normalized"</code>, or <code>"none"</code>.</li>
+<li><strong><code>use-character-maps</code></strong>: A map or list
+associating specific Unicode characters with string substitutions to
+bypass standard escaping.</li>
+</ul>
+<h3 id="namespaces-and-web-options">Namespaces and Web Options</h3>
+<ul>
+<li><strong><code>undeclare-prefixes</code></strong>: Determines whether
+XML 1.1 namespace undeclarations (e.g., <code>xmlns:p=""</code>) are
+output when prefixes go out of scope. Accepts <code>"yes"</code> or
+<code>"no"</code>.</li>
+<li><strong><code>escape-uri-attributes</code></strong>: Used primarily
+with HTML and XHTML methods. Determines whether non-ASCII and reserved
+URI characters in URI attributes are percent-encoded (<code>"yes"</code>
+or <code>"no"</code>).</li>
+<li><strong><code>include-content-type</code></strong>: Determines
+whether an HTML <code>&lt;meta&gt;</code> tag specifying the MIME type
+and character encoding should be automatically generated
+(<code>"yes"</code> or <code>"no"</code>).</li>
+<li><strong><code>media-type</code></strong>: The MIME type of the
+output document (e.g., <code>"application/xml"</code>,
+<code>"text/html"</code>).</li>
+<li><strong><code>json-node-output-method</code></strong>: Specifies how
+XML node items encountered inside serialized JSON structures should be
+rendered. Valid options include <code>"xml"</code>,
+<code>"xhtml"</code>, <code>"html"</code>, or <code>"text"</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

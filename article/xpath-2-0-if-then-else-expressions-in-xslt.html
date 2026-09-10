@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPath 2.0 If-Then-Else Expressions in XSLT - xslt</title>
+    <meta name="description" content="The introduction of the if-then-else expression in XPath 2.0 drastically simplifies transformations in XSLT 2.0 by allowing conditional logic directly within XPath expressions. In earlier versions of XSLT, handling simple conditions required either verbo">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xpath-2-0-if-then-else-expressions-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XPath 2.0 If-Then-Else Expressions in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xpath-2-0-if-then-else-expressions-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The introduction of the if-then-else expression in XPath 2.0 drastically simplifies transformations in XSLT 2.0 by allowing conditional logic directly within XPath expressions. In earlier versions of XSLT, handling simple conditions required either verbo" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xpath-20-if-then-else-expressions-in-xslt">XPath 2.0
+If-Then-Else Expressions in XSLT</h1>
+<p>The introduction of the <code>if-then-else</code> expression in XPath
+2.0 drastically simplifies transformations in XSLT 2.0 by allowing
+conditional logic directly within XPath expressions. In earlier versions
+of XSLT, handling simple conditions required either verbose markup
+structures like <code>&lt;xsl:choose&gt;</code> or fragile XPath hacks.
+With inline conditional expressions, developers can write cleaner, more
+readable stylesheets, streamline Attribute Value Templates (AVTs), and
+perform evaluations directly inside expressions without creating
+unnecessary intermediate elements or variables.</p>
+<h3 id="eliminating-verbose-markup">Eliminating Verbose Markup</h3>
+<p>In XSLT 1.0, conditionally selecting a value typically required
+splitting logic across multiple lines using
+<code>&lt;xsl:choose&gt;</code>, <code>&lt;xsl:when&gt;</code>, and
+<code>&lt;xsl:otherwise&gt;</code>. For example, setting an attribute
+conditionally required wrapping the logic around
+<code>&lt;xsl:attribute&gt;</code>.</p>
+<p>With XPath 2.0, this verbose structure collapses into a single
+expression:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">item</span> <span class="ot">status=</span><span class="st">&quot;{if (@active = &#39;true&#39;) then &#39;active&#39; else &#39;inactive&#39;}&quot;</span> /&gt;</span></code></pre></div>
+<p>By placing the logic directly inside the attribute value template or
+<code>select</code> attribute, the overall footprint of the stylesheet
+is substantially reduced.</p>
+<h3 id="replacing-xpath-10-boolean-workarounds">Replacing XPath 1.0
+Boolean Workarounds</h3>
+<p>Before XSLT 2.0, developers relying solely on XPath for inline
+conditions often used complex boolean tricks. A common idiom was using
+node sets and predicates:</p>
+<pre class="xpath"><code>concat(substring(&#39;Yes&#39;, 1, number($is-valid) * 3), substring(&#39;No&#39;, 1, number(not($is-valid)) * 2))</code></pre>
+<p>Or using sequence-selection tricks:</p>
+<pre class="xpath"><code>($value-if-true[$condition] | $value-if-false[not($condition)])[1]</code></pre>
+<p>These techniques were counterintuitive, error-prone, and heavily
+reliant on type coercion. The XPath 2.0 <code>if-then-else</code> syntax
+eliminates these workarounds with a standardized, readable format that
+explicitly states intent:</p>
+<pre class="xpath"><code>if ($is-valid) then &#39;Yes&#39; else &#39;No&#39;</code></pre>
+<h3
+id="improving-variable-assignment-and-functional-composition">Improving
+Variable Assignment and Functional Composition</h3>
+<p>Setting variable values conditionally in XSLT 1.0 often produced
+Result Tree Fragments (RTFs) instead of typed data when using child
+elements inside <code>&lt;xsl:variable&gt;</code>. In XSLT 2.0, using
+<code>if-then-else</code> in the <code>select</code> attribute preserves
+strict typing:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;discount&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:decimal&quot;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">select=</span><span class="st">&quot;if ($customer/is-premium) then 0.20 else 0.05&quot;</span> /&gt;</span></code></pre></div>
+<p>This ensures that the assigned value retains its native schema type
+(such as <code>xs:decimal</code> or <code>xs:string</code>) rather than
+becoming an untyped document node, which prevents runtime conversion
+errors later in the transformation.</p>
+<h3 id="nesting-and-complex-branching">Nesting and Complex
+Branching</h3>
+<p>XPath 2.0 conditional expressions can be nested to handle multiple
+conditions sequentially. This mimics <code>else-if</code> behavior in
+other programming languages without needing multiple nested
+<code>&lt;xsl:choose&gt;</code> blocks:</p>
+<pre class="xpath"><code>if ($score &gt;= 90) then &#39;A&#39;
+else if ($score &gt;= 80) then &#39;B&#39;
+else if ($score &gt;= 70) then &#39;C&#39;
+else &#39;F&#39;</code></pre>
+<p>Every <code>if</code> expression in XPath 2.0 requires an
+<code>else</code> branch, ensuring that the expression always resolves
+to a value or an empty sequence (<code>()</code>). This explicit
+requirement guarantees deterministic output across complex mapping and
+filtering scenarios.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

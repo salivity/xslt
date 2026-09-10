@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does group-ending-with Work in XSLT? - xslt</title>
+    <meta name="description" content="The group-ending-with attribute in XSLT 2.0 and later versions provides a pattern-based mechanism for partitioning flat sequences into structured, hierarchical groups using explicit terminal delimiters. Unlike value-based grouping using group-by, group-e">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-group-ending-with-work-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does group-ending-with Work in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-group-ending-with-work-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The group-ending-with attribute in XSLT 2.0 and later versions provides a pattern-based mechanism for partitioning flat sequences into structured, hierarchical groups using explicit terminal delimiters. Unlike value-based grouping using group-by, group-e" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-group-ending-with-work-in-xslt">How Does
+group-ending-with Work in XSLT?</h1>
+<p>The <code>group-ending-with</code> attribute in XSLT 2.0 and later
+versions provides a pattern-based mechanism for partitioning flat
+sequences into structured, hierarchical groups using explicit terminal
+delimiters. Unlike value-based grouping using <code>group-by</code>,
+<code>group-ending-with</code> evaluates a pattern against each item in
+a sequence, closing the current group immediately when an item matches
+that pattern and including the matching item as the final element of
+that group.</p>
+<h2 id="positional-partitioning-with-terminal-delimiters">Positional
+Partitioning with Terminal Delimiters</h2>
+<p>In XML transformations, data often arrives as a flat list of sibling
+elements where specific tokens or elements signify the boundary of a
+logical record. The <code>xsl:for-each-group</code> instruction
+addresses this through pattern matching. When you specify
+<code>group-ending-with="pattern"</code>, the processor iterates through
+the sequence supplied in the <code>select</code> attribute and applies
+the following grouping logic:</p>
+<ul>
+<li><strong>Item Evaluation:</strong> The processor evaluates the
+pattern defined in <code>group-ending-with</code> against each node in
+the input sequence in document order.</li>
+<li><strong>Boundary Creation:</strong> When an item matches the
+pattern, it becomes the last member of the current group
+(<code>current-group()</code>).</li>
+<li><strong>Sequence Continuation:</strong> The item immediately
+following the matched node initializes a new group.</li>
+</ul>
+<p>Because matching nodes are included in the group they terminate, the
+resulting group always contains the delimiter itself as its tail item,
+allowing stylesheets to process or strip the delimiter cleanly.</p>
+<h2 id="practical-delimiter-scenario">Practical Delimiter Scenario</h2>
+<p>Consider a flat sequence of mixed elements where individual
+<code>&lt;record-end/&gt;</code> markers separate distinct transaction
+blocks:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">events</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">data</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;Start A&lt;/<span class="kw">data</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">data</span> <span class="ot">id=</span><span class="st">&quot;2&quot;</span>&gt;Process A&lt;/<span class="kw">data</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">record-end</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">data</span> <span class="ot">id=</span><span class="st">&quot;3&quot;</span>&gt;Start B&lt;/<span class="kw">data</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">record-end</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">data</span> <span class="ot">id=</span><span class="st">&quot;4&quot;</span>&gt;Start C (Incomplete)&lt;/<span class="kw">data</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">events</span>&gt;</span></code></pre></div>
+<p>To transform these flat items into nested
+<code>&lt;transaction&gt;</code> blocks, <code>group-ending-with</code>
+matches against the delimiter element:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;events&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">transactions</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each-group</span> <span class="ot">select=</span><span class="st">&quot;*&quot;</span> <span class="ot">group-ending-with=</span><span class="st">&quot;record-end&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">transaction</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-group()[not(self::record-end)]&quot;</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">transaction</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each-group</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">transactions</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this transformation, the first group contains items with IDs 1 and
+2 followed by <code>&lt;record-end/&gt;</code>. The predicate
+<code>[not(self::record-end)]</code> strips the structural marker,
+leaving only the payload data inside the generated
+<code>&lt;transaction&gt;</code> wrapper.</p>
+<h2 id="handling-edge-cases-and-trailing-items">Handling Edge Cases and
+Trailing Items</h2>
+<p>Structured delimiter processing with <code>group-ending-with</code>
+involves several specific runtime behaviors:</p>
+<ul>
+<li><strong>Unterminated Trailing Sequences:</strong> If the input
+sequence does not end with a matching delimiter, any remaining elements
+after the final delimiter are still gathered into a final group. The
+final group simply lacks a matching terminating node.</li>
+<li><strong>Consecutive Delimiters:</strong> When two delimiter elements
+occur back-to-back, the second delimiter forms a group consisting solely
+of itself.</li>
+<li><strong>Initial Delimiters:</strong> If the first item in the
+sequence matches the delimiter pattern, the first group contains only
+that single delimiter element.</li>
+<li><strong>Pattern Context:</strong> The expression in
+<code>group-ending-with</code> is an XSLT pattern (matching syntax)
+rather than a general XPath expression, meaning it tests node type and
+attributes directly against the candidate item.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Purpose of xsl:value-of in XSLT? - xslt</title>
+    <meta name="description" content="In Extensible Stylesheet Language Transformations (XSLT), the <xsl:value-of> element extracts the text content or calculated string value of an XML node or expression and writes it into the result document. This article explores how <xsl:value-of> functi">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-value-of-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Purpose of xsl:value-of in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-value-of-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Extensible Stylesheet Language Transformations (XSLT), the <xsl:value-of> element extracts the text content or calculated string value of an XML node or expression and writes it into the result document. This article explores how <xsl:value-of> functi" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-the-purpose-of-xslvalue-of-in-xslt">What Is the Purpose
+of xsl:value-of in XSLT?</h1>
+<p>In Extensible Stylesheet Language Transformations (XSLT), the
+<code>&lt;xsl:value-of&gt;</code> element extracts the text content or
+calculated string value of an XML node or expression and writes it into
+the result document. This article explores how
+<code>&lt;xsl:value-of&gt;</code> functions, its standard syntax, key
+attributes, behavioral differences across XSLT versions, and how it
+compares to alternative output instructions like
+<code>&lt;xsl:apply-templates&gt;</code> and
+<code>&lt;xsl:copy-of&gt;</code>.</p>
+<h2 id="core-purpose-and-functionality">Core Purpose and
+Functionality</h2>
+<p>The primary purpose of <code>&lt;xsl:value-of&gt;</code> is to
+convert the result of an XPath expression into a plain string and insert
+that string directly into the output stream (such as HTML, plain text,
+or another XML structure). Whenever an XML document contains data
+wrapped in tags or attributes that need to be displayed as raw text
+values, <code>&lt;xsl:value-of&gt;</code> is the primary tool used to
+retrieve and render that data.</p>
+<p>Instead of copying markup, child nodes, or element structures,
+<code>&lt;xsl:value-of&gt;</code> extracts only the character data
+associated with the evaluated node or expression.</p>
+<h2 id="basic-syntax-and-examples">Basic Syntax and Examples</h2>
+<p>The element relies on the <code>select</code> attribute, which takes
+an XPath expression specifying the node, attribute, or computation to
+evaluate:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;XPath_Expression&quot;</span> /&gt;</span></code></pre></div>
+<p>Consider the following input XML snippet representing a product
+catalog:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">product</span> <span class="ot">id=</span><span class="st">&quot;p101&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;Wireless Mouse&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">price</span> <span class="ot">currency=</span><span class="st">&quot;USD&quot;</span>&gt;29.99&lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">product</span>&gt;</span></code></pre></div>
+<p>To extract the text inside the <code>&lt;name&gt;</code> element and
+the value of the <code>currency</code> attribute using an XSLT
+template:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;product&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;product-item&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">h3</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name&quot;</span> /&gt;&lt;/<span class="kw">h3</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">p</span>&gt;Price: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span> /&gt; (&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;price/@currency&quot;</span> /&gt;)&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>The resulting transformation renders the text values cleanly within
+the defined HTML markup:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">div</span><span class="ot"> class</span><span class="op">=</span><span class="st">&quot;product-item&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">h3</span><span class="dt">&gt;</span>Wireless Mouse<span class="dt">&lt;/</span><span class="kw">h3</span><span class="dt">&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">p</span><span class="dt">&gt;</span>Price: 29.99 (USD)<span class="dt">&lt;/</span><span class="kw">p</span><span class="dt">&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">div</span><span class="dt">&gt;</span></span></code></pre></div>
+<h2 id="key-attributes-and-parameters">Key Attributes and
+Parameters</h2>
+<p>While <code>select</code> is the most common attribute,
+<code>&lt;xsl:value-of&gt;</code> supports several configuration options
+depending on the transformation environment:</p>
+<ul>
+<li><strong><code>select</code></strong>: Specifies the XPath expression
+to evaluate. In modern XSLT, omitting <code>select</code> allows the
+element to compute the string value of its own enclosed content
+template.</li>
+<li><strong><code>disable-output-escaping</code></strong>: Accepts
+<code>yes</code> or <code>no</code>. When set to <code>yes</code>,
+special characters like <code>&lt;</code> and <code>&amp;</code> are
+written out directly without being converted into entities like
+<code>&amp;lt;</code> or <code>&amp;amp;</code>. This is primarily used
+when emitting pre-formatted HTML fragments, though it should be used
+cautiously to avoid malformed output.</li>
+<li><strong><code>separator</code></strong> (XSLT 2.0+): Defines a
+delimiter string placed between items when the <code>select</code>
+expression evaluates to a sequence of multiple items or nodes.</li>
+</ul>
+<h2 id="behavioral-changes-across-xslt-versions">Behavioral Changes
+Across XSLT Versions</h2>
+<p>The behavior of <code>&lt;xsl:value-of&gt;</code> varies depending on
+the version of XSLT implemented:</p>
+<ul>
+<li><strong>XSLT 1.0</strong>: If the <code>select</code> expression
+evaluates to a node-set containing multiple nodes,
+<code>&lt;xsl:value-of&gt;</code> outputs only the string value of the
+<strong>first</strong> node in document order, discarding the rest.</li>
+<li><strong>XSLT 2.0 and XSLT 3.0</strong>: If the <code>select</code>
+expression evaluates to a sequence of multiple nodes or atomic values,
+<code>&lt;xsl:value-of&gt;</code> outputs the values of
+<strong>all</strong> items in the sequence, separated by a single space
+by default (or by the value defined in the <code>separator</code>
+attribute).</li>
+</ul>
+<h2
+id="xslvalue-of-vs-other-output-instructions"><code>&lt;xsl:value-of&gt;</code>
+vs. Other Output Instructions</h2>
+<p>Understanding when to use <code>&lt;xsl:value-of&gt;</code> rather
+than alternative XSLT elements is essential for building clean
+stylesheets:</p>
+<ul>
+<li>**<code>&lt;xsl:value-of&gt;</code> vs.
+<code>&lt;xsl:apply-templates&gt;**</code>: Use
+<code>&lt;xsl:value-of&gt;</code> when you specifically want raw string
+data without invoking template rules on child elements. Use
+<code>&lt;xsl:apply-templates&gt;</code> when processing mixed content,
+nested tags, or unknown hierarchical structures where recursive matching
+is required.</li>
+<li>**<code>&lt;xsl:value-of&gt;</code> vs.
+<code>&lt;xsl:copy-of&gt;**</code>: <code>&lt;xsl:value-of&gt;</code>
+strips all child markup and returns only text.
+<code>&lt;xsl:copy-of&gt;</code> performs a deep copy, replicating the
+target element, its attributes, and all child nodes exactly as they
+appear in the source.</li>
+</ul>
+<p>By isolating and outputting plain text values,
+<code>&lt;xsl:value-of&gt;</code> serves as one of the most foundational
+instructions in XSLT for constructing precise data presentations and
+structured reports.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

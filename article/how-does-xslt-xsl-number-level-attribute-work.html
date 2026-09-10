@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT xsl:number Level Attribute Work? - xslt</title>
+    <meta name="description" content="The level attribute of the <xsl:number> element dictates the scope and structural depth used to calculate sequential numbers in hierarchical XML documents. By choosing between single, multiple, or any, XSLT developers can control whether numbering resets">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-xsl-number-level-attribute-work">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT xsl:number Level Attribute Work? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-xsl-number-level-attribute-work" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The level attribute of the <xsl:number> element dictates the scope and structural depth used to calculate sequential numbers in hierarchical XML documents. By choosing between single, multiple, or any, XSLT developers can control whether numbering resets" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslt-xslnumber-level-attribute-work">How Does XSLT
+xsl:number Level Attribute Work?</h1>
+<p>The <code>level</code> attribute of the
+<code>&lt;xsl:number&gt;</code> element dictates the scope and
+structural depth used to calculate sequential numbers in hierarchical
+XML documents. By choosing between <code>single</code>,
+<code>multiple</code>, or <code>any</code>, XSLT developers can control
+whether numbering resets at parent boundaries, generates multi-tiered
+outline structures (such as <code>1.2.3</code>), or counts nodes
+sequentially across the entire document tree.</p>
+<h2
+id="understanding-the-three-values-of-the-level-attribute">Understanding
+the Three Values of the Level Attribute</h2>
+<p>The <code>&lt;xsl:number&gt;</code> instruction relies on the
+<code>level</code> attribute to determine which ancestor and preceding
+sibling nodes are factored into the sequence calculation.</p>
+<h3 id="1-levelsingle-default">1. <code>level="single"</code>
+(Default)</h3>
+<p>When set to <code>single</code>, XSLT targets only the nearest
+ancestor or the current node that matches the criteria in the
+<code>count</code> attribute, counting it among its preceding
+siblings.</p>
+<ul>
+<li><strong>Behavior:</strong> It produces a single integer value.</li>
+<li><strong>Hierarchy Effect:</strong> The counter resets every time a
+new parent container is encountered.</li>
+<li><strong>Common Use Case:</strong> Numbering list items
+(<code>&lt;li&gt;</code>) within individual <code>&lt;ol&gt;</code>
+containers, where each list should restart at 1.</li>
+</ul>
+<h3 id="2-levelmultiple">2. <code>level="multiple"</code></h3>
+<p>The <code>multiple</code> setting is designed specifically for
+hierarchical, multi-tiered document structures like outlines, legal
+documents, and table of contents generation.</p>
+<ul>
+<li><strong>Behavior:</strong> It searches up the ancestor axis for all
+nodes matching the <code>count</code> pattern, determines the sequential
+position of each matching ancestor among its siblings, and outputs a
+formatted sequence (e.g., <code>2.4.1</code>).</li>
+<li><strong>Hierarchy Effect:</strong> Preserves the entire nested
+context from the root down to the context node.</li>
+<li><strong>Common Use Case:</strong> Generating section headings where
+sub-clauses must reflect their parent sections, such as "Section
+3.2.1".</li>
+</ul>
+<h3 id="3-levelany">3. <code>level="any"</code></h3>
+<p>The <code>any</code> setting ignores tree hierarchy and ancestor
+boundaries entirely.</p>
+<ul>
+<li><strong>Behavior:</strong> It counts all matching nodes across the
+entire document that appear before the current node in document
+order.</li>
+<li><strong>Hierarchy Effect:</strong> Completely flattens the
+hierarchy, creating a continuous global count regardless of nesting
+depth.</li>
+<li><strong>Common Use Case:</strong> Numbering figures, tables, or
+footnotes sequentially throughout an entire book or technical
+manual.</li>
+</ul>
+<h2 id="comparison-of-level-attributes">Comparison of Level
+Attributes</h2>
+<table>
+<thead>
+<tr>
+<th>Level Attribute</th>
+<th>Scope</th>
+<th>Output Format Example</th>
+<th>Counter Reset Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>single</code></td>
+<td>Nearest matching ancestor</td>
+<td><code>3</code></td>
+<td>Resets per parent container</td>
+</tr>
+<tr>
+<td><code>multiple</code></td>
+<td>All matching ancestors</td>
+<td><code>1.4.2</code></td>
+<td>Resets per ancestor branch</td>
+</tr>
+<tr>
+<td><code>any</code></td>
+<td>Entire document tree</td>
+<td><code>12</code></td>
+<td>Never resets (global count)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="practical-implementation-in-hierarchical-documents">Practical
+Implementation in Hierarchical Documents</h2>
+<p>To generate multi-level outline numbering,
+<code>level="multiple"</code> is paired with the <code>count</code> and
+<code>format</code> attributes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:number</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">level=</span><span class="st">&quot;multiple&quot;</span> </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">count=</span><span class="st">&quot;chapter | section | subsection&quot;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">format=</span><span class="st">&quot;1.1.1 &quot;</span> /&gt;</span></code></pre></div>
+<p>When evaluating a <code>subsection</code> element nested inside the
+third <code>section</code> of the second <code>chapter</code>, XSLT
+evaluates each component of the <code>count</code> pattern:</p>
+<ol type="1">
+<li>Position of <code>chapter</code> among sibling chapters:
+<code>2</code></li>
+<li>Position of <code>section</code> among sibling sections:
+<code>3</code></li>
+<li>Position of <code>subsection</code> among sibling subsections:
+<code>1</code></li>
+</ol>
+<p>The resulting output renders as <code>2.3.1 </code>, dynamically
+constructing the complete multi-level identifier based on the node's
+position within the document hierarchy.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java XSLT Secure Processing Mode Explained - xslt</title>
+    <meta name="description" content="This article explores the role of Java's Secure Processing mode (XMLConstants.FEATURESECUREPROCESSING) when transforming XML documents using XSLT. It covers the specific security threats this feature mitigates—including XML External Entity (XXE) attack">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/java-xslt-secure-processing-mode-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Java XSLT Secure Processing Mode Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/java-xslt-secure-processing-mode-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the role of Java's Secure Processing mode (XMLConstants.FEATURESECUREPROCESSING) when transforming XML documents using XSLT. It covers the specific security threats this feature mitigates—including XML External Entity (XXE) attack" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="java-xslt-secure-processing-mode-explained">Java XSLT Secure
+Processing Mode Explained</h1>
+<p>This article explores the role of Java's Secure Processing mode
+(<code>XMLConstants.FEATURE_SECURE_PROCESSING</code>) when transforming
+XML documents using XSLT. It covers the specific security threats this
+feature mitigates—including XML External Entity (XXE) attacks, Denial of
+Service (DoS) via recursive entity expansion, and remote code execution
+through extension functions. Additionally, this guide demonstrates how
+to configure this feature within the Java API for XML Processing (JAXP)
+and highlights best practices for ensuring comprehensive transformation
+security.</p>
+<h2 id="what-is-xmlconstantsfeature_secure_processing">What is
+<code>XMLConstants.FEATURE_SECURE_PROCESSING</code>?</h2>
+<p>In Java, <code>XMLConstants.FEATURE_SECURE_PROCESSING</code> (often
+abbreviated as FSP) is a core JAXP property designed to instruct XML
+processors to operate in a restricted, defensive mode. When applied to
+XSLT processors like <code>TransformerFactory</code>, it enforces strict
+operational constraints to prevent untrusted stylesheets or XML input
+files from compromising the underlying system.</p>
+<p>FSP was introduced in JAXP 1.3 (Java 5) as a standard mechanism to
+counter common XML vulnerabilities without requiring application
+developers to rewrite core parsing logic.</p>
+<h2 id="security-threats-mitigated-in-xslt">Security Threats Mitigated
+in XSLT</h2>
+<p>XSLT processors are Turing-complete and possess capabilities that, if
+left unconstrained, can expose host systems to significant risks.
+Enabling Secure Processing addresses three primary attack vectors:</p>
+<h3 id="1-arbitrary-code-execution-via-extension-functions">1. Arbitrary
+Code Execution via Extension Functions</h3>
+<p>By default, standard XSLT processors (such as Apache Xalan, packaged
+in the JDK) allow stylesheets to invoke native Java methods using
+namespace prefixes mapping to Java classes. An attacker supplying a
+malicious XSLT document could execute arbitrary code on the server.
+Enabling FSP disables external Java extension functions, preventing
+arbitrary code execution.</p>
+<h3 id="2-denial-of-service-dos-via-entity-expansion">2. Denial of
+Service (DoS) via Entity Expansion</h3>
+<p>Unrestricted XML parsing is vulnerable to exponential entity
+expansion, commonly known as the "Billion Laughs" attack or XML entity
+bombs. FSP sets strict limits on entity expansions, element depth, and
+total attributes processed. If a document exceeds these predefined
+resource limits during parsing or transformation, the processor halts
+execution and throws an exception.</p>
+<h3 id="3-xml-external-entity-xxe-and-ssrf-attacks">3. XML External
+Entity (XXE) and SSRF Attacks</h3>
+<p>Stylesheets often use functions like <code>document()</code> to load
+external XML nodes or reference external DTDs. This behavior can be
+exploited to read local server files, scan internal networks, or trigger
+Server-Side Request Forgery (SSRF). Under secure processing, external
+resource resolution is heavily restricted or entirely prohibited.</p>
+<h2 id="how-to-enable-secure-processing-in-java">How to Enable Secure
+Processing in Java</h2>
+<p>Secure processing must be explicitly enabled on the
+<code>TransformerFactory</code> before creating a
+<code>Transformer</code> or compiling a <code>Templates</code>
+object.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">XMLConstants</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">Transformer</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">TransformerFactory</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">stream</span><span class="op">.</span><span class="im">StreamResult</span><span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">stream</span><span class="op">.</span><span class="im">StreamSource</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">io</span><span class="op">.</span><span class="im">File</span><span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> SecureXsltExample <span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">transform</span><span class="op">(</span><span class="bu">File</span> xmlInput<span class="op">,</span> <span class="bu">File</span> xsltInput<span class="op">,</span> <span class="bu">File</span> output<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">TransformerFactory</span> factory <span class="op">=</span> <span class="bu">TransformerFactory</span><span class="op">.</span><span class="fu">newInstance</span><span class="op">();</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Enable Secure Processing</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        factory<span class="op">.</span><span class="fu">setFeature</span><span class="op">(</span><span class="bu">XMLConstants</span><span class="op">.</span><span class="fu">FEATURE_SECURE_PROCESSING</span><span class="op">,</span> <span class="kw">true</span><span class="op">);</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="bu">Transformer</span> transformer <span class="op">=</span> factory<span class="op">.</span><span class="fu">newTransformer</span><span class="op">(</span><span class="kw">new</span> <span class="bu">StreamSource</span><span class="op">(</span>xsltInput<span class="op">));</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        transformer<span class="op">.</span><span class="fu">transform</span><span class="op">(</span><span class="kw">new</span> <span class="bu">StreamSource</span><span class="op">(</span>xmlInput<span class="op">),</span> <span class="kw">new</span> <span class="bu">StreamResult</span><span class="op">(</span>output<span class="op">));</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="limitations-and-modern-best-practices">Limitations and Modern
+Best Practices</h2>
+<p>While <code>XMLConstants.FEATURE_SECURE_PROCESSING</code> serves as
+an essential baseline, it is not always exhaustive in older Java
+versions. Modern secure development practices recommend pairing FSP with
+JAXP 1.5+ resource-limiting attributes.</p>
+<p>To fully harden a <code>TransformerFactory</code>, explicitly block
+external DTDs and external stylesheets:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Block external entity access via protocols</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>factory<span class="op">.</span><span class="fu">setAttribute</span><span class="op">(</span><span class="bu">XMLConstants</span><span class="op">.</span><span class="fu">ACCESS_EXTERNAL_DTD</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>factory<span class="op">.</span><span class="fu">setAttribute</span><span class="op">(</span><span class="bu">XMLConstants</span><span class="op">.</span><span class="fu">ACCESS_EXTERNAL_STYLESHEET</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span></code></pre></div>
+<p>Setting these attributes to an empty string (<code>""</code>) ensures
+that no external protocols (such as <code>file</code>,
+<code>http</code>, or <code>ftp</code>) can be used to retrieve external
+DTDs or stylesheets, providing a defense-in-depth configuration
+alongside <code>FEATURE_SECURE_PROCESSING</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

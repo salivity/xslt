@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT Compute Default Template Priority? - xslt</title>
+    <meta name="description" content="When an XSLT template rule does not include an explicit priority attribute, the XSLT processor automatically assigns a default priority based on the structural specificity of its match pattern. This built-in resolution mechanism assigns numeric scores—">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-compute-default-template-priority">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT Compute Default Template Priority? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-compute-default-template-priority" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When an XSLT template rule does not include an explicit priority attribute, the XSLT processor automatically assigns a default priority based on the structural specificity of its match pattern. This built-in resolution mechanism assigns numeric scores—" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslt-compute-default-template-priority">How Does XSLT
+Compute Default Template Priority?</h1>
+<p>When an XSLT template rule does not include an explicit
+<code>priority</code> attribute, the XSLT processor automatically
+assigns a default priority based on the structural specificity of its
+match pattern. This built-in resolution mechanism assigns numeric
+scores—typically ranging from -0.5 to +0.5—to ensure more specific
+patterns (such as exact qualified names or expressions with predicates)
+override general wildcard or node-type selectors. Understanding these
+exact calculation rules prevents unexpected template collisions during
+document transformations.</p>
+<h2 id="the-priority-calculation-rules">The Priority Calculation
+Rules</h2>
+<p>The W3C XSLT specification defines the default priority computation
+based on the syntax of the pattern. When a pattern consists of multiple
+alternatives separated by the union operator (<code>|</code>), each
+branch is evaluated separately as if each had its own distinct template
+rule with its own computed priority.</p>
+<p>For single-pattern steps, the processor applies four standard numeric
+tiers:</p>
+<ul>
+<li><strong>Priority +0.5 (Highest Default Specificity):</strong>
+Assigned to any pattern that contains a predicate (e.g.,
+<code>item[@active='true']</code>), matches multiple path steps (e.g.,
+<code>section/para</code>), or matches an ID/key lookup function
+(<code>id('main')</code> or <code>key('items', @id)</code>).</li>
+<li><strong>Priority 0.0 (Specific Name Matches):</strong> Assigned to
+patterns that match a specific element or attribute name, or a
+processing-instruction with a specific target name. Examples include
+<code>para</code>, <code>@id</code>, and
+<code>processing-instruction('php')</code>.</li>
+<li><strong>Priority -0.25 (Namespace Wildcards):</strong> Assigned to
+patterns of the form <code>prefix:*</code> or <code>@prefix:*</code>,
+matching any element or attribute within a specific namespace.</li>
+<li><strong>Priority -0.5 (Most Generic Match):</strong> Assigned to
+generic node-type tests and unrestricted wildcards. Examples include
+<code>*</code>, <code>@*</code>, <code>node()</code>,
+<code>text()</code>, <code>comment()</code>, and bare
+<code>processing-instruction()</code>.</li>
+</ul>
+<h2 id="conflict-resolution-and-overrides">Conflict Resolution and
+Overrides</h2>
+<p>If multiple templates match a given node with the same default
+priority, the processor follows strict conflict resolution rules:</p>
+<ol type="1">
+<li><strong>Explicit Priority:</strong> An author can override the
+default priority by adding the <code>priority</code> attribute (e.g.,
+<code>&lt;xsl:template match="para" priority="2"&gt;</code>). Any
+explicit numerical priority takes precedence over default
+calculations.</li>
+<li><strong>Import Precedence:</strong> Templates in importing
+stylesheets always take precedence over templates in imported
+stylesheets, regardless of the calculated default priority.</li>
+<li><strong>Declaration Order:</strong> If two matching templates share
+the exact same import precedence and calculated priority, the processor
+either raises an error or chooses the template that appears last in the
+stylesheet declaration order.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

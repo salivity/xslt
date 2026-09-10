@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:element Create XML Elements? - xslt</title>
+    <meta name="description" content="The <xsl:element> instruction in XSLT allows developers to generate output XML elements dynamically at runtime rather than hardcoding static tags into the stylesheet. By evaluating XPath expressions and Attribute Value Templates (AVTs), this instruction">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-element-create-xml-elements">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:element Create XML Elements? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-element-create-xml-elements" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The <xsl:element> instruction in XSLT allows developers to generate output XML elements dynamically at runtime rather than hardcoding static tags into the stylesheet. By evaluating XPath expressions and Attribute Value Templates (AVTs), this instruction" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslelement-create-xml-elements">How Does xsl:element
+Create XML Elements?</h1>
+<p>The <code>&lt;xsl:element&gt;</code> instruction in XSLT allows
+developers to generate output XML elements dynamically at runtime rather
+than hardcoding static tags into the stylesheet. By evaluating XPath
+expressions and Attribute Value Templates (AVTs), this instruction
+computes element names, prefixes, and namespace URIs on the fly based on
+the source document's data. This article explores how
+<code>&lt;xsl:element&gt;</code> works, its key attributes, practical
+code examples, and best practices for managing dynamic XML
+transformations.</p>
+<h2 id="the-role-of-xslelement-in-xslt">The Role of
+<code>&lt;xsl:element&gt;</code> in XSLT</h2>
+<p>In standard XSLT stylesheets, output nodes are often written as
+literal result elements (such as <code>&lt;div&gt;</code> or
+<code>&lt;record&gt;</code>). While literal elements are
+straightforward, their names are fixed at compile time.</p>
+<p>When the target element name depends on input XML values,
+configuration parameters, or business logic, literal result elements are
+insufficient. The <code>&lt;xsl:element&gt;</code> instruction bridges
+this gap by decoupling the creation of an element from its static tag
+definition.</p>
+<h2 id="core-syntax-and-attributes">Core Syntax and Attributes</h2>
+<p>The basic syntax for <code>&lt;xsl:element&gt;</code> relies on a few
+core attributes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;QName&quot;</span> <span class="ot">namespace=</span><span class="st">&quot;uri&quot;</span> <span class="ot">use-attribute-sets=</span><span class="st">&quot;NCName&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Content: template body (text, attributes, child elements) --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<h3 id="1-name-required">1. <code>name</code> (Required)</h3>
+<p>Specifies the qualified name (QName) of the element to create. It
+accepts an Attribute Value Template (curly braces <code>{}</code>
+enclosing an XPath expression), allowing the name to be determined
+dynamically from the source data.</p>
+<h3 id="2-namespace-optional">2. <code>namespace</code> (Optional)</h3>
+<p>Defines the target namespace URI for the generated element. This
+attribute can also use AVTs to assign namespaces dynamically, overriding
+any default namespace declarations currently in scope.</p>
+<h3 id="3-use-attribute-sets-optional">3.
+<code>use-attribute-sets</code> (Optional)</h3>
+<p>Applies a predefined list of <code>&lt;xsl:attribute-set&gt;</code>
+rules directly to the newly generated element, simplifying the
+assignment of recurring attributes.</p>
+<h2 id="static-vs-dynamic-element-generation">Static vs. Dynamic Element
+Generation</h2>
+<p>Understanding when to use <code>&lt;xsl:element&gt;</code> versus
+literal elements is critical for clean stylesheet design.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Static Literal Result Element --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">item</span> <span class="ot">status=</span><span class="st">&quot;active&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span> /&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">item</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Dynamic Element using xsl:element --&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{name()}&quot;</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:attribute</span> <span class="ot">name=</span><span class="st">&quot;status&quot;</span>&gt;active&lt;/<span class="kw">xsl:attribute</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span> /&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<p>In the dynamic example, <code>{name()}</code> evaluates the local
+name of the current context node, ensuring the output element mirrors
+the input tag regardless of what it is named.</p>
+<h2 id="practical-implementation-mapping-dynamic-tags">Practical
+Implementation: Mapping Dynamic Tags</h2>
+<p>Consider an input document where XML tags are determined by a type
+code:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">fields</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">field</span> <span class="ot">type=</span><span class="st">&quot;header&quot;</span>&gt;System Report&lt;/<span class="kw">field</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">field</span> <span class="ot">type=</span><span class="st">&quot;paragraph&quot;</span>&gt;Execution finished successfully.&lt;/<span class="kw">field</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">fields</span>&gt;</span></code></pre></div>
+<p>To convert each <code>&lt;field&gt;</code> node into an element named
+after its <code>@type</code> attribute, <code>&lt;xsl:element&gt;</code>
+computes the tag name dynamically:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;field&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{@type}&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span> /&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:element</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Output generated:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">header</span>&gt;System Report&lt;/<span class="kw">header</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">paragraph</span>&gt;Execution finished successfully.&lt;/<span class="kw">paragraph</span>&gt;</span></code></pre></div>
+<h2 id="adding-attributes-and-child-content">Adding Attributes and Child
+Content</h2>
+<p>Elements created with <code>&lt;xsl:element&gt;</code> act as
+containers for child nodes. You can populate them using:</p>
+<ul>
+<li><code>&lt;xsl:attribute&gt;</code> to inject dynamic or static
+attributes.</li>
+<li><code>&lt;xsl:value-of&gt;</code> or plain text to supply text
+content.</li>
+<li>Nested <code>&lt;xsl:element&gt;</code> or literal elements for
+structured child hierarchies.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{$element-name}&quot;</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:attribute</span> <span class="ot">name=</span><span class="st">&quot;id&quot;</span>&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;generate-id()&quot;</span> /&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:attribute</span>&gt;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;node()&quot;</span> /&gt;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<h2 id="namespace-resolution-rules">Namespace Resolution Rules</h2>
+<p>When dynamic prefixes or namespaces are involved, the XSLT processor
+determines the namespace mapping in one of two ways:</p>
+<ol type="1">
+<li>If the <code>namespace</code> attribute is omitted, the prefix in
+the <code>name</code> attribute is resolved against in-scope namespace
+declarations.</li>
+<li>If the <code>namespace</code> attribute is supplied, the processor
+binds the dynamic element to that explicit URI, generating a
+corresponding namespace declaration in the output if necessary.</li>
+</ol>
+<h2 id="common-best-practices">Common Best Practices</h2>
+<ul>
+<li><strong>Validate Element Names:</strong> Ensure that values
+evaluated inside the <code>name="{...}"</code> attribute conform to
+valid XML QName naming conventions (no spaces, numbers as the initial
+character, or invalid symbols).</li>
+<li><strong>Use Literal Elements When Static:</strong> If the element
+tag name is known beforehand, prefer literal result elements over
+<code>&lt;xsl:element&gt;</code> to improve stylesheet readability and
+performance.</li>
+<li><strong>Combine with Attribute Sets:</strong> When dynamically
+generated elements share standard attributes across multiple templates,
+manage them centrally with <code>use-attribute-sets</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Evaluate Dynamic XPath in XSLT 3.0? - xslt</title>
+    <meta name="description" content="XSLT 3.0 introduced the <xsl:evaluate> instruction, providing a standard, native mechanism to construct and execute dynamic XPath expressions at runtime without relying on proprietary vendor extensions like saxon:evaluate or EXSLT. This article outlines">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-evaluate-dynamic-xpath-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Evaluate Dynamic XPath in XSLT 3.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-evaluate-dynamic-xpath-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0 introduced the <xsl:evaluate> instruction, providing a standard, native mechanism to construct and execute dynamic XPath expressions at runtime without relying on proprietary vendor extensions like saxon:evaluate or EXSLT. This article outlines" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-evaluate-dynamic-xpath-in-xslt-30">How to Evaluate
+Dynamic XPath in XSLT 3.0?</h1>
+<p>XSLT 3.0 introduced the <code>&lt;xsl:evaluate&gt;</code>
+instruction, providing a standard, native mechanism to construct and
+execute dynamic XPath expressions at runtime without relying on
+proprietary vendor extensions like <code>saxon:evaluate</code> or EXSLT.
+This article outlines the architecture and syntax of
+<code>&lt;xsl:evaluate&gt;</code>, demonstrates how to supply context
+items and dynamic parameters, and details essential security and
+performance practices for running dynamic expressions in XML
+pipelines.</p>
+<h2 id="the-need-for-dynamic-xpath-in-xslt">The Need for Dynamic XPath
+in XSLT</h2>
+<p>In earlier versions of XSLT (1.0 and 2.0), all XPath expressions in
+templates, select attributes, and match patterns had to be static
+strings known at stylesheet compile time. When applications required
+configurable business rules, user-defined filtering, or runtime path
+resolution from external configuration files, developers were forced to
+generate and compile stylesheets on the fly or rely on non-standard
+extension functions.</p>
+<p>The <code>&lt;xsl:evaluate&gt;</code> instruction standardizes
+dynamic evaluation across all compliant XSLT 3.0 processors. It takes an
+XPath expression supplied as a runtime string, parses it, evaluates it
+against a specified context, and returns the result to the
+transformation.</p>
+<h2 id="syntax-and-key-attributes">Syntax and Key Attributes</h2>
+<p>The basic syntax of <code>&lt;xsl:evaluate&gt;</code> revolves around
+the <code>xpath</code> attribute along with several optional
+configuration attributes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:evaluate</span> <span class="ot">xpath=</span><span class="st">&quot;string-expression&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">as=</span><span class="st">&quot;sequence-type&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>              <span class="ot">context-item=</span><span class="st">&quot;expression&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>              <span class="ot">namespace-context=</span><span class="st">&quot;element-node&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>              <span class="ot">schema-aware=</span><span class="st">&quot;yes | no&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;qname&quot;</span> <span class="ot">select=</span><span class="st">&quot;expression&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:evaluate</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong><code>xpath</code></strong>: Specifies the dynamic XPath
+expression to be evaluated. It is evaluated as a string; when using
+attributes or variables directly, attribute value templates
+(<code>xpath="{$expr}"</code>) or standard string expressions
+(<code>xpath="concat('//', $elementName)"</code>) are used.</li>
+<li><strong><code>context-item</code></strong>: Sets the initial context
+item (<code>.</code>) for the dynamic expression. If omitted, the
+dynamic expression evaluates within the current context of the
+stylesheet.</li>
+<li><strong><code>as</code></strong>: Defines the expected return type
+(for example, <code>xs:boolean</code>, <code>element()*</code>, or
+<code>xs:string</code>). Supplying an explicit type ensures compile-time
+and runtime type safety.</li>
+<li><strong><code>namespace-context</code></strong>: Directs the
+processor to use the in-scope namespaces of a specified element node
+when resolving prefixes inside the dynamic string.</li>
+</ul>
+<h2 id="practical-example-dynamic-field-filtering">Practical Example:
+Dynamic Field Filtering</h2>
+<p>Consider an XML document containing employee records where the
+filtering criterion is passed dynamically as a parameter to the
+stylesheet.</p>
+<h3 id="input-xml">Input XML</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">company</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">employee</span> <span class="ot">id=</span><span class="st">&quot;101&quot;</span> <span class="ot">department=</span><span class="st">&quot;Engineering&quot;</span> <span class="ot">active=</span><span class="st">&quot;true&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">name</span>&gt;Alice Smith&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">salary</span>&gt;95000&lt;/<span class="kw">salary</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">employee</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">employee</span> <span class="ot">id=</span><span class="st">&quot;102&quot;</span> <span class="ot">department=</span><span class="st">&quot;Marketing&quot;</span> <span class="ot">active=</span><span class="st">&quot;false&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">name</span>&gt;Bob Jones&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">salary</span>&gt;72000&lt;/<span class="kw">salary</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">employee</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">employee</span> <span class="ot">id=</span><span class="st">&quot;103&quot;</span> <span class="ot">department=</span><span class="st">&quot;Engineering&quot;</span> <span class="ot">active=</span><span class="st">&quot;true&quot;</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">name</span>&gt;Charlie Brown&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">salary</span>&gt;88000&lt;/<span class="kw">salary</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">employee</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">company</span>&gt;</span></code></pre></div>
+<h3 id="xslt-30-stylesheet">XSLT 3.0 Stylesheet</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">exclude-result-prefixes=</span><span class="st">&quot;xs&quot;</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Dynamic filter expression passed as parameter --&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;filterCriteria&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;@department = &#39;&#39;Engineering&#39;&#39; and salary &gt; 90000&#39;&quot;</span>/&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/company&quot;</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">filtered-employees</span>&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;employee&quot;</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;matches&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:evaluate</span> <span class="ot">xpath=</span><span class="st">&quot;$filterCriteria&quot;</span> <span class="ot">context-item=</span><span class="st">&quot;.&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span>/&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;$matches&quot;</span>&gt;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">filtered-employees</span>&gt;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="passing-variables-using-xslwith-param">Passing Variables Using
+<code>&lt;xsl:with-param&gt;</code></h2>
+<p>Dynamic expressions often need access to values calculated inside the
+stylesheet. Rather than concatenating raw values into the dynamic XPath
+string, parameters should be passed explicitly using child
+<code>&lt;xsl:with-param&gt;</code> elements. Inside the dynamic XPath
+string, these parameters are referenced with standard variable syntax
+(<code>$paramName</code>).</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;threshold&quot;</span> <span class="ot">select=</span><span class="st">&quot;80000&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:integer&quot;</span>/&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;dynamicQuery&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;salary &gt;= $minSalary&#39;&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:evaluate</span> <span class="ot">xpath=</span><span class="st">&quot;$dynamicQuery&quot;</span> <span class="ot">context-item=</span><span class="st">&quot;employee&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;minSalary&quot;</span> <span class="ot">select=</span><span class="st">&quot;$threshold&quot;</span>/&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:evaluate</span>&gt;</span></code></pre></div>
+<p>This approach avoids string-escaping issues, preserves data types
+without unnecessary conversions to strings, and prevents syntax breakage
+caused by unexpected characters.</p>
+<h2 id="managing-namespaces">Managing Namespaces</h2>
+<p>Dynamic XPath expressions that reference prefixed elements or
+attributes require namespace resolution. By default,
+<code>&lt;xsl:evaluate&gt;</code> uses the static in-scope namespaces of
+the <code>&lt;xsl:evaluate&gt;</code> element itself.</p>
+<p>When evaluating paths defined in external documents with arbitrary
+namespaces, the <code>namespace-context</code> attribute can point to an
+element node in the source document to inherit its active namespace
+bindings:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:evaluate</span> <span class="ot">xpath=</span><span class="st">&quot;$externalXPath&quot;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">context-item=</span><span class="st">&quot;.&quot;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>              <span class="ot">namespace-context=</span><span class="st">&quot;/*&quot;</span>/&gt;</span></code></pre></div>
+<h2 id="performance-and-security-considerations">Performance and
+Security Considerations</h2>
+<p>While <code>&lt;xsl:evaluate&gt;</code> adds significant flexibility,
+it introduces specific operational trade-offs:</p>
+<ol type="1">
+<li><strong>Compilation Overhead</strong>: Dynamic expressions cannot be
+pre-compiled during the initial stylesheet compilation phase. The
+processor must parse and compile the expression at runtime. When
+executed repeatedly within loops, some processors cache compiled forms
+of identical dynamic strings, but dynamic evaluation remains slower than
+static XPath.</li>
+<li><strong>XPath Injection</strong>: Constructing XPath strings via raw
+string concatenation using untrusted user inputs can lead to XPath
+injection attacks, potentially exposing sensitive nodes or executing
+unauthorized operations. Parameter passing via
+<code>&lt;xsl:with-param&gt;</code> should always be preferred over
+manual string concatenation.</li>
+<li><strong>Type Safety</strong>: Unchecked dynamic expressions can
+yield runtime type mismatches. Always declare the <code>as</code>
+attribute to validate the output sequence against the stylesheet’s
+expected schema types.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

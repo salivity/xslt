@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference Between xsl:copy and xsl:copy-of in XSLT - xslt</title>
+    <meta name="description" content="In XSLT transformations, <xsl:copy> and <xsl:copy-of> are both used to duplicate XML nodes from the source tree to the result tree, but they handle child nodes and attributes in fundamentally different ways. The primary difference is the depth of the dup">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/difference-between-xsl-copy-and-xsl-copy-of-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Difference Between xsl:copy and xsl:copy-of in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/difference-between-xsl-copy-and-xsl-copy-of-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT transformations, <xsl:copy> and <xsl:copy-of> are both used to duplicate XML nodes from the source tree to the result tree, but they handle child nodes and attributes in fundamentally different ways. The primary difference is the depth of the dup" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="difference-between-xslcopy-and-xslcopy-of-in-xslt">Difference
+Between xsl:copy and xsl:copy-of in XSLT</h1>
+<p>In XSLT transformations, <code>&lt;xsl:copy&gt;</code> and
+<code>&lt;xsl:copy-of&gt;</code> are both used to duplicate XML nodes
+from the source tree to the result tree, but they handle child nodes and
+attributes in fundamentally different ways. The primary difference is
+the depth of the duplication: <code>&lt;xsl:copy&gt;</code> performs a
+shallow copy that duplicates only the current node without its
+attributes or child elements, whereas <code>&lt;xsl:copy-of&gt;</code>
+performs a deep copy that duplicates the selected node along with all of
+its attributes, descendant elements, and text content.</p>
+<h2 id="understanding-xslcopy-shallow-copy">Understanding
+<code>&lt;xsl:copy&gt;</code> (Shallow Copy)</h2>
+<p>The <code>&lt;xsl:copy&gt;</code> instruction creates a duplicate of
+the context node itself, including any namespace nodes associated with
+it, but leaves out all attributes and child elements.</p>
+<p>Key characteristics of <code>&lt;xsl:copy&gt;</code>:</p>
+<ul>
+<li><strong>Shallow duplication:</strong> Only the outer tag of the
+current element is written to the result tree.</li>
+<li><strong>Can contain child instructions:</strong> Because it only
+copies the element shell, you can place other XSLT instructions inside
+<code>&lt;xsl:copy&gt;</code>—such as
+<code>&lt;xsl:apply-templates&gt;</code>,
+<code>&lt;xsl:attribute&gt;</code>, or literal text—to selectively
+process, transform, or filter its contents.</li>
+<li><strong>Context node scope:</strong> It always operates implicitly
+on the current context node; it does not take a <code>select</code>
+attribute.</li>
+</ul>
+<p>Example usage:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Copies the element tag, but allows templates to modify its attributes and children --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;book&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@* | node()&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>This pattern is the foundation of the standard XSLT "identity
+transform," where nodes are recreated one by one while allowing specific
+rules to override default behavior.</p>
+<h2 id="understanding-xslcopy-of-deep-copy">Understanding
+<code>&lt;xsl:copy-of&gt;</code> (Deep Copy)</h2>
+<p>The <code>&lt;xsl:copy-of&gt;</code> instruction performs an exact,
+recursive clone of the node-set or subtree identified by its
+<code>select</code> attribute.</p>
+<p>Key characteristics of <code>&lt;xsl:copy-of&gt;</code>:</p>
+<ul>
+<li><strong>Deep duplication:</strong> It copies the selected node, all
+of its attributes, and all descendant nodes (elements, text, comments,
+processing instructions) in their exact original form.</li>
+<li><strong>Empty element:</strong> <code>&lt;xsl:copy-of&gt;</code> is
+an empty instruction (self-closing). It cannot contain child XSLT
+instructions, meaning you cannot alter, filter, or template the internal
+content of the copied structure.</li>
+<li><strong>Requires a <code>select</code> attribute:</strong> You must
+specify an XPath expression in the <code>select</code> attribute to
+indicate which nodes, node-sets, or variables to duplicate.</li>
+</ul>
+<p>Example usage:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Copies the entire &lt;book&gt; subtree, including all attributes and children, exactly as is --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;library&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;book&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h2 id="side-by-side-comparison">Side-by-Side Comparison</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>&lt;xsl:copy&gt;</code></th>
+<th style="text-align: left;"><code>&lt;xsl:copy-of&gt;</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Copy Depth</strong></td>
+<td style="text-align: left;">Shallow (current node only)</td>
+<td style="text-align: left;">Deep (entire subtree)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Attribute Handling</strong></td>
+<td style="text-align: left;">Ignores attributes (must be added
+manually)</td>
+<td style="text-align: left;">Copies all attributes automatically</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Children Handling</strong></td>
+<td style="text-align: left;">Ignores children (must be processed
+explicitly)</td>
+<td style="text-align: left;">Copies all descendants automatically</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>select</code>
+Attribute</strong></td>
+<td style="text-align: left;">Not used (always copies the current
+node)</td>
+<td style="text-align: left;">Required (specifies what to copy)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Content Model</strong></td>
+<td style="text-align: left;">Can contain child XSLT elements</td>
+<td style="text-align: left;">Empty element (cannot contain child
+elements)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Use Case</strong></td>
+<td style="text-align: left;">Modifying or filtering elements and
+attributes</td>
+<td style="text-align: left;">Inserting unchanged XML subtrees directly
+into the output</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-use-which">When to Use Which</h2>
+<p>Use <code>&lt;xsl:copy&gt;</code> when you need to maintain the
+structure of an element while changing its attributes, reordering its
+children, or selectively applying rules to its descendants.</p>
+<p>Use <code>&lt;xsl:copy-of&gt;</code> when you have a section of XML
+that needs to be output exactly as it appears in the source document, or
+when you are inserting the contents of a previously stored variable into
+the output tree without modification.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

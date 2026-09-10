@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Testing XSLT Stylesheets with XSpec - xslt</title>
+    <meta name="description" content="Unit testing frameworks like XSpec provide a structured, automated approach to verifying the correctness of XSLT stylesheets, transforming an error-prone manual review process into a reliable engineering discipline. Because XSLT is a declarative, rule-ba">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/unit-testing-xslt-stylesheets-with-xspec">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Unit Testing XSLT Stylesheets with XSpec - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/unit-testing-xslt-stylesheets-with-xspec" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Unit testing frameworks like XSpec provide a structured, automated approach to verifying the correctness of XSLT stylesheets, transforming an error-prone manual review process into a reliable engineering discipline. Because XSLT is a declarative, rule-ba" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="unit-testing-xslt-stylesheets-with-xspec">Unit Testing XSLT
+Stylesheets with XSpec</h1>
+<p>Unit testing frameworks like XSpec provide a structured, automated
+approach to verifying the correctness of XSLT stylesheets, transforming
+an error-prone manual review process into a reliable engineering
+discipline. Because XSLT is a declarative, rule-based language where
+template rules interact in complex ways, changes to one template can
+easily introduce regressions across an entire transformation pipeline.
+Frameworks such as XSpec enable developers to isolate and validate
+individual templates, functions, and whole-document transformations
+against predefined expectations, ensuring code quality and simplifying
+ongoing maintenance.</p>
+<h3 id="the-challenge-of-verifying-xslt">The Challenge of Verifying
+XSLT</h3>
+<p>XSLT operates by matching templates against patterns in an XML
+document tree. Unlike procedural languages, execution flow is driven by
+the structure of the input data rather than explicit sequential logic.
+As stylesheets grow, template priority conflicts, mode mismanagement,
+and edge cases in input XML frequently lead to silent transformation
+errors. Manually testing these stylesheets by running full input
+documents through a transformation engine and visually scanning the
+output is inefficient, incomplete, and unsustainable across
+releases.</p>
+<h3 id="what-is-xspec">What Is XSpec?</h3>
+<p>XSpec is an open-source unit testing and behavior-driven development
+(BDD) framework designed specifically for XSLT, XQuery, and Schematron.
+Built on top of the standard XML toolchain, XSpec allows developers to
+write human-readable test scenarios using an XML-based syntax. It works
+by generating an underlying test-driver stylesheet, executing the tests
+via an XSLT processor (such as Saxon), and comparing the actual
+transformation output against expected results.</p>
+<h3 id="core-capabilities-and-mechanisms">Core Capabilities and
+Mechanisms</h3>
+<p>XSpec verifies stylesheets at multiple levels of granularity through
+a structured syntax:</p>
+<ul>
+<li><strong>Function Testing:</strong> Using the <code>x:call</code>
+element, developers can test individual XSLT functions independently of
+any XML document context, passing explicit parameters and checking the
+return value.</li>
+<li><strong>Template Testing:</strong> Developers can test matching
+templates in isolation using <code>x:context</code>. A small snippet of
+XML can be provided as input, allowing verification of how a specific
+template processes that fragment without needing a complete,
+schema-compliant source document.</li>
+<li><strong>Assertion Mechanisms:</strong> The <code>x:expect</code>
+element defines the expected result. It can verify exact XML fragments,
+match using XPath expressions, or evaluate boolean conditions, allowing
+for strict or flexible validation depending on the use case.</li>
+</ul>
+<h3 id="key-benefits-in-development-workflows">Key Benefits in
+Development Workflows</h3>
+<ol type="1">
+<li><strong>Isolation of Logic:</strong> XSpec allows developers to
+decouple transformation logic from entire source files. By testing
+minimal XML fragments, edge cases—such as missing attributes, empty
+elements, or unexpected namespaces—can be targeted and verified
+quickly.</li>
+<li><strong>Regression Prevention and Refactoring:</strong> Stylesheets
+frequently need modernization, such as upgrading from XSLT 1.0 to 2.0 or
+3.0, or restructuring for performance. A comprehensive suite of XSpec
+tests ensures that behavior remains consistent during refactoring.</li>
+<li><strong>Continuous Integration (CI/CD):</strong> XSpec can be
+executed from the command line, Ant, Maven, or modern CI runners like
+GitHub Actions. This allows automated test runs on every commit,
+preventing broken transformations from reaching production
+environments.</li>
+<li><strong>Detailed Failure Reporting:</strong> When a test fails,
+XSpec generates an HTML report showing a side-by-side graphical diff
+between the expected output and the actual output. This pinpoints
+missing nodes, incorrect text content, or namespace discrepancies
+instantly.</li>
+</ol>
+<p>Unit testing frameworks like XSpec shift XSLT development toward
+modern software engineering best practices, ensuring transformation
+rules are robust, predictable, and fully verified.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

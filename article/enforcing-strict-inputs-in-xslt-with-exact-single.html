@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enforcing Strict Inputs in XSLT with exact-single - xslt</title>
+    <meta name="description" content="This article explores how applying the exact-single() pattern during sequence checking guarantees that XSLT transformations receive precisely one item, neither more nor less. By examining sequence cardinality, type definitions, and runtime validation, yo">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/enforcing-strict-inputs-in-xslt-with-exact-single">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Enforcing Strict Inputs in XSLT with exact-single - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/enforcing-strict-inputs-in-xslt-with-exact-single" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how applying the exact-single() pattern during sequence checking guarantees that XSLT transformations receive precisely one item, neither more nor less. By examining sequence cardinality, type definitions, and runtime validation, yo" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="enforcing-strict-inputs-in-xslt-with-exact-single">Enforcing
+Strict Inputs in XSLT with exact-single</h1>
+<p>This article explores how applying the <code>exact-single()</code>
+pattern during sequence checking guarantees that XSLT transformations
+receive precisely one item, neither more nor less. By examining sequence
+cardinality, type definitions, and runtime validation, you will learn
+how this pattern catches malformed inputs early, prevents silent
+downstream data corruption, and enforces rigorous structural contracts
+across stylesheets.</p>
+<p>In XSLT and XPath, virtually all values are handled as sequences. A
+query designed to locate a specific node or calculate a value can return
+an empty sequence <code>()</code>, an individual item, or a sequence of
+multiple items. This flexibility introduces subtle bugs when a template,
+function, or variable assumes it is operating on a single scalar value
+or individual element. Without explicit constraints, passing an empty
+sequence might cause a template to quietly skip execution, while passing
+multiple items might inadvertently bind only the first item or trigger
+unhandled type errors far from the root cause.</p>
+<p>The <code>exact-single()</code> pattern addresses this issue by
+strictly validating that a target sequence has a cardinality of exactly
+one (<span class="math inline">\(N = 1\)</span>). In standard XSLT and
+XPath implementations, this pattern is represented either through the
+standard function <code>fn:exactly-one()</code>, a custom validation
+function named <code>exact-single()</code>, or strict type signatures
+omitting sequence indicators (such as <code>as="xs:string"</code> or
+<code>as="element(Order)"</code> rather than using <code>*</code>,
+<code>+</code>, or <code>?</code>).</p>
+<p>When applied, the pattern enforces data integrity through two
+distinct boundary checks:</p>
+<ol type="1">
+<li><p><strong>Rejection of Empty Sequences:</strong> If the source data
+does not contain the required node or value, the pattern refuses to
+evaluate further. Instead of propagating an empty sequence through your
+transformation pipeline—which often produces empty output tags or
+missing attributes—the processor immediately raises a dynamic error
+(such as <code>FORG0005</code> when using
+<code>fn:exactly-one()</code>).</p></li>
+<li><p><strong>Rejection of Multiple Matches:</strong> If an input
+document contains duplicate elements where only one is permitted,
+standard queries without cardinality checks might mask the anomaly. The
+<code>exact-single()</code> pattern detects that the sequence count
+exceeds one and halts execution immediately. This prevents the
+stylesheet from arbitrarily selecting the first node or producing
+malformed target structures.</p></li>
+</ol>
+<p>Consider a practical scenario involving an order-processing
+stylesheet. If a template requires a customer ID, defining the parameter
+as <code>&lt;xsl:param name="customerId" as="xs:string"/&gt;</code> or
+checking the sequence using an assertion like
+<code>exact-single($node/CustomerID)</code> creates an uncompromising
+contract. If the input document contains two
+<code>&lt;CustomerID&gt;</code> tags or omits the tag entirely, the
+transformation fails at the input boundary.</p>
+<p>Employing the <code>exact-single()</code> pattern eliminates
+non-deterministic behavior in XSLT. By shifting error discovery from
+output inspection to input ingestion, transformations become
+self-validating, maintainable, and resilient against unexpected schema
+variations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolving Ambiguous Rule Matches in XSLT - xslt</title>
+    <meta name="description" content="When an XSLT processor processes an XML node, it determines which template rule to apply based on import precedence and template priority. If two or more matching templates share the exact same precedence and priority, the processor faces an ambiguous ru">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/resolving-ambiguous-rule-matches-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Resolving Ambiguous Rule Matches in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/resolving-ambiguous-rule-matches-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When an XSLT processor processes an XML node, it determines which template rule to apply based on import precedence and template priority. If two or more matching templates share the exact same precedence and priority, the processor faces an ambiguous ru" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="resolving-ambiguous-rule-matches-in-xslt">Resolving Ambiguous
+Rule Matches in XSLT</h1>
+<p>When an XSLT processor processes an XML node, it determines which
+template rule to apply based on import precedence and template priority.
+If two or more matching templates share the exact same precedence and
+priority, the processor faces an ambiguous rule match. This article
+explains how the official W3C specifications dictate handling these
+conflicts, how modern processors behave in practice, and how developers
+can prevent ambiguous match errors.</p>
+<h3 id="the-conflict-resolution-process">The Conflict Resolution
+Process</h3>
+<p>To select a template, an XSLT processor follows a strict hierarchy of
+criteria:</p>
+<ol type="1">
+<li><strong>Import Precedence:</strong> Rules defined in an importing
+stylesheet take precedence over rules in imported stylesheets.</li>
+<li><strong>Priority:</strong> If precedence is equal, the processor
+checks the template's priority. This is either explicitly assigned via
+the <code>priority</code> attribute or computed automatically based on
+the specificity of the match pattern.</li>
+<li><strong>Ambiguity Handling:</strong> When both the import precedence
+and the priority are identical, the processor detects an ambiguous rule
+match.</li>
+</ol>
+<h3 id="what-the-w3c-specification-dictates">What the W3C Specification
+Dictates</h3>
+<p>According to the official W3C specifications (from XSLT 1.0 through
+XSLT 3.0), an ambiguous rule match is categorized as an error. However,
+the specification allows processors two distinct, compliant ways to
+respond:</p>
+<ul>
+<li><strong>Signal an Error:</strong> The processor can halt
+transformation immediately and raise a dynamic or recoverable error,
+notifying the user of the conflicting templates.</li>
+<li><strong>Recover by Document Order:</strong> The processor may choose
+to recover from the error automatically. In recovery mode, the processor
+must select the template rule that occurs <strong>last</strong> in the
+stylesheet's document order.</li>
+</ul>
+<h3 id="real-world-processor-behavior">Real-World Processor
+Behavior</h3>
+<p>Different XSLT engines implement ambiguity recovery differently,
+often configurable via command-line flags or API settings:</p>
+<ul>
+<li><strong>Saxon:</strong> By default, Saxon typically issues a warning
+to standard error indicating an ambiguous match and recovers by
+executing the rule that appears last in document order. It can be
+configured in strict mode to treat warnings as fatal errors.</li>
+<li><strong>Libxslt (<code>xsltproc</code>):</strong> Generally prints a
+warning about the conflict to standard error and proceeds by selecting
+the last defined template.</li>
+<li><strong>Xalan:</strong> Prints a message noting that a conflict
+occurred and falls back to using the last template found in the
+stylesheet.</li>
+</ul>
+<p>Relying on the processor's fallback behavior creates brittle
+stylesheets, as different execution environments may treat the conflict
+as a fatal transformation failure.</p>
+<h3 id="how-to-prevent-ambiguous-matches">How to Prevent Ambiguous
+Matches</h3>
+<p>Ambiguity can be avoided by making template selection
+deterministic:</p>
+<ul>
+<li><strong>Explicit Priority:</strong> Add a numeric
+<code>priority</code> attribute to conflicting templates (for example,
+<code>&lt;xsl:template match="item" priority="2"&gt;</code>). A higher
+number always overrides a lower number.</li>
+<li><strong>Specific Match Patterns:</strong> Refine match expressions
+with predicates or structural context (such as <code>list/item</code>
+instead of just <code>item</code>) so the built-in priority calculation
+naturally distinguishes between templates.</li>
+<li><strong>Modes:</strong> Segment templates into distinct processing
+pipelines using the <code>mode</code> attribute
+(<code>&lt;xsl:template match="item" mode="summary"&gt;</code>),
+ensuring conflicting templates are never evaluated against the same node
+simultaneously.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

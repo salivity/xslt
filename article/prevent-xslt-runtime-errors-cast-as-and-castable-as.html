@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prevent XSLT Runtime Errors: Cast As and Castable As - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and later versions, processing untyped XML input can easily trigger fatal runtime errors when dynamic values fail to match expected data types. Type casting expressions—specifically cast as and castable as—provide developers with the tool">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/prevent-xslt-runtime-errors-cast-as-and-castable-as">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Prevent XSLT Runtime Errors: Cast As and Castable As - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/prevent-xslt-runtime-errors-cast-as-and-castable-as" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and later versions, processing untyped XML input can easily trigger fatal runtime errors when dynamic values fail to match expected data types. Type casting expressions—specifically cast as and castable as—provide developers with the tool" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="prevent-xslt-runtime-errors-cast-as-and-castable-as">Prevent
+XSLT Runtime Errors: Cast As and Castable As</h1>
+<p>In XSLT 2.0 and later versions, processing untyped XML input can
+easily trigger fatal runtime errors when dynamic values fail to match
+expected data types. Type casting expressions—specifically
+<code>cast as</code> and <code>castable as</code>—provide developers
+with the tools to validate and convert atomic values safely before
+processing them. By using <code>castable as</code> to perform defensive
+pre-flight checks and <code>cast as</code> to enforce explicit,
+controlled conversions, stylesheets can gracefully handle malformed,
+missing, or unexpected data without crashing the transformation
+pipeline.</p>
+<h2 id="the-risk-of-runtime-type-errors">The Risk of Runtime Type
+Errors</h2>
+<p>XSLT processors frequently encounter values typed as
+<code>xs:untypedAtomic</code> when reading documents without a strict
+XML Schema. If a template expects an integer or a date for sorting,
+arithmetic, or comparison, implicit conversion will occur. If the source
+data contains invalid text (such as <code>"N/A"</code> inside a
+<code>&lt;price&gt;</code> element), the processor cannot complete the
+implicit conversion and halts execution with a dynamic type error (such
+as <code>FORG0001</code>).</p>
+<p>Relying on implicit conversion makes transformations brittle,
+especially when dealing with external or third-party XML payloads where
+data hygiene cannot be guaranteed.</p>
+<h2 id="defensive-testing-with-castable-as">Defensive Testing with
+<code>castable as</code></h2>
+<p>The <code>castable as</code> operator tests whether a specific atomic
+value can be converted into a target schema type without throwing an
+exception. It evaluates to a boolean: <code>true()</code> if the
+conversion would succeed, or <code>false()</code> if the value is
+invalid or cannot be cast to the specified type.</p>
+<p>The syntax is:</p>
+<pre class="xpath"><code>$value castable as target-type</code></pre>
+<p>Because it returns a boolean, <code>castable as</code> functions as a
+guard condition inside conditional expressions like
+<code>if (...) then ... else ...</code> or <code>&lt;xsl:if&gt;</code>
+and <code>&lt;xsl:when&gt;</code> blocks.</p>
+<p>For example, testing an incoming date string before treating it as an
+<code>xs:date</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;@published-date castable as xs:date&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;format-date(xs:date(@published-date), &#39;[B] [D], [Y]&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;date-unknown&quot;</span>&gt;Date unavailable&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>If <code>@published-date</code> is missing or contains invalid
+characters, the condition evaluates to <code>false()</code>, bypassing
+the code that would otherwise cause a fatal runtime crash.</p>
+<h2 id="explicit-conversion-with-cast-as">Explicit Conversion with
+<code>cast as</code></h2>
+<p>While constructor functions like <code>xs:integer($val)</code> exist,
+the <code>cast as</code> expression makes explicit type conversions
+native to XPath syntax.</p>
+<p>The syntax is:</p>
+<pre class="xpath"><code>$value cast as target-type</code></pre>
+<p>Using <code>cast as</code> eliminates ambiguity. It explicitly
+documents the intended data type and transforms the value into that
+target type for subsequent operations. However, using
+<code>cast as</code> on an incompatible value will still trigger a
+dynamic error; therefore, it should typically follow a
+<code>castable as</code> check or be used only when the source schema
+guarantees compatibility.</p>
+<h2 id="the-safe-casting-pattern">The Safe Casting Pattern</h2>
+<p>The primary method for eliminating dynamic type failures is combining
+<code>castable as</code> and <code>cast as</code> in an XPath 2.0+
+conditional expression. This pattern checks viability first, casts if
+valid, and provides a safe fallback value if invalid:</p>
+<pre class="xpath"><code>if ($input castable as xs:decimal) 
+then ($input cast as xs:decimal) 
+else 0.0</code></pre>
+<p>This pattern guarantees that the resulting value is always an
+<code>xs:decimal</code>, ensuring that downstream arithmetic operations
+(such as <code>sum()</code> or division) execute reliably without
+throwing errors.</p>
+<h2 id="handling-empty-sequences">Handling Empty Sequences</h2>
+<p>A common cause of casting failures is the empty sequence
+(<code>()</code>). By default:</p>
+<ul>
+<li><code>() cast as xs:integer</code> throws an error because the
+target cardinality is exactly one.</li>
+<li><code>() castable as xs:integer</code> evaluates to
+<code>false()</code>.</li>
+</ul>
+<p>To allow empty sequences to pass through casting operations safely
+without error, an occurrence indicator (<code>?</code>) can be appended
+to the type definition:</p>
+<pre class="xpath"><code>$input castable as xs:integer?</code></pre>
+<p>If <code>$input</code> is empty, this expression evaluates to
+<code>true()</code>, and <code>$input cast as xs:integer?</code> safely
+returns an empty sequence rather than halting transformation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

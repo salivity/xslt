@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Existential Quantification in XSLT Comparisons - xslt</title>
+    <meta name="description" content="In XSLT and XPath, general comparison operators (=, !=, <, <=, >, and >=) rely on existential quantification when evaluating sequences or multi-node selections. This mechanism dictates that a comparison between two node-sets or sequences evaluates to tru">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/existential-quantification-in-xslt-comparisons">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Existential Quantification in XSLT Comparisons - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/existential-quantification-in-xslt-comparisons" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, general comparison operators (=, !=, <, <=, >, and >=) rely on existential quantification when evaluating sequences or multi-node selections. This mechanism dictates that a comparison between two node-sets or sequences evaluates to tru" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="existential-quantification-in-xslt-comparisons">Existential
+Quantification in XSLT Comparisons</h1>
+<p>In XSLT and XPath, general comparison operators (<code>=</code>,
+<code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>,
+<code>&gt;</code>, and <code>&gt;=</code>) rely on existential
+quantification when evaluating sequences or multi-node selections. This
+mechanism dictates that a comparison between two node-sets or sequences
+evaluates to <code>true</code> if at least one item in the first
+sequence satisfies the relationship with at least one item in the second
+sequence. This article explains how existential quantification operates
+during multi-node evaluations, examines common logical pitfalls like
+non-transitive inequality, and outlines alternative approaches for
+strict validation.</p>
+<h2 id="the-cartesian-product-logic">The Cartesian Product Logic</h2>
+<p>When a general comparison operator evaluates two multi-node sets,
+XPath implicitly performs a Cartesian comparison. Given sequence <span
+class="math inline">\(A\)</span> and sequence <span
+class="math inline">\(B\)</span>, the expression <code>$A = $B</code>
+evaluates whether:</p>
+<p><span class="math display">\[\exists a \in A, \exists b \in B \text{
+such that } a = b\]</span></p>
+<p>Each node in sequence <span class="math inline">\(A\)</span> is
+atomized (converted to its typed value or string value) and compared
+against each atomized node in sequence <span
+class="math inline">\(B\)</span>. As soon as a single pair meets the
+comparison criteria, the evaluation terminates and returns
+<code>true</code>. If the engine iterates through all permutations
+without finding a matching pair, the expression evaluates to
+<code>false</code>. If either sequence is empty, the result is
+immediately <code>false</code>, because no pair can exist.</p>
+<h2 id="the-inequality-trap">The Inequality Trap</h2>
+<p>Existential quantification often produces non-intuitive results with
+the inequality operator (<code>!=</code>). In conventional programming,
+<code>!=</code> represents the complete negation of equality. In general
+comparisons over multi-node selections, <code>!=</code> means "there
+exists at least one pair of nodes that are not equal."</p>
+<p>Consider the following XML fragment:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">order</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">item</span> <span class="ot">status=</span><span class="st">&quot;pending&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">item</span> <span class="ot">status=</span><span class="st">&quot;shipped&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">order</span>&gt;</span></code></pre></div>
+<p>When evaluating the XPath expression:</p>
+<p><code>/order/item/@status != 'shipped'</code></p>
+<p>The expression returns <code>true</code>. The node set
+<code>/order/item/@status</code> contains two values:
+<code>"pending"</code> and <code>"shipped"</code>. Because the value
+<code>"pending"</code> is not equal to <code>"shipped"</code>, an item
+exists that satisfies the condition.</p>
+<p>Consequently, both <code>/order/item/@status = 'shipped'</code> and
+<code>/order/item/@status != 'shipped'</code> evaluate to
+<code>true</code> simultaneously on the same data set. To assert that
+<em>no</em> item is shipped, the expression must negate the equality
+check entirely:</p>
+<p><code>not(/order/item/@status = 'shipped')</code></p>
+<h2 id="atomization-and-type-coercion">Atomization and Type
+Coercion</h2>
+<p>During existential evaluations, type conversion occurs on a per-pair
+basis. In XPath 1.0, comparing a node-set to a number converts each node
+to a number via string conversion. In XPath 2.0 and later, nodes undergo
+atomization to extract their typed values based on the schema or default
+untyped atomic types.</p>
+<p>If untyped atomic values are compared to a typed literal (such as an
+integer), the engine attempts to cast each atomized node to that type.
+If a sequence contains three nodes—<code>"10"</code>,
+<code>"abc"</code>, and <code>"20"</code>—evaluating
+<code>nodes &lt; 15</code> will evaluate <code>10 &lt; 15</code>,
+immediately returning <code>true</code>. The invalid cast on
+<code>"abc"</code> may never be triggered due to lazy evaluation,
+depending on node order and processor optimization.</p>
+<h2 id="enforcing-universal-and-value-comparisons">Enforcing Universal
+and Value Comparisons</h2>
+<p>Because general comparison operators assume existential
+quantification by default, other operators must be used when different
+comparison semantics are required:</p>
+<ol type="1">
+<li><strong>Value Comparison Operators (<code>eq</code>,
+<code>ne</code>, <code>lt</code>, <code>le</code>, <code>gt</code>,
+<code>ge</code>):</strong> Introduced in XPath 2.0, these operators
+enforce singleton evaluations. If either operand evaluates to a sequence
+containing more than one item, the processor raises a dynamic type
+error.</li>
+<li><strong>Universal Quantification (<code>every</code>
+expressions):</strong> To verify that all nodes meet a condition, use
+explicit quantified expressions:
+<pre class="xpath"><code>every $status in /order/item/@status satisfies $status = &#39;shipped&#39;</code></pre></li>
+<li><strong>Explicit Existential Quantification (<code>some</code>
+expressions):</strong> When code readability demands explicit logic over
+implicit operator behavior, the <code>some</code> syntax clarifies
+intent:
+<pre class="xpath"><code>some $status in /order/item/@status satisfies $status = &#39;pending&#39;</code></pre></li>
+</ol>
+<p>Using explicit expressions eliminates ambiguity and prevents
+unintended matches when processing multi-node selections in dynamic XML
+payloads.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

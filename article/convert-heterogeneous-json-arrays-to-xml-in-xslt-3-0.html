@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Heterogeneous JSON Arrays to XML in XSLT 3.0 - xslt</title>
+    <meta name="description" content="XSLT 3.0 introduces native support for processing JSON data through built-in functions like json-to-xml() and parse-json(), combined with XPath 3.1 map and array data types. When an incoming JSON array contains heterogeneous objects—records with varyin">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/convert-heterogeneous-json-arrays-to-xml-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Heterogeneous JSON Arrays to XML in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/convert-heterogeneous-json-arrays-to-xml-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0 introduces native support for processing JSON data through built-in functions like json-to-xml() and parse-json(), combined with XPath 3.1 map and array data types. When an incoming JSON array contains heterogeneous objects—records with varyin" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-heterogeneous-json-arrays-to-xml-in-xslt-30">Convert
+Heterogeneous JSON Arrays to XML in XSLT 3.0</h1>
+<p>XSLT 3.0 introduces native support for processing JSON data through
+built-in functions like <code>json-to-xml()</code> and
+<code>parse-json()</code>, combined with XPath 3.1 map and array data
+types. When an incoming JSON array contains heterogeneous
+objects—records with varying keys, types, and schemas—XSLT 3.0 allows
+developers to parse these collections, discriminate between different
+object shapes, and transform them into coherent, normalized XML
+documents using declarative template matching or functional mapping.</p>
+<h3 id="ingesting-heterogeneous-json">Ingesting Heterogeneous JSON</h3>
+<p>XSLT 3.0 offers two distinct approaches to ingest JSON data:</p>
+<ol type="1">
+<li><strong><code>json-to-xml()</code></strong>: Automatically
+transforms raw JSON into an intermediary XML vocabulary defined by the
+W3C (using namespaces such as
+<code>http://www.w3.org/2005/xpath-functions</code>). Heterogeneous
+objects inside an array become <code>&lt;map&gt;</code> elements with
+differing child elements (<code>&lt;string&gt;</code>,
+<code>&lt;number&gt;</code>, <code>&lt;boolean&gt;</code>,
+<code>&lt;array&gt;</code>, etc.).</li>
+<li><strong><code>parse-json()</code></strong>: Converts the JSON string
+directly into native XPath 3.1 items (maps and arrays), which can be
+manipulated directly in XPath expressions and XSLT templates.</li>
+</ol>
+<h3 id="method-1-the-json-to-xml-approach">Method 1: The
+<code>json-to-xml()</code> Approach</h3>
+<p>The <code>json-to-xml()</code> function is often the simplest way to
+handle heterogeneous structures because it converts the problem into
+standard XML-to-XML processing. Once in XML format, template matching
+handles variation naturally without complex procedural branching.</p>
+<h4 id="example-scenario">Example Scenario</h4>
+<p>Consider an array containing two different object
+types—<code>user</code> records and <code>system_event</code>
+records:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;user&quot;</span><span class="fu">,</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">101</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Jane Doe&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;system_event&quot;</span><span class="fu">,</span> <span class="dt">&quot;eventCode&quot;</span><span class="fu">:</span> <span class="dv">500</span><span class="fu">,</span> <span class="dt">&quot;severity&quot;</span><span class="fu">:</span> <span class="st">&quot;CRITICAL&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<h4 id="xslt-30-transformation">XSLT 3.0 Transformation</h4>
+<p>Using template matching, you can direct each heterogeneous item to
+its dedicated target XML element:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:fn=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">exclude-result-prefixes=</span><span class="st">&quot;fn&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;input-json&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span>/&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Root Template --&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;xsl:initial-template&quot;</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">root</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Convert JSON string to internal XML and apply templates --&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;json-to-xml($input-json)/fn:array/fn:map&quot;</span>/&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">root</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Match user objects --&gt;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;fn:map[fn:string[@key=&#39;type&#39;] = &#39;user&#39;]&quot;</span>&gt;</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">user</span> <span class="ot">id=</span><span class="st">&quot;{fn:number[@key=&#39;id&#39;]}&quot;</span>&gt;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">name</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;fn:string[@key=&#39;name&#39;]&quot;</span>/&gt;&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Match system event objects --&gt;</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;fn:map[fn:string[@key=&#39;type&#39;] = &#39;system_event&#39;]&quot;</span>&gt;</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">event</span> <span class="ot">code=</span><span class="st">&quot;{fn:number[@key=&#39;eventCode&#39;]}&quot;</span> <span class="ot">severity=</span><span class="st">&quot;{fn:string[@key=&#39;severity&#39;]}&quot;</span>/&gt;</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>When an explicit discriminator field (like <code>type</code>) does
+not exist, you can match based on key existence:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Match objects that have a &#39;name&#39; key --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;fn:map[*[@key=&#39;name&#39;]]&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">entity</span> <span class="ot">type=</span><span class="st">&quot;named&quot;</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;*[@key=&#39;name&#39;]&quot;</span>/&gt;&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">entity</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<hr />
+<h3 id="method-2-the-parse-json-and-xpath-31-maps-approach">Method 2:
+The <code>parse-json()</code> and XPath 3.1 Maps Approach</h3>
+<p>Using <code>parse-json()</code> avoids generating intermediate XML
+nodes, working instead with native XPath 3.1 maps. This can be more
+performant for large datasets.</p>
+<h4 id="iteration-and-type-discrimination">Iteration and Type
+Discrimination</h4>
+<p>Using map accessors, <code>map:contains()</code>, and map lookup
+operators (<code>?*</code>, <code>?key</code>), you can iterate over
+arrays and dynamically build elements based on the presence of specific
+attributes.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:map=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions/map&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">exclude-result-prefixes=</span><span class="st">&quot;xs map&quot;</span>&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;input-json&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span>/&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;xsl:initial-template&quot;</span>&gt;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">dataset</span>&gt;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Flatten JSON array to sequence of maps --&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;parse-json($input-json)?*&quot;</span>&gt;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>          <span class="co">&lt;!-- Discriminate based on &#39;type&#39; key --&gt;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;.?type = &#39;user&#39;&quot;</span>&gt;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">user</span> <span class="ot">id=</span><span class="st">&quot;{.?id}&quot;</span>&gt;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>              &lt;<span class="kw">name</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.?name&quot;</span>/&gt;&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>          &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>          <span class="co">&lt;!-- Discriminate based on key presence --&gt;</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;map:contains(., &#39;eventCode&#39;)&quot;</span>&gt;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">event</span> <span class="ot">code=</span><span class="st">&quot;{.?eventCode}&quot;</span> <span class="ot">severity=</span><span class="st">&quot;{.?severity}&quot;</span>/&gt;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>          &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>          <span class="co">&lt;!-- Fallback for unexpected shapes --&gt;</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">unrecognized-item</span>&gt;</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>              &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;map:keys(.)&quot;</span>&gt;</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">field</span> <span class="ot">name=</span><span class="st">&quot;{.}&quot;</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;..?(.)&quot;</span>/&gt;&lt;/<span class="kw">field</span>&gt;</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>              &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">unrecognized-item</span>&gt;</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>          &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">dataset</span>&gt;</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="key-differences-and-best-practices">Key Differences and Best
+Practices</h3>
+<ul>
+<li><strong>Use <code>json-to-xml()</code></strong> when rules-based,
+declarative transformations are preferred. It simplifies structural
+navigation using standard XPath pattern matching, modes, and template
+priorities.</li>
+<li><strong>Use <code>parse-json()</code></strong> when working with
+high-volume feeds where creating intermediate XML trees adds
+unacceptable memory overhead.</li>
+<li><strong>Handle Schema Drift:</strong> For heterogeneous data with
+unexpected structures, always provide a fallback template or an
+<code>&lt;xsl:otherwise&gt;</code> block to log or preserve unmapped
+data elements safely.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

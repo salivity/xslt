@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 3.0 accumulator-before and accumulator-after - xslt</title>
+    <meta name="description" content="In XSLT 3.0 streaming, accumulator-before() and accumulator-after() are built-in functions used to access the state of an xsl:accumulator at specific points in a node’s processing cycle. Because streaming transforms process XML documents sequentially w">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-3-0-accumulator-before-and-accumulator-after">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 3.0 accumulator-before and accumulator-after - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-3-0-accumulator-before-and-accumulator-after" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0 streaming, accumulator-before() and accumulator-after() are built-in functions used to access the state of an xsl:accumulator at specific points in a node’s processing cycle. Because streaming transforms process XML documents sequentially w" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-30-accumulator-before-and-accumulator-after">XSLT 3.0
+accumulator-before and accumulator-after</h1>
+<p>In XSLT 3.0 streaming, <code>accumulator-before()</code> and
+<code>accumulator-after()</code> are built-in functions used to access
+the state of an <code>xsl:accumulator</code> at specific points in a
+node’s processing cycle. Because streaming transforms process XML
+documents sequentially without holding the entire document tree in
+memory, standard axes like <code>preceding-sibling</code> or
+<code>ancestor</code> are unavailable. Accumulators solve this by
+maintaining state as the document stream is traversed, and these two
+functions allow developers to query that state either immediately prior
+to processing a node and its descendants, or immediately after.</p>
+<h3 id="the-purpose-of-accumulators-in-streaming">The Purpose of
+Accumulators in Streaming</h3>
+<p>Streaming requires sequential, single-pass processing. Standard XSLT
+variables cannot change their value over time, and querying previous
+nodes violates streaming rules. An <code>xsl:accumulator</code> behaves
+as a functional, stream-safe mechanism that listens to document events
+(such as encountering start and end tags) and updates its value based on
+defined <code>xsl:accumulator-rule</code> elements.</p>
+<p>To read these accumulator values without breaking streamability, XSLT
+3.0 provides <code>accumulator-before()</code> and
+<code>accumulator-after()</code>.</p>
+<h3 id="the-accumulator-before-function">The
+<code>accumulator-before()</code> Function</h3>
+<p>The <code>accumulator-before($accumulator-name)</code> function
+returns the value of the designated accumulator immediately before the
+current node and its descendants are visited.</p>
+<ul>
+<li><strong>Event Timing:</strong> It captures the state after all nodes
+occurring before this node in document order have been processed, but
+before any rules matching this node or its child elements take
+effect.</li>
+<li><strong>Primary Use Case:</strong> Accessing context or running
+calculations that apply up to the start of the current element. For
+instance, if you are tracking a running balance or a line counter,
+<code>accumulator-before()</code> provides the tally right before the
+current record begins.</li>
+</ul>
+<h3 id="the-accumulator-after-function">The
+<code>accumulator-after()</code> Function</h3>
+<p>The <code>accumulator-after($accumulator-name)</code> function
+returns the value of the accumulator immediately after the current node
+and all of its descendants have been fully processed.</p>
+<ul>
+<li><strong>Event Timing:</strong> For an element node, this corresponds
+to the moment the closing tag is encountered. It reflects all
+modifications made by accumulator rules applied to the element itself,
+its attributes, and its children.</li>
+<li><strong>Primary Use Case:</strong> Measuring aggregate data or
+changes produced by a subtree. For example, if an accumulator sums up
+the costs of individual items inside an <code>&lt;order&gt;</code>
+element, calling <code>accumulator-after()</code> on the
+<code>&lt;order&gt;</code> element returns the total cost calculated
+from all nested <code>&lt;item&gt;</code> tags.</li>
+</ul>
+<h3 id="key-behavioral-differences">Key Behavioral Differences</h3>
+<p>The distinction between the two functions is dictated by where the
+node sits relative to tree traversal:</p>
+<ol type="1">
+<li><strong>For Leaf Nodes (e.g., text nodes or attribute
+nodes):</strong> The difference between
+<code>accumulator-before()</code> and <code>accumulator-after()</code>
+is simply whether the accumulator rule attached to that specific leaf
+node has been applied.</li>
+<li><strong>For Element Nodes:</strong>
+<code>accumulator-before()</code> captures the state entering the
+element, while <code>accumulator-after()</code> captures the state
+leaving the element, including all modifications made by rules within
+the element's entire content.</li>
+<li><strong>Availability Rules:</strong> While
+<code>accumulator-before()</code> can be invoked on streamed nodes
+before descending into their content, calling
+<code>accumulator-after()</code> on a streaming element typically
+requires that the element's content has already been consumed by the
+processor, ensuring that the post-descent state is legitimately
+computable.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

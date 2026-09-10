@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undeclared Namespace Prefixes in XSLT XPath - xslt</title>
+    <meta name="description" content="When an XSLT processor encounters an undeclared namespace prefix in an XPath query, it fails to compile or evaluate the expression and terminates execution with a static error. Because XPath expressions require every prefixed Qualified Name (QName) to ma">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/undeclared-namespace-prefixes-in-xslt-xpath">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Undeclared Namespace Prefixes in XSLT XPath - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/undeclared-namespace-prefixes-in-xslt-xpath" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When an XSLT processor encounters an undeclared namespace prefix in an XPath query, it fails to compile or evaluate the expression and terminates execution with a static error. Because XPath expressions require every prefixed Qualified Name (QName) to ma" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="undeclared-namespace-prefixes-in-xslt-xpath">Undeclared
+Namespace Prefixes in XSLT XPath</h1>
+<p>When an XSLT processor encounters an undeclared namespace prefix in
+an XPath query, it fails to compile or evaluate the expression and
+terminates execution with a static error. Because XPath expressions
+require every prefixed Qualified Name (QName) to map to a valid
+namespace Uniform Resource Identifier (URI), missing declarations
+prevent the processor from resolving elements and attributes. This guide
+explains why this error occurs under the W3C standards, how different
+processor versions handle it, and how to resolve it.</p>
+<h2 id="the-static-analysis-phase-and-error-generation">The Static
+Analysis Phase and Error Generation</h2>
+<p>XSLT processing occurs in two main phases: static analysis
+(compilation) and dynamic evaluation (execution). Namespace prefix
+resolution happens entirely during the static analysis phase.</p>
+<p>When the processor parses an XPath expression containing a prefixed
+name (such as <code>prefix:elementName</code>), it searches the in-scope
+namespaces of the stylesheet element where the XPath expression is
+written. If the prefix is not bound to a namespace URI within that
+scope, the processor cannot construct the Expanded QName required to
+evaluate the node.</p>
+<p>Because this check happens during static analysis, the failure occurs
+before the stylesheet processes any source XML data. The processor halts
+and generates a fatal error rather than ignoring the unknown prefix or
+treating it as a literal string.</p>
+<h2
+id="specification-standards-xpath-10-vs-xpath-20-and-later">Specification
+Standards: XPath 1.0 vs. XPath 2.0 and Later</h2>
+<p>The precise error classification depends on the version of the XSLT
+and XPath specifications implemented by the processor:</p>
+<ul>
+<li><strong>XPath 1.0 / XSLT 1.0:</strong> The specification states that
+an expression with an undeclared prefix is a syntax or static context
+error. Processors like <code>libxslt</code> or older versions of MSXML
+will emit an error message indicating that the namespace prefix is
+undefined and halt execution.</li>
+<li><strong>XPath 2.0, 3.0, and 3.1 / XSLT 2.0+:</strong> The modern W3C
+specifications formalize this failure under the static error code
+<strong><code>err:XPST0081</code></strong>. The specification explicitly
+states that it is a static error if a QName has a prefix that cannot be
+expanded into a namespace URI using the statically known namespaces.
+Processors such as Saxon or Altova will specifically cite error code
+<code>XPST0081</code>.</li>
+</ul>
+<h2 id="common-processor-behaviors">Common Processor Behaviors</h2>
+<p>When this condition occurs, standard XSLT processors respond as
+follows:</p>
+<ul>
+<li><strong>Saxon:</strong> Throws a <code>StaticError</code> citing
+<code>XPST0081: Prefix [prefix] has not been declared</code>.</li>
+<li><strong>libxslt (xsltproc):</strong> Emits
+<code>XPath error : Undefined namespace prefix</code> followed by
+<code>xmlXPathCompOpEval: parameter error</code> and exits with an error
+code.</li>
+<li><strong>Xalan:</strong> Throws a <code>TransformerException</code>
+indicating that the prefix cannot be resolved to a namespace.</li>
+</ul>
+<p>In all compliant processors, the transformation is aborted, and no
+output document is generated.</p>
+<h2 id="how-to-resolve-the-error">How to Resolve the Error</h2>
+<p>To fix undeclared prefix errors, the prefix must be mapped to the
+appropriate URI within the static scope of the XPath query.</p>
+<ol type="1">
+<li><strong>Declare the Namespace in the Root Element:</strong> The most
+common fix is declaring the namespace mapping on the
+<code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code> root element using an
+<code>xmlns</code> attribute:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:example=</span><span class="st">&quot;http://example.com/ns&quot;</span>&gt;</span></code></pre></div></li>
+<li><strong>Local Declarations:</strong> If the namespace is only used
+within a specific template or instruction, the
+<code>xmlns:prefix="URI"</code> declaration can be placed on that
+specific XSLT element.</li>
+<li><strong>Handle Default Namespaces Explicitly:</strong> A common
+mistake is assuming that an unprefixed default namespace
+(<code>xmlns="URI"</code>) in the source XML applies to unprefixed
+elements in XPath. In XPath 1.0, unprefixed names always evaluate to
+null namespaces. If source XML elements belong to a namespace, a prefix
+must be bound to that namespace URI in the XSLT stylesheet and
+explicitly used in the XPath expression.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Scope of XSLT Tunnel Parameters? - xslt</title>
+    <meta name="description" content="Tunnel parameters in XSLT 2.0 provide a mechanism for passing values through a chain of template invocations without requiring intermediate templates to explicitly declare or forward them. By attaching the tunnel="yes" attribute to parameter declarations">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-scope-of-xslt-tunnel-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Scope of XSLT Tunnel Parameters? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-scope-of-xslt-tunnel-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Tunnel parameters in XSLT 2.0 provide a mechanism for passing values through a chain of template invocations without requiring intermediate templates to explicitly declare or forward them. By attaching the tunnel="yes" attribute to parameter declarations" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-the-scope-of-xslt-tunnel-parameters">What Is the Scope
+of XSLT Tunnel Parameters?</h1>
+<p>Tunnel parameters in XSLT 2.0 provide a mechanism for passing values
+through a chain of template invocations without requiring intermediate
+templates to explicitly declare or forward them. By attaching the
+<code>tunnel="yes"</code> attribute to parameter declarations and call
+sites, developers can transmit contextual data directly from an ancestor
+template to a deeply nested descendant. This article explains the
+architectural scope, operational lifecycle, and behavior of tunnel
+parameters across template invocations.</p>
+<h2 id="understanding-tunnel-parameters-in-xslt-20">Understanding Tunnel
+Parameters in XSLT 2.0</h2>
+<p>In standard XSLT 1.0 parameter passing, any value supplied via
+<code>xsl:with-param</code> must be matched by an explicit
+<code>xsl:param</code> declaration in the target template. If a deeply
+nested element needs a configuration flag or reference value, every
+intermediate template in the processing chain must declare the parameter
+and forward it downstream using another <code>xsl:with-param</code>.
+This creates tightly coupled, verbose, and brittle stylesheets.</p>
+<p>XSLT 2.0 addressed this problem by introducing the
+<code>tunnel</code> attribute on both
+<code>&lt;xsl:with-param&gt;</code> and <code>&lt;xsl:param&gt;</code>.
+Setting <code>tunnel="yes"</code> marks the parameter as a tunnel
+parameter, separating it from the standard non-tunnel parameter set.</p>
+<h2 id="the-scope-of-tunnel-parameters">The Scope of Tunnel
+Parameters</h2>
+<p>The scope of an XSLT tunnel parameter is dynamic rather than lexical.
+It is scoped to the execution path (the call tree) rather than the
+physical XML document tree or the stylesheet's textual structure.</p>
+<p>When a template passes a tunnel parameter via
+<code>&lt;xsl:apply-templates&gt;</code> or
+<code>&lt;xsl:call-template&gt;</code>, that parameter enters the active
+tunnel parameter set for all subsequent template invocations initiated
+by that instruction. Any downstream template executed within that branch
+of execution can access the parameter by declaring
+<code>&lt;xsl:param name="..." tunnel="yes"/&gt;</code>.</p>
+<p>Key scoping rules include:</p>
+<ul>
+<li><strong>Transparent Pass-Through:</strong> Templates that do not
+declare the tunnel parameter will automatically pass it along to their
+own child invocations.</li>
+<li><strong>Separation from Non-Tunnel Names:</strong> A tunnel
+parameter and a non-tunnel parameter can share the same name within the
+same execution scope without colliding, as they exist in distinct
+parameter spaces.</li>
+<li><strong>Optional Consumption:</strong> If a downstream template does
+not need the tunnel parameter, it simply ignores it without causing a
+transformation error.</li>
+</ul>
+<h2 id="the-lifecycle-of-a-tunnel-parameter">The Lifecycle of a Tunnel
+Parameter</h2>
+<p>The lifecycle of a tunnel parameter follows the dynamic execution
+stack of the transformation:</p>
+<h3 id="1-creation-and-initialization">1. Creation and
+Initialization</h3>
+<p>A tunnel parameter begins its lifecycle when an instruction such as
+<code>&lt;xsl:apply-templates&gt;</code> or
+<code>&lt;xsl:call-template&gt;</code> includes an
+<code>&lt;xsl:with-param name="paramName" select="expression" tunnel="yes"/&gt;</code>
+element. The expression is evaluated at the point of invocation, and the
+value is added to the active tunnel parameter pool for the target
+execution branch.</p>
+<h3 id="2-propagation">2. Propagation</h3>
+<p>As the XSLT processor matches and invokes subsequent templates, the
+tunnel parameter travels down the execution tree. Intermediate templates
+do not need to contain any reference to the parameter; the processor
+maintains the parameter's binding across template boundaries
+automatically.</p>
+<h3 id="3-reading-and-consumption">3. Reading and Consumption</h3>
+<p>When execution reaches a template that requires the value, the
+template declares
+<code>&lt;xsl:param name="paramName" tunnel="yes"/&gt;</code>. The
+processor binds the incoming tunneled value to this local variable name.
+The template can use it in XPath expressions, conditional logic, or
+output generation.</p>
+<h3 id="4-overriding-and-shadowing">4. Overriding and Shadowing</h3>
+<p>Any template within the call hierarchy can re-bind a tunnel parameter
+for its own descendant calls. By executing an instruction with
+<code>&lt;xsl:with-param name="paramName" select="newValue" tunnel="yes"/&gt;</code>,
+the template replaces the value of that tunnel parameter for all child
+calls originating from that instruction. The original value remains
+unchanged in sibling branches or higher up in the call stack.</p>
+<h3 id="5-termination">5. Termination</h3>
+<p>A tunnel parameter's lifecycle ends when the template call that
+instantiated it completes execution and returns control up the call
+stack. Once the processor finishes evaluating the branch initiated by
+the calling instruction, the associated tunnel parameters are popped
+from the execution environment.</p>
+<h2 id="tunnel-parameters-vs-standard-parameters">Tunnel Parameters vs.
+Standard Parameters</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Standard Parameter (<code>tunnel="no"</code>)</th>
+<th>Tunnel Parameter (<code>tunnel="yes"</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Intermediate Forwarding</strong></td>
+<td>Must be explicitly declared and passed at every level</td>
+<td>Propagates automatically across undeclared templates</td>
+</tr>
+<tr>
+<td><strong>Undeclared Target Handling</strong></td>
+<td>Ignored by target, lost for subsequent calls</td>
+<td>Retained in context for deeper descendant calls</td>
+</tr>
+<tr>
+<td><strong>Parameter Collisions</strong></td>
+<td>Resides in the standard parameter namespace</td>
+<td>Resides in an isolated tunnel parameter namespace</td>
+</tr>
+<tr>
+<td><strong>Primary Use Case</strong></td>
+<td>Direct parent-to-child data dependencies</td>
+<td>Cross-cutting concerns, document metadata, global flags</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices-for-managing-tunnel-parameters">Best Practices
+for Managing Tunnel Parameters</h2>
+<p>While tunnel parameters simplify stylesheet authoring by eliminating
+boilerplate forwarding code, unconstrained use can make stylesheets
+harder to debug.</p>
+<p>To maintain clean and maintainable XSLT code:</p>
+<ul>
+<li>Use tunnel parameters primarily for contextual metadata, such as
+formatting options, numbering modes, or global document references.</li>
+<li>Keep standard parameters for immediate, localized inputs that define
+the core interface of a specific template.</li>
+<li>Provide fallback default values using the <code>select</code>
+attribute on
+<code>&lt;xsl:param name="..." tunnel="yes" select="defaultValue"/&gt;</code>
+to ensure templates execute safely even if invoked outside a tunneled
+context.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

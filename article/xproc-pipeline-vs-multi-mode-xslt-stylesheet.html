@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XProc Pipeline vs Multi-Mode XSLT Stylesheet - xslt</title>
+    <meta name="description" content="This article examines the structural, architectural, and operational differences between orchestrating XML processing via an XProc pipeline and using a monolithic multi-mode XSLT stylesheet. While both approaches can execute sequential, multi-stage XML t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xproc-pipeline-vs-multi-mode-xslt-stylesheet">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XProc Pipeline vs Multi-Mode XSLT Stylesheet - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xproc-pipeline-vs-multi-mode-xslt-stylesheet" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines the structural, architectural, and operational differences between orchestrating XML processing via an XProc pipeline and using a monolithic multi-mode XSLT stylesheet. While both approaches can execute sequential, multi-stage XML t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xproc-pipeline-vs-multi-mode-xslt-stylesheet">XProc Pipeline vs
+Multi-Mode XSLT Stylesheet</h1>
+<p>This article examines the structural, architectural, and operational
+differences between orchestrating XML processing via an XProc pipeline
+and using a monolithic multi-mode XSLT stylesheet. While both approaches
+can execute sequential, multi-stage XML transformations, they diverge
+significantly in how they handle separation of concerns, non-XSLT
+processing steps, resource utilization, and maintainability.</p>
+<h3 id="architectural-approach-and-orchestration">Architectural Approach
+and Orchestration</h3>
+<p>A <strong>monolithic multi-mode XSLT stylesheet</strong> relies on
+XSLT's built-in <code>mode</code> feature to chain transformations
+within a single stylesheet program. Each stage captures its result into
+a variable (typically a document node or element tree) and passes it to
+the next template set using <code>xsl:apply-templates</code> with a
+distinct <code>mode</code>. The stylesheet itself is both the workflow
+orchestrator and the execution engine.</p>
+<p>An <strong>XProc pipeline</strong> is a dedicated XML pipelining
+language designed specifically to coordinate workflows. XProc delegates
+transformation tasks to discrete, single-purpose XSLT stylesheets while
+managing the sequence, inputs, outputs, and parameters externally.
+Orchestration is decoupled from the transformation logic.</p>
+<h3 id="scope-of-operations">Scope of Operations</h3>
+<ul>
+<li><strong>Multi-Mode XSLT:</strong> Confined primarily to the
+boundaries of the XSLT engine. Complex operations requiring external
+validation (such as Schematron or RELAX NG), external HTTP calls, ZIP
+packaging, or non-XML format generation (like JSON or plain text files
+in parallel) require proprietary processor extensions (e.g., Saxon
+extensions) or cumbersome workarounds.</li>
+<li><strong>XProc:</strong> Built to handle heterogeneous operations. An
+XProc pipeline can validate an XML document against an XSD schema, pass
+it to an XSLT transformation, validate the output against Schematron,
+load external resources via HTTP, and package the final deliverables
+into a ZIP archive—all within standard declarative syntax.</li>
+</ul>
+<h3 id="modularity-and-maintainability">Modularity and
+Maintainability</h3>
+<p>In a multi-mode stylesheet, all rules share the same context, global
+parameters, and variable namespace unless segmented by
+<code>xsl:import</code> or <code>xsl:include</code>. As the complexity
+of transformations grows, debugging unexpected template matches across
+various modes becomes challenging. Changes made to one mode risk
+introducing unintended side effects in downstream modes.</p>
+<p>XProc promotes strict isolation. Each transformation step operates
+with its own distinct stylesheet, isolated inputs, and specified
+outputs. This isolation makes individual steps easier to unit-test,
+modify, or swap without affecting the rest of the pipeline.</p>
+<h3 id="memory-management-and-intermediate-states">Memory Management and
+Intermediate States</h3>
+<p>Multi-mode stylesheets handle intermediate results by holding
+document trees in system memory (in-memory variable trees). For large
+XML datasets, storing multiple intermediate representation trees
+simultaneously can rapidly exhaust available heap memory.</p>
+<p>XProc processors manage inputs and outputs as explicit step
+boundaries. They can stream data between steps, serialize intermediate
+outputs to disk, or discard intermediate documents as soon as a step
+completes, resulting in more predictable memory usage for large
+payloads.</p>
+<h3 id="tooling-and-environmental-footprint">Tooling and Environmental
+Footprint</h3>
+<ul>
+<li><strong>Execution Overhead:</strong> Multi-mode XSLT requires only a
+standard XSLT processor (such as Saxon or libxslt). This simplicity
+reduces operational dependencies in continuous integration (CI)
+environments and production runtimes.</li>
+<li><strong>Infrastructure Requirement:</strong> XProc requires a
+specialized pipeline processor (such as XML Calabash or MorganaXProc),
+which introduces another layer to the technology stack and requires
+teams to learn and maintain both XProc and XSLT specifications.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

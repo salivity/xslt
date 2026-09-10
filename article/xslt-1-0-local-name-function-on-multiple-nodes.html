@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 1.0 local-name Function on Multiple Nodes - xslt</title>
+    <meta name="description" content="In XSLT 1.0, applying the local-name() function to a node-set containing multiple items results in the function returning the local name of only the first node in document order. Any subsequent nodes in the node-set are completely ignored during evaluati">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-1-0-local-name-function-on-multiple-nodes">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 1.0 local-name Function on Multiple Nodes - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-1-0-local-name-function-on-multiple-nodes" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 1.0, applying the local-name() function to a node-set containing multiple items results in the function returning the local name of only the first node in document order. Any subsequent nodes in the node-set are completely ignored during evaluati" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-10-local-name-function-on-multiple-nodes">XSLT 1.0
+local-name Function on Multiple Nodes</h1>
+<p>In XSLT 1.0, applying the <code>local-name()</code> function to a
+node-set containing multiple items results in the function returning the
+local name of only the first node in document order. Any subsequent
+nodes in the node-set are completely ignored during evaluation. This
+article explains the technical mechanics behind this behavior, the rules
+governing document order, and how to properly extract names from
+multiple nodes.</p>
+<h3 id="the-first-node-rule">The First Node Rule</h3>
+<p>The XPath 1.0 specification (Section 4.1, Node Set Functions) defines
+the behavior of <code>local-name()</code> when supplied with an
+argument:</p>
+<blockquote>
+<p>"The <code>local-name</code> function returns the local part of the
+expanded-name of the node in the argument node-set that is first in
+document order. If the argument node-set is empty or the first node has
+no expanded-name, an empty string is returned."</p>
+</blockquote>
+<p>Unlike XSLT 2.0 and later versions—which use XPath 2.0 sequence
+handling and will raise a type error if a sequence of more than one item
+is passed to a function expecting a single item—XPath 1.0 silently
+truncates the set to its first member in document order.</p>
+<h3 id="example-behavior">Example Behavior</h3>
+<p>Consider the following XML fragment:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">catalog</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">book</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;XPath Guide&lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">magazine</span> <span class="ot">id=</span><span class="st">&quot;2&quot;</span>&gt;Tech Weekly&lt;/<span class="kw">magazine</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">journal</span> <span class="ot">id=</span><span class="st">&quot;3&quot;</span>&gt;Science Today&lt;/<span class="kw">journal</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">catalog</span>&gt;</span></code></pre></div>
+<p>If you evaluate the following expression in an XSLT 1.0 template:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;local-name(/catalog/*)&quot;</span>/&gt;</span></code></pre></div>
+<p>The node-set <code>/catalog/*</code> contains three elements:
+<code>&lt;book&gt;</code>, <code>&lt;magazine&gt;</code>, and
+<code>&lt;journal&gt;</code>. The function processes this node-set,
+identifies <code>&lt;book&gt;</code> as the first node in document
+order, and returns:</p>
+<pre class="text"><code>book</code></pre>
+<p>The <code>&lt;magazine&gt;</code> and <code>&lt;journal&gt;</code>
+nodes produce no output and cause no errors or warnings.</p>
+<h3 id="document-order-matters">Document Order Matters</h3>
+<p>The selected node is strictly determined by document order, not by
+the order of predicates or sub-expressions used to build the node-set.
+For instance:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;local-name(//journal | //book)&quot;</span>/&gt;</span></code></pre></div>
+<p>Even though <code>//journal</code> appears first in the union
+expression, <code>&lt;book&gt;</code> precedes
+<code>&lt;journal&gt;</code> in the source document. Therefore,
+<code>local-name()</code> still returns <code>book</code>.</p>
+<h3 id="how-to-process-multiple-nodes">How to Process Multiple
+Nodes</h3>
+<p>Because <code>local-name()</code> cannot return a list or array of
+names in XSLT 1.0, you must iterate over the node-set using
+<code>&lt;xsl:for-each&gt;</code> or apply templates if you need the
+local name of every node in the collection:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;/catalog/*&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;local-name()&quot;</span>/&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;position() != last()&quot;</span>&gt;, &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<p>When <code>local-name()</code> is invoked without arguments, it
+defaults to a node-set containing only the context node, properly
+outputting: <code>book, magazine, journal</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

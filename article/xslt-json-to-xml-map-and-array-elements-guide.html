@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT json-to-xml: Map and Array Elements Guide - xslt</title>
+    <meta name="description" content="The json-to-xml() function introduced in XPath and XSLT 3.0 provides a standardized way to parse JSON text into an XML representation. At the core of this transformation are the <map> and <array> elements, which translate JSON objects and arrays into str">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-json-to-xml-map-and-array-elements-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT json-to-xml: Map and Array Elements Guide - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-json-to-xml-map-and-array-elements-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The json-to-xml() function introduced in XPath and XSLT 3.0 provides a standardized way to parse JSON text into an XML representation. At the core of this transformation are the <map> and <array> elements, which translate JSON objects and arrays into str" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-json-to-xml-map-and-array-elements-guide">XSLT json-to-xml:
+Map and Array Elements Guide</h1>
+<p>The <code>json-to-xml()</code> function introduced in XPath and XSLT
+3.0 provides a standardized way to parse JSON text into an XML
+representation. At the core of this transformation are the
+<code>&lt;map&gt;</code> and <code>&lt;array&gt;</code> elements, which
+translate JSON objects and arrays into structured, queryable XML nodes
+defined under a specific W3C namespace. Understanding how these elements
+represent data structures, keys, and values allows developers to
+manipulate JSON payloads effectively using standard XPath and XSLT
+templates.</p>
+<h3 id="the-w3c-json-to-xml-model">The W3C JSON-to-XML Model</h3>
+<p>When <code>json-to-xml()</code> parses a JSON string, it outputs an
+XML document where every element belongs to the standard namespace:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>http://www.w3.org/2005/xpath-functions</span></code></pre></div>
+<p>In this model, JSON data structures (objects and arrays) and scalar
+values (strings, numbers, booleans, nulls) are converted into distinct
+XML elements that mirror the JSON hierarchy.</p>
+<h3 id="the-map-element">The <code>&lt;map&gt;</code> Element</h3>
+<p>The <code>&lt;map&gt;</code> element represents a JSON object (a
+collection of key-value pairs).</p>
+<ul>
+<li><strong>Child Elements:</strong> The children of a
+<code>&lt;map&gt;</code> element can be any JSON-XML representation:
+<code>&lt;string&gt;</code>, <code>&lt;number&gt;</code>,
+<code>&lt;boolean&gt;</code>, <code>&lt;null&gt;</code>, nested
+<code>&lt;map&gt;</code> elements, or nested <code>&lt;array&gt;</code>
+elements.</li>
+<li><strong>The <code>key</code> Attribute:</strong> Because JSON
+objects use string keys, every direct child element of a
+<code>&lt;map&gt;</code> must include a <code>key</code> attribute
+specifying the property's name.</li>
+<li><strong>Unordered Nature:</strong> In accordance with the JSON
+specification, key-value pairs in a <code>&lt;map&gt;</code> have no
+semantic ordering, though they appear in sequential order in the XML
+tree.</li>
+</ul>
+<h4 id="example">Example:</h4>
+<p>Given this JSON object:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Introduction&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;views&quot;</span><span class="fu">:</span> <span class="dv">150</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>The transformed XML is:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">map</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span> <span class="ot">key=</span><span class="st">&quot;title&quot;</span>&gt;Introduction&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">number</span> <span class="ot">key=</span><span class="st">&quot;views&quot;</span>&gt;150&lt;/<span class="kw">number</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">map</span>&gt;</span></code></pre></div>
+<h3 id="the-array-element">The <code>&lt;array&gt;</code> Element</h3>
+<p>The <code>&lt;array&gt;</code> element represents an ordered sequence
+of JSON values.</p>
+<ul>
+<li><strong>Child Elements:</strong> Like <code>&lt;map&gt;</code>, an
+<code>&lt;array&gt;</code> can contain any combination of data elements,
+including scalar types, nested <code>&lt;map&gt;</code> elements, or
+nested <code>&lt;array&gt;</code> elements.</li>
+<li><strong>No <code>key</code> Attributes:</strong> Direct child
+elements of an <code>&lt;array&gt;</code> do not possess a
+<code>key</code> attribute. Their position in the array is determined
+strictly by their node order in the XML structure.</li>
+<li><strong>Indexed Access:</strong> Items inside an
+<code>&lt;array&gt;</code> are mapped by sequence, making them easy to
+select using XPath positional predicates (e.g.,
+<code>fn:array/*[1]</code>).</li>
+</ul>
+<h4 id="example-1">Example:</h4>
+<p>Given this JSON array:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span><span class="st">&quot;draft&quot;</span><span class="ot">,</span> <span class="st">&quot;review&quot;</span><span class="ot">,</span> <span class="st">&quot;published&quot;</span><span class="ot">]</span></span></code></pre></div>
+<p>The transformed XML is:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">array</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span>&gt;draft&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span>&gt;review&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span>&gt;published&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">array</span>&gt;</span></code></pre></div>
+<h3 id="combined-example">Combined Example</h3>
+<p>When arrays and objects are nested within each other,
+<code>&lt;map&gt;</code> and <code>&lt;array&gt;</code> elements combine
+hierarchically.</p>
+<p>Given the following JSON:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice&quot;</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;roles&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;admin&quot;</span><span class="ot">,</span> <span class="st">&quot;editor&quot;</span><span class="ot">]</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>The <code>json-to-xml()</code> function outputs:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">map</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span>&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span> <span class="ot">key=</span><span class="st">&quot;user&quot;</span>&gt;Alice&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">array</span> <span class="ot">key=</span><span class="st">&quot;roles&quot;</span>&gt;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">string</span>&gt;admin&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">string</span>&gt;editor&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">array</span>&gt;</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">map</span>&gt;</span></code></pre></div>
+<p>Notice that the <code>&lt;array&gt;</code> element receives a
+<code>key="roles"</code> attribute because it is a direct child of a
+<code>&lt;map&gt;</code>. However, the <code>&lt;string&gt;</code>
+children inside the <code>&lt;array&gt;</code> do not have
+<code>key</code> attributes.</p>
+<h3 id="querying-map-and-array-in-xslt">Querying
+<code>&lt;map&gt;</code> and <code>&lt;array&gt;</code> in XSLT</h3>
+<p>To process these elements in XSLT, declare the XPath functions
+namespace and use template matching or XPath expressions targeting the
+elements and their attributes:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:fn=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span>&gt;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Match a property inside a map by key --&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;fn:map/fn:string[@key=&#39;user&#39;]&quot;</span>&gt;</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">username</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;&lt;/<span class="kw">username</span>&gt;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Match items within an array --&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;fn:array[@key=&#39;roles&#39;]/fn:string&quot;</span>&gt;</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">role</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;&lt;/<span class="kw">role</span>&gt;</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>By relying on explicit <code>&lt;map&gt;</code> and
+<code>&lt;array&gt;</code> elements and <code>key</code> attributes, the
+model maintains a complete, lossless mapping of the original JSON syntax
+while making it fully navigable using native XSLT patterns.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

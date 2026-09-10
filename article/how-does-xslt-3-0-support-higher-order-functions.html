@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT 3.0 Support Higher-Order Functions? - xslt</title>
+    <meta name="description" content="XSLT 3.0, in conjunction with XPath 3.0 and 3.1, fundamentally modernizes XML transformations by treating functions as first-class citizens. Through dynamic function items, inline function expressions, and higher-order functions like fn:for-each, fn:filt">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-3-0-support-higher-order-functions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT 3.0 Support Higher-Order Functions? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-3-0-support-higher-order-functions" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0, in conjunction with XPath 3.0 and 3.1, fundamentally modernizes XML transformations by treating functions as first-class citizens. Through dynamic function items, inline function expressions, and higher-order functions like fn:for-each, fn:filt" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-xslt-30-support-higher-order-functions">How Does XSLT
+3.0 Support Higher-Order Functions?</h1>
+<p>XSLT 3.0, in conjunction with XPath 3.0 and 3.1, fundamentally
+modernizes XML transformations by treating functions as first-class
+citizens. Through dynamic function items, inline function expressions,
+and higher-order functions like <code>fn:for-each</code>,
+<code>fn:filter</code>, and <code>fn:fold-left</code>, developers can
+write modular, functional code directly within stylesheets without
+relying on verbose template workarounds.</p>
+<h2 id="first-class-functions-and-named-references">First-Class
+Functions and Named References</h2>
+<p>In earlier versions of XSLT and XPath, functions could only be called
+statically by name. XSLT 3.0 introduces function items as a discrete
+data type. This allows functions to be assigned to variables, passed as
+arguments to other functions or templates, and returned as results.</p>
+<p>Named functions are referenced using the literal function reference
+syntax <code>QName#arity</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Storing a function reference in a variable --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;cleaner&quot;</span> <span class="ot">select=</span><span class="st">&quot;fn:normalize-space#1&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Invoking the function item dynamically --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$cleaner(&#39;  sample text  &#39;)&quot;</span> /&gt;</span></code></pre></div>
+<p>The arity (<code>#1</code> in the example above) is required because
+XPath supports function overloading by argument count.</p>
+<h2 id="inline-function-expressions">Inline Function Expressions</h2>
+<p>Inline functions (also known as anonymous functions or lambdas) allow
+developers to declare functions locally without defining a standalone
+<code>xsl:function</code> declaration.</p>
+<p>The syntax for an inline function follows this structure:</p>
+<pre class="xpath"><code>function($parameter as type) as return-type { expression }
+</code></pre>
+<p>Inline functions capture their lexical scope (closures), meaning they
+can reference local variables and parameters from the surrounding
+template or stylesheet context:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;multiplier&quot;</span> <span class="ot">select=</span><span class="st">&quot;10&quot;</span> /&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;scale&quot;</span> <span class="ot">select=</span><span class="st">&quot;function($val as xs:integer) as xs:integer { $val * $multiplier }&quot;</span> /&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$scale(5)&quot;</span> /&gt; <span class="co">&lt;!-- Outputs 50 --&gt;</span></span></code></pre></div>
+<h2 id="standard-higher-order-functions">Standard Higher-Order
+Functions</h2>
+<p>XPath 3.0 and 3.1 provide built-in higher-order functions in the
+<code>fn</code> namespace that accept function items as arguments to
+manipulate sequences:</p>
+<ul>
+<li><strong><code>fn:for-each($seq, $f)</code></strong>: Applies the
+function item <code>$f</code> to each item in <code>$seq</code> and
+returns the resulting sequence.</li>
+<li><strong><code>fn:filter($seq, $f)</code></strong>: Evaluates each
+item with a predicate function <code>$f</code> (returning
+<code>xs:boolean</code>) and keeps only matching items.</li>
+<li><strong><code>fn:fold-left($seq, $zero, $f)</code></strong>:
+Combines sequence elements from left to right using an accumulator
+function <code>$f($accum, $item)</code>.</li>
+<li><strong><code>fn:fold-right($seq, $zero, $f)</code></strong>:
+Combines sequence elements from right to left.</li>
+<li><strong><code>fn:apply($f, $array)</code></strong>: Calls the
+function <code>$f</code> with arguments supplied as an array.</li>
+</ul>
+<h3 id="practical-transformation-example">Practical Transformation
+Example</h3>
+<p>Higher-order functions eliminate complex recursive templates when
+aggregating or filtering data:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                <span class="ot">xmlns:fn=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;orders&quot;</span>&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Filter high-value items and double their value using inline functions --&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;prices&quot;</span> <span class="ot">select=</span><span class="st">&quot;item/@price/xs:decimal(.)&quot;</span> /&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;expensive&quot;</span> </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">select=</span><span class="st">&quot;fn:filter($prices, function($p) { $p gt 50.0 })&quot;</span> /&gt;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                      </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;discountedSum&quot;</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">select=</span><span class="st">&quot;fn:fold-left($expensive, 0, function($total, $p) { $total + ($p * 0.9) })&quot;</span> /&gt;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">total-discounted-value</span>&gt;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$discountedSum&quot;</span> /&gt;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">total-discounted-value</span>&gt;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>By integrating first-class function items, closures, and higher-order
+sequence functions, XSLT 3.0 enables cleaner abstractions, higher code
+reuse, and true declarative functional programming across stylesheet
+pipelines.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

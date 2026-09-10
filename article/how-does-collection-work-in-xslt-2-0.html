@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does collection() Work in XSLT 2.0? - xslt</title>
+    <meta name="description" content="In XSLT 2.0, the collection() function serves as a standardized mechanism to query, aggregate, and process multiple XML documents simultaneously within a single transformation. While XSLT 1.0 relied primarily on the document() function to load files one">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-collection-work-in-xslt-2-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does collection() Work in XSLT 2.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-collection-work-in-xslt-2-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0, the collection() function serves as a standardized mechanism to query, aggregate, and process multiple XML documents simultaneously within a single transformation. While XSLT 1.0 relied primarily on the document() function to load files one" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-collection-work-in-xslt-20">How Does collection() Work
+in XSLT 2.0?</h1>
+<p>In XSLT 2.0, the <code>collection()</code> function serves as a
+standardized mechanism to query, aggregate, and process multiple XML
+documents simultaneously within a single transformation. While XSLT 1.0
+relied primarily on the <code>document()</code> function to load files
+one by one or through explicit URI node-sets, <code>collection()</code>
+returns an arbitrary sequence of document nodes from a URI-identified
+source or an implementation-defined default environment. This allows
+stylesheets to treat an entire directory, a database collection, or a
+designated list of XML resources as a unified dataset that can be
+filtered, sorted, and transformed using standard XPath 2.0
+expressions.</p>
+<h2 id="core-purpose-and-syntax">Core Purpose and Syntax</h2>
+<p>The standard XPath and XSLT function signature is
+<code>collection()</code> or
+<code>collection($uri as xs:string?)</code>. Calling the function
+without arguments accesses the processor's default collection of
+documents. When supplied with a URI string argument, the function
+resolves that URI against the base URI of the static context and returns
+a sequence of document nodes.</p>
+<p>Unlike the <code>doc()</code> function, which resolves a single
+document, <code>collection()</code> abstracts the multi-document
+retrieval process. It outputs a flat sequence
+(<code>document-node()*</code>), enabling developers to apply path
+expressions across many files in parallel without manual recursion or
+external drivers.</p>
+<h2 id="common-use-cases-and-patterns">Common Use Cases and
+Patterns</h2>
+<p>The primary use cases for <code>collection()</code> involve
+aggregation, batch processing, and global search across distinct XML
+documents.</p>
+<ul>
+<li><strong>Multi-File Aggregation:</strong> Merging scattered data
+points—such as monthly sales reports or chapter files of a book—into a
+single unified document or master index.</li>
+<li><strong>Batch Reporting and Filtering:</strong> Querying hundreds of
+XML records to extract only those elements meeting specific criteria,
+such as all records updated after a certain date.</li>
+<li><strong>Cross-Document Keying:</strong> Building lookups and indexes
+across multiple auxiliary files to enrich a primary document during
+transformation.</li>
+</ul>
+<p>A typical pattern involves assigning the retrieved sequence to a
+variable and then using <code>for-each</code> or template matching to
+iterate through each document:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">master-catalog</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;collection(&#39;file:///data/catalogs?select=*.xml&#39;)//item&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">master-catalog</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="processor-specific-uri-resolution">Processor-Specific URI
+Resolution</h2>
+<p>The W3C XSLT 2.0 and XPath 2.0 specifications define the semantics of
+<code>collection()</code>, but the exact syntax of the URI string
+argument depends heavily on the underlying XSLT processor.</p>
+<p>In processors like Saxon, the URI parameter often supports custom
+query parameters to locate files on a filesystem. For example,
+<code>collection('dir/?select=*.xml;recurse=yes')</code> instructs the
+engine to recursively scan a folder for all XML documents. Other XML
+engines or native XML databases (such as BaseX or eXist-db) map
+collection URIs to specific database collections or catalog catalogs
+registered via an XML Catalog resolver.</p>
+<h2 id="differences-between-doc-document-and-collection">Differences
+Between doc(), document(), and collection()</h2>
+<p>Understanding when to use <code>collection()</code> requires
+contrasting it with its related functions:</p>
+<ul>
+<li><strong><code>doc($uri)</code>:</strong> Introduced in XSLT/XPath
+2.0, this function takes a single URI string and returns exactly one
+document node or an error if the document cannot be retrieved.</li>
+<li><strong><code>document($uri-sequence, $base-node?)</code>:</strong>
+Carried over from XSLT 1.0 for backward compatibility, it accepts a
+sequence of URIs or nodes and resolves each individually relative to an
+optional base node.</li>
+<li><strong><code>collection($uri?)</code>:</strong> Retrieves an
+open-ended sequence of zero or more document nodes from a collection
+identifier, abstracting file system queries or database sets into a
+single call.</li>
+</ul>
+<p>By decoupling the stylesheet logic from the exact number of incoming
+files, the <code>collection()</code> function provides a scalable and
+declarative approach to multi-document management in XSLT 2.0
+workflows.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

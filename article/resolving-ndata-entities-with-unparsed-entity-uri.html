@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolving NDATA Entities with unparsed-entity-uri - xslt</title>
+    <meta name="description" content="The unparsed-entity-uri() function in XSLT provides a standardized mechanism to retrieve the absolute URI of non-XML resources declared in a Document Type Definition (DTD). In legacy XML workflows, non-XML data such as images, multimedia, or binary forma">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/resolving-ndata-entities-with-unparsed-entity-uri">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Resolving NDATA Entities with unparsed-entity-uri - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/resolving-ndata-entities-with-unparsed-entity-uri" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The unparsed-entity-uri() function in XSLT provides a standardized mechanism to retrieve the absolute URI of non-XML resources declared in a Document Type Definition (DTD). In legacy XML workflows, non-XML data such as images, multimedia, or binary forma" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="resolving-ndata-entities-with-unparsed-entity-uri">Resolving
+NDATA Entities with unparsed-entity-uri</h1>
+<p>The <code>unparsed-entity-uri()</code> function in XSLT provides a
+standardized mechanism to retrieve the absolute URI of non-XML resources
+declared in a Document Type Definition (DTD). In legacy XML workflows,
+non-XML data such as images, multimedia, or binary formats were commonly
+referenced using <code>NDATA</code> unparsed external entities rather
+than direct URI attributes. This article explains the technical
+mechanics of how <code>unparsed-entity-uri()</code> inspects the
+document’s DTD declarations, processes entity and notation mappings, and
+resolves relative system identifiers into fully qualified URIs during
+transformation.</p>
+<h3 id="understanding-dtd-unparsed-entities-and-ndata">Understanding DTD
+Unparsed Entities and NDATA</h3>
+<p>In standard XML 1.0, an unparsed entity is an external resource
+containing non-XML data. Because the XML processor cannot parse this
+data as XML, the DTD declaration associates the entity with an
+<code>NDATA</code> (notation data) keyword. This keyword binds the
+entity to a specific notation declaration that specifies the format or
+helper application associated with the data.</p>
+<p>A typical DTD declaration pairing an unparsed entity with a notation
+looks like this:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">&lt;</span>!NOTATION png SYSTEM &quot;image/png&quot;&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="er">&lt;</span>!ENTITY diagram1 SYSTEM &quot;graphics/diagram1.png&quot; NDATA png&gt;</span></code></pre></div>
+<p>In the XML instance document, this entity is referenced through an
+attribute explicitly typed as <code>ENTITY</code> or
+<code>ENTITIES</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">figure</span> <span class="ot">graphic=</span><span class="st">&quot;diagram1&quot;</span> /&gt;</span></code></pre></div>
+<p>Instead of containing a path string, the <code>graphic</code>
+attribute holds the name token corresponding to the entity declared in
+the DTD.</p>
+<h3 id="the-resolution-mechanism-of-unparsed-entity-uri">The Resolution
+Mechanism of unparsed-entity-uri()</h3>
+<p>The <code>unparsed-entity-uri()</code> function accepts a single
+string argument—the name of the unparsed entity—and returns its absolute
+URI as a string. The resolution occurs in sequential stages:</p>
+<ol type="1">
+<li><strong>Entity Name Lookup:</strong> When
+<code>unparsed-entity-uri(@graphic)</code> is invoked, the XSLT
+processor queries the internal or external DTD subset of the document
+containing the context node for an unparsed entity matching the provided
+name string (e.g., <code>"diagram1"</code>).</li>
+<li><strong>System Identifier Extraction:</strong> Upon locating the
+entity declaration, the processor extracts the entity's
+<code>SYSTEM</code> identifier (e.g.,
+<code>"graphics/diagram1.png"</code>). If a <code>PUBLIC</code>
+identifier is present, the parser's entity catalog may map it to a
+system identifier first.</li>
+<li><strong>Base URI Normalization:</strong> The processor determines
+the base URI of the entity declaration. If the declaration resides in an
+external DTD module, the base URI is that external file's location; if
+declared in the internal subset, it is the base URI of the XML document
+itself. The processor then resolves the relative system identifier
+against this base URI.</li>
+<li><strong>Result Generation:</strong> The function returns the
+normalized, absolute URI string (such as
+<code>file:///projects/docs/graphics/diagram1.png</code>). If the entity
+name does not match any declared unparsed entity in the DTD, the
+function returns an empty string.</li>
+</ol>
+<h3 id="implementation-in-xslt">Implementation in XSLT</h3>
+<p>In an XSLT stylesheet (compatible with both XSLT 1.0 and XSLT 2.0+),
+the function translates the abstract entity name into an actionable link
+or source path:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xslt"><code class="sourceCode xslt"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">&lt;</span><span class="bu">xsl:template</span><span class="ot"> match=</span><span class="va">&quot;figure&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">&lt;img</span><span class="ot"> src=</span><span class="st">&quot;</span><span class="va">{unparsed-entity-uri(@graphic)}</span><span class="st">&quot;</span><span class="ot"> alt=</span><span class="st">&quot;</span><span class="va">{@caption}</span><span class="st">&quot;</span><span class="ot"> </span><span class="kw">/&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">&lt;/</span><span class="bu">xsl:template</span><span class="kw">&gt;</span></span></code></pre></div>
+<p>If the input XML contains
+<code>&lt;figure graphic="diagram1" caption="Network Diagram"/&gt;</code>,
+the processor calls <code>unparsed-entity-uri('diagram1')</code>, reads
+the DTD definition, resolves the path relative to the document or
+external DTD, and generates the resulting output:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">img</span><span class="ot"> src</span><span class="op">=</span><span class="st">&quot;file:///projects/docs/graphics/diagram1.png&quot;</span><span class="ot"> alt</span><span class="op">=</span><span class="st">&quot;Network Diagram&quot;</span><span class="ot"> </span><span class="dt">/&gt;</span></span></code></pre></div>
+<h3 id="processor-dependencies">Processor Dependencies</h3>
+<p>For <code>unparsed-entity-uri()</code> to resolve successfully, two
+operational conditions must be met:</p>
+<ul>
+<li><strong>DTD Retention:</strong> The underlying XML parser must read
+the DTD. Non-validating parsers that strip DTDs or skip external
+parameter entities will fail to pass the entity table to the XSLT data
+model, causing the function to return an empty string.</li>
+<li><strong>Notation Requirement:</strong> The entity declaration must
+include the <code>NDATA</code> keyword. Parsed external entities (those
+without <code>NDATA</code>) are intended for direct XML inclusion and
+cannot be resolved using <code>unparsed-entity-uri()</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

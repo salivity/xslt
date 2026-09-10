@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Metadata Preservation in Recursive Tree Updates - xslt</title>
+    <meta name="description" content="Recursive tree modifications in XSLT operate on immutable data structures, meaning nodes are never altered in place; instead, an entirely new tree is constructed via recursive template matching. During this process, metadata—including namespace nodes,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-metadata-preservation-in-recursive-tree-updates">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Metadata Preservation in Recursive Tree Updates - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-metadata-preservation-in-recursive-tree-updates" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Recursive tree modifications in XSLT operate on immutable data structures, meaning nodes are never altered in place; instead, an entirely new tree is constructed via recursive template matching. During this process, metadata—including namespace nodes," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="xslt-metadata-preservation-in-recursive-tree-updates">XSLT
+Metadata Preservation in Recursive Tree Updates</h1>
+<p>Recursive tree modifications in XSLT operate on immutable data
+structures, meaning nodes are never altered in place; instead, an
+entirely new tree is constructed via recursive template matching. During
+this process, metadata—including namespace nodes, base URIs, comments,
+processing instructions, and schema type annotations—is only preserved
+if explicitly addressed by copy semantics and validation rules.
+Understanding how the identity transform interacts with metadata
+inheritance and processor-level serialization is essential for
+maintaining document integrity across recursive modifications.</p>
+<h2 id="the-identity-transform-and-shallow-copying">The Identity
+Transform and Shallow Copying</h2>
+<p>The baseline for recursive modification in XSLT is the identity
+template pattern. Because trees are immutable, transformations traverse
+down the hierarchy, copying unmodified nodes and intercepting specific
+targets for adjustment.</p>
+<p>Metadata handling at the node level depends directly on the
+distinction between <code>&lt;xsl:copy&gt;</code> and
+<code>&lt;xsl:copy-of&gt;</code>:</p>
+<ul>
+<li><strong><code>xsl:copy</code> (Shallow Copy):</strong> Copies the
+current node and its in-scope namespace bindings, but does not copy
+child nodes, attributes, or dependent metadata automatically. In a
+recursive walk, attributes and children must be selected explicitly via
+<code>&lt;xsl:apply-templates select="@* | node()"/&gt;</code>.</li>
+<li><strong><code>xsl:copy-of</code> (Deep Copy):</strong> Replicates
+the entire subtree along with all descendant nodes, attributes,
+namespaces, and associated metadata. However, it halts recursive
+matching within that subtree, preventing fine-grained modifications to
+nested descendants.</li>
+</ul>
+<p>When modifying a tree recursively, <code>&lt;xsl:copy&gt;</code> is
+the standard choice. Consequently, metadata residing on attributes or
+secondary nodes (such as comments and processing instructions) is
+dropped unless matched by the recursive pattern. Matching
+<code>node()|@*</code> ensures that processing instructions and
+comments—often carrying critical application-level metadata—are
+preserved alongside standard elements and attributes.</p>
+<h2 id="namespace-nodes-and-scope-inheritance">Namespace Nodes and Scope
+Inheritance</h2>
+<p>Namespaces represent structural metadata defining node identity. In
+recursive modifications, an XSLT processor manages namespaces through
+specific propagation rules:</p>
+<ol type="1">
+<li><strong>In-Scope Namespaces:</strong> By default,
+<code>&lt;xsl:copy&gt;</code> preserves all in-scope namespaces of the
+source element, copying them to the target element.</li>
+<li><strong>Namespace Fixup:</strong> If an element or attribute prefix
+changes during the recursion, the processor automatically executes
+namespace fixup to ensure the resulting tree is
+namespace-well-formed.</li>
+<li><strong>Controlling Redundancy:</strong> In XSLT 2.0 and later, the
+<code>copy-namespaces</code> attribute on <code>&lt;xsl:copy&gt;</code>
+accepts <code>yes</code> or <code>no</code>. Setting
+<code>copy-namespaces="no"</code> drops namespaces not strictly required
+by the element itself or its attributes, preventing namespace bloat
+caused by copying redundant declarations down a deeply nested recursive
+structure.</li>
+</ol>
+<h2
+id="document-level-and-contextual-metadata-uris-and-base-data">Document-Level
+and Contextual Metadata: URIs and Base Data</h2>
+<p>Certain metadata attributes depend strictly on tree ancestry rather
+than isolated node definitions:</p>
+<ul>
+<li><strong>Base URIs (<code>xml:base</code>):</strong> When elements
+are reconstructed in a new result tree, their static base URI changes to
+that of the transformation output unless explicitly managed. If relative
+URI resolution depends on <code>xml:base</code>, stripping or moving the
+containing element alters the resolution path. To preserve resolved base
+URIs during recursive pruning or restructuring, developers must query
+<code>fn:base-uri()</code> and serialize the absolute path back into an
+explicit <code>xml:base</code> attribute.</li>
+<li><strong>Inherited Attributes (<code>xml:lang</code>,
+<code>xml:space</code>):</strong> These attributes govern
+internationalization and whitespace preservation. Because they inherit
+down the XML hierarchy, deleting or renaming an ancestor node during
+recursion breaks inheritance for downstream descendants. To maintain
+this metadata, the recursive step must detect if an inherited attribute
+is being detached from its scope and explicitly re-inject it onto the
+top-level children of the modified node.</li>
+</ul>
+<h2 id="preserving-type-annotations-in-schema-aware-xslt">Preserving
+Type Annotations in Schema-Aware XSLT</h2>
+<p>In schema-aware XSLT processors (such as Saxon-EE), elements and
+attributes carry Post-Schema-Validation Infoset (PSVI) type annotations.
+When a node is copied recursively, this type metadata is subject to the
+<code>validation</code> and <code>type</code> attributes defined in the
+transform:</p>
+<ul>
+<li><strong><code>validation="preserve"</code>:</strong> Retains the
+existing type annotation of the copied node, provided the contents of
+the node have not changed in a way that invalidates the type.</li>
+<li><strong><code>validation="strip"</code>:</strong> Clears all PSVI
+type metadata, reverting nodes to untyped (<code>xs:untyped</code> for
+elements and <code>xs:untypedAtomic</code> for attributes).</li>
+<li><strong><code>validation="strict"</code> or
+<code>validation="lax"</code>:</strong> Forces the processor to
+re-validate the newly constructed subtree against the imported XML
+Schema, generating new type annotations based on the final output
+structure.</li>
+</ul>
+<p>If a recursive transformation alters the child elements of a strictly
+typed parent element without re-validating or updating the type
+annotation, the processor may reject the tree or silently drop the type
+metadata, reverting the modified branch to untyped data.</p>
+<h2 id="streamlined-state-preservation-using-accumulators">Streamlined
+State Preservation Using Accumulators</h2>
+<p>In XSLT 3.0, streaming and complex recursive operations handle
+contextual metadata through accumulators
+(<code>&lt;xsl:accumulator&gt;</code>). Accumulators define pre-computed
+values that update automatically as the processor traverses the tree.
+Instead of explicitly passing metadata parameters (like tree depth,
+ancestor IDs, or numbering state) through recursive
+<code>&lt;xsl:with-param&gt;</code> tunnels, accumulators maintain
+metadata values alongside the tree traversal, ensuring that
+state-dependent metadata remains accessible without manual propagation
+logic.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

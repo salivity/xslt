@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does unparsed-text() Load Non-XML into XSLT 2.0? - xslt</title>
+    <meta name="description" content="The unparsed-text() function in XSLT 2.0 allows stylesheets to read external non-XML text files directly into transformations as raw string data. Prior to XSLT 2.0, processors could natively load only well-formed XML documents via functions like document">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-unparsed-text-load-non-xml-into-xslt-2-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does unparsed-text() Load Non-XML into XSLT 2.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-unparsed-text-load-non-xml-into-xslt-2-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The unparsed-text() function in XSLT 2.0 allows stylesheets to read external non-XML text files directly into transformations as raw string data. Prior to XSLT 2.0, processors could natively load only well-formed XML documents via functions like document" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-does-unparsed-text-load-non-xml-into-xslt-20">How Does
+unparsed-text() Load Non-XML into XSLT 2.0?</h1>
+<p>The <code>unparsed-text()</code> function in XSLT 2.0 allows
+stylesheets to read external non-XML text files directly into
+transformations as raw string data. Prior to XSLT 2.0, processors could
+natively load only well-formed XML documents via functions like
+<code>document()</code> or <code>doc()</code>. By introducing
+<code>unparsed-text()</code>, XSLT 2.0 provides native support for
+ingesting plain text formats—such as CSV, TSV, JSON, log files, or
+legacy delimited data—and converting them into structured XML without
+requiring external pre-processing tools or proprietary extensions.</p>
+<h2 id="core-purpose-and-mechanics">Core Purpose and Mechanics</h2>
+<p>The primary role of <code>unparsed-text()</code> is to retrieve a
+resource identified by a Uniform Resource Identifier (URI) and return
+its contents as a single <code>xs:string</code>. Unlike the
+<code>doc()</code> function, which parses the target resource with an
+XML parser and produces a document node, <code>unparsed-text()</code>
+treats the target strictly as a sequence of characters.</p>
+<p>The function signature supports up to two arguments:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>unparsed-text($href as xs:string?) as xs:string?</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>unparsed-text($href as xs:string?, $encoding as xs:string) as xs:string?</span></code></pre></div>
+<ul>
+<li><strong><code>$href</code></strong>: The relative or absolute URI of
+the file to be read. If relative, it is resolved against the static base
+URI of the stylesheet or element containing the expression.</li>
+<li><strong><code>$encoding</code></strong> <em>(optional)</em>:
+Specifies the character encoding (such as <code>UTF-8</code>,
+<code>ISO-8859-1</code>, or <code>windows-1252</code>). If omitted,
+processors generally default to UTF-8 or attempt to detect encoding from
+the environment/media type.</li>
+</ul>
+<h2 id="processing-non-xml-content-in-xslt-20">Processing Non-XML
+Content in XSLT 2.0</h2>
+<p>Once non-XML content is loaded as a string via
+<code>unparsed-text()</code>, it is typically parsed into XML elements
+using XSLT 2.0's string-manipulation and regular-expression
+features.</p>
+<p>Key complementary functions and instructions include:</p>
+<ul>
+<li><strong><code>tokenize()</code></strong>: Splits raw text into lines
+or delimited fields using regular expressions (ideal for parsing CSV
+rows and columns).</li>
+<li><strong><code>xsl:analyze-string</code></strong>: Matches complex
+textual patterns or grammars using regex groups, enabling structured
+element construction for formats like logs or configuration files.</li>
+<li><strong><code>unparsed-text-available()</code></strong>: Tests
+whether a specified file exists, is accessible, and can be decoded with
+the specified encoding before attempting to load it, preventing fatal
+transformation errors.</li>
+</ul>
+<h2 id="example-converting-csv-to-xml">Example: Converting CSV to
+XML</h2>
+<p>Below is a practical example showing how <code>unparsed-text()</code>
+loads a comma-separated values file and transforms it into XML
+nodes:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span> <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;main&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">root</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;unparsed-text-available(&#39;data.csv&#39;, &#39;UTF-8&#39;)&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;raw-text&quot;</span> <span class="ot">select=</span><span class="st">&quot;unparsed-text(&#39;data.csv&#39;, &#39;UTF-8&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tokenize($raw-text, &#39;\r?\n&#39;)[normalize-space()]&quot;</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">row</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tokenize(., &#39;,&#39;)&quot;</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>              &lt;<span class="kw">cell</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;normalize-space(.)&quot;</span>/&gt;&lt;/<span class="kw">cell</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>          &lt;/<span class="kw">row</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">root</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="benefits-in-modern-pipelines">Benefits in Modern Pipelines</h2>
+<p>Using <code>unparsed-text()</code> provides several distinct
+advantages in data integration pipelines:</p>
+<ol type="1">
+<li><strong>Pipeline Simplification</strong>: Eliminates the need for
+external scripts (such as Python or Bash wrappers) to convert text files
+into XML before running transformations.</li>
+<li><strong>Hybrid Processing</strong>: Enables single-pass
+transformations that combine XML datasets with external lookup tables
+stored in flat files.</li>
+<li><strong>Deterministic Encodings</strong>: Allows explicit control
+over character encodings, reducing character corruption across legacy
+text formats.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

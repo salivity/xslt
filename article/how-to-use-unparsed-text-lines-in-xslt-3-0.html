@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use unparsed-text-lines in XSLT 3.0? - xslt</title>
+    <meta name="description" content="The unparsed-text-lines() function in XSLT 3.0 provides a native, streamable mechanism to read non-XML text files, such as CSV or plain text, directly into a sequence of strings separated by line breaks. Introduced to simplify plain-text transformations,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-use-unparsed-text-lines-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use unparsed-text-lines in XSLT 3.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-use-unparsed-text-lines-in-xslt-3-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The unparsed-text-lines() function in XSLT 3.0 provides a native, streamable mechanism to read non-XML text files, such as CSV or plain text, directly into a sequence of strings separated by line breaks. Introduced to simplify plain-text transformations," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-unparsed-text-lines-in-xslt-30">How to Use
+unparsed-text-lines in XSLT 3.0?</h1>
+<p>The <code>unparsed-text-lines()</code> function in XSLT 3.0 provides
+a native, streamable mechanism to read non-XML text files, such as CSV
+or plain text, directly into a sequence of strings separated by line
+breaks. Introduced to simplify plain-text transformations, it eliminates
+the need to load entire files into a single string before splitting
+them. This guide explains how <code>unparsed-text-lines()</code>
+operates, how it compares to legacy approaches, and how to combine it
+with XPath tokenization functions to convert raw delimited data into
+structured XML documents.</p>
+<h2 id="core-mechanics-of-unparsed-text-lines">Core Mechanics of
+unparsed-text-lines()</h2>
+<p>The <code>unparsed-text-lines()</code> function reads an external
+resource identified by a URI and returns the contents as a sequence of
+<code>xs:string</code> items, where each item represents an individual
+line.</p>
+<h3 id="syntax-and-signatures">Syntax and Signatures</h3>
+<pre class="text"><code>fn:unparsed-text-lines($href as xs:string?) as xs:string*
+fn:unparsed-text-lines($href as xs:string?, $encoding as xs:string) as xs:string*
+</code></pre>
+<ul>
+<li><strong><code>$href</code></strong>: The relative or absolute URI of
+the target text file. If supplied as an empty sequence, the function
+returns an empty sequence.</li>
+<li><strong><code>$encoding</code></strong>: An optional string
+specifying the character encoding (for example, <code>utf-8</code> or
+<code>iso-8859-1</code>). When omitted, the processor defaults to UTF-8
+or implementation-defined detection rules.</li>
+</ul>
+<h3 id="line-ending-handling">Line Ending Handling</h3>
+<p>The function automatically normalizes line endings across different
+operating systems. It treats standard line-break characters—such as
+carriage return (<code>\r</code>), line feed (<code>\n</code>), and
+carriage-return-line-feed combinations (<code>\r\n</code>)—as
+delimiters. The returned strings do not contain the trailing newline
+characters.</p>
+<h2 id="step-by-step-implementation-parsing-a-csv-file">Step-by-Step
+Implementation: Parsing a CSV File</h2>
+<p>Transforming a CSV file into structured XML using
+<code>unparsed-text-lines()</code> involves three primary phases:
+reading the lines, separating header definitions from data rows, and
+tokenizing individual fields.</p>
+<h3 id="1-the-input-data">1. The Input Data</h3>
+<p>Assume a plain-text file named <code>users.csv</code> located in the
+same directory as the stylesheet:</p>
+<pre class="text"><code>id,name,role,department
+101,Alice Smith,Engineer,Platform
+102,Bob Jones,Analyst,Operations
+103,Carol White,Designer,Product
+</code></pre>
+<h3 id="2-the-xslt-30-stylesheet">2. The XSLT 3.0 Stylesheet</h3>
+<p>The following stylesheet reads the CSV file, treats the first record
+as field names, and creates an element for each subsequent record.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">exclude-result-prefixes=</span><span class="st">&quot;xs&quot;</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;csv-uri&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;users.csv&#39;&quot;</span>/&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;xsl:initial-template&quot;</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;lines&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string*&quot;</span> <span class="ot">select=</span><span class="st">&quot;unparsed-text-lines($csv-uri, &#39;utf-8&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;exists($lines)&quot;</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;headers&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string*&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize($lines[1], &#39;,&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">users</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;tail($lines)[normalize-space()]&quot;</span>&gt;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;fields&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string*&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize(., &#39;,&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                        &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;$headers&quot;</span>&gt;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                            &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;pos&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:integer&quot;</span> <span class="ot">select=</span><span class="st">&quot;position()&quot;</span>/&gt;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                            &lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{normalize-space(.)}&quot;</span>&gt;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>                                &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;normalize-space($fields[$pos])&quot;</span>/&gt;</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>                            &lt;/<span class="kw">xsl:element</span>&gt;</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>                        &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>                    &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">users</span>&gt;</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="3-resulting-xml-output">3. Resulting XML Output</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">users</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>   &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">id</span>&gt;101&lt;/<span class="kw">id</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">name</span>&gt;Alice Smith&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">role</span>&gt;Engineer&lt;/<span class="kw">role</span>&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">department</span>&gt;Platform&lt;/<span class="kw">department</span>&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>   &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>   &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">id</span>&gt;102&lt;/<span class="kw">id</span>&gt;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">name</span>&gt;Bob Jones&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">role</span>&gt;Analyst&lt;/<span class="kw">role</span>&gt;</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">department</span>&gt;Operations&lt;/<span class="kw">department</span>&gt;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>   &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>   &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">id</span>&gt;103&lt;/<span class="kw">id</span>&gt;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">name</span>&gt;Carol White&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">role</span>&gt;Designer&lt;/<span class="kw">role</span>&gt;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">department</span>&gt;Product&lt;/<span class="kw">department</span>&gt;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>   &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">users</span>&gt;</span></code></pre></div>
+<h2 id="parsing-advanced-delimited-formats">Parsing Advanced Delimited
+Formats</h2>
+<p>While simple comma-separated files can be broken apart with
+<code>tokenize(., ',')</code>, real-world CSV files often contain edge
+cases like quoted fields containing commas or escaped characters.</p>
+<h3 id="handling-quoted-fields-with-xslanalyze-string">Handling Quoted
+Fields with <code>xsl:analyze-string</code></h3>
+<p>For CSV records containing embedded commas inside quotes (e.g.,
+<code>104,"Davis, Miller",Manager,Sales</code>), standard tokenization
+fails. In XSLT 3.0, <code>xsl:analyze-string</code> or
+regular-expression tokenization provides robust field extraction:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;regex&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;</span><span class="dv">&amp;quot;</span><span class="st">([^</span><span class="dv">&amp;quot;</span><span class="st">]*)</span><span class="dv">&amp;quot;</span><span class="st">|([^,]+)|,&#39;&quot;</span>/&gt;</span></code></pre></div>
+<p>Alternatively, <code>csv-to-xml</code> extensions or custom XPath 3.1
+recursive functions can parse quoted strings without external
+dependencies.</p>
+<h2 id="key-advantages-over-xslt-20-approaches">Key Advantages Over XSLT
+2.0 Approaches</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>unparsed-text()</code> (XSLT 2.0)</th>
+<th><code>unparsed-text-lines()</code> (XSLT 3.0)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Return Type</strong></td>
+<td>Single <code>xs:string</code> containing whole file</td>
+<td>Sequence of <code>xs:string*</code> items</td>
+</tr>
+<tr>
+<td><strong>Memory Footprint</strong></td>
+<td>Higher; entire file buffered in memory</td>
+<td>Lower; sequence can be processed lazily</td>
+</tr>
+<tr>
+<td><strong>Line Splitting</strong></td>
+<td>Requires manual <code>tokenize(., '\r?\n')</code></td>
+<td>Built-in automatic normalization</td>
+</tr>
+<tr>
+<td><strong>Streaming Support</strong></td>
+<td>Not streamable</td>
+<td>Streamable in compliant XSLT 3.0 processors</td>
+</tr>
+</tbody>
+</table>
+<h2 id="error-handling-and-best-practices">Error Handling and Best
+Practices</h2>
+<ol type="1">
+<li><strong>Verify Resource Existence:</strong> Use the companion
+function <code>unparsed-text-available($href)</code> prior to reading
+files if the URI might be missing or invalid. Calling
+<code>unparsed-text-lines()</code> on a non-existent file produces
+dynamic error <code>FOUT1170</code>.</li>
+<li><strong>Filter Empty Rows:</strong> Trailing newlines can produce
+empty string items at the end of the sequence. Filter items using
+predicates like <code>[normalize-space()]</code> or
+<code>[string-length() gt 0]</code>.</li>
+<li><strong>Explicit Encodings:</strong> Always specify the second
+parameter (such as <code>'utf-8'</code> or <code>'windows-1252'</code>)
+when source data contains extended characters, preventing
+platform-specific decoding errors.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

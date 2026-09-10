@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use matches, replace, and tokenize in XSLT 2.0? - xslt</title>
+    <meta name="description" content="XSLT 2.0 introduces native support for regular expressions through standard XPath 2.0 functions, eliminating the need for complex recursive templates or proprietary extension functions when parsing text. This guide covers how matches(), replace(), and to">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-use-matches-replace-and-tokenize-in-xslt-2-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use matches, replace, and tokenize in XSLT 2.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-use-matches-replace-and-tokenize-in-xslt-2-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 2.0 introduces native support for regular expressions through standard XPath 2.0 functions, eliminating the need for complex recursive templates or proprietary extension functions when parsing text. This guide covers how matches(), replace(), and to" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-matches-replace-and-tokenize-in-xslt-20">How to Use
+matches, replace, and tokenize in XSLT 2.0?</h1>
+<p>XSLT 2.0 introduces native support for regular expressions through
+standard XPath 2.0 functions, eliminating the need for complex recursive
+templates or proprietary extension functions when parsing text. This
+guide covers how <code>matches()</code>, <code>replace()</code>, and
+<code>tokenize()</code> operate, their underlying XML Schema-based regex
+engine, and practical examples demonstrating text validation, pattern
+substitution, and string splitting.</p>
+<h2 id="the-regular-expression-engine-in-xslt-20">The Regular Expression
+Engine in XSLT 2.0</h2>
+<p>XSLT 2.0 regular expressions follow the W3C XML Schema regular
+expression dialect extended with Perl-like features. All three primary
+functions support an optional <code>flags</code> parameter:</p>
+<ul>
+<li><strong><code>i</code></strong>: Case-insensitive matching.</li>
+<li><strong><code>m</code></strong>: Multi-line mode, where
+<code>^</code> and <code>$</code> match the start and end of individual
+lines rather than the entire string.</li>
+<li><strong><code>s</code></strong>: Dot-all mode, allowing
+<code>.</code> to match newline characters.</li>
+<li><strong><code>x</code></strong>: Ignores whitespace within the
+pattern to allow comments and formatted expressions.</li>
+</ul>
+<h2 id="1-pattern-testing-with-matches">1. Pattern Testing with
+<code>matches()</code></h2>
+<p>The <code>matches()</code> function evaluates whether an input string
+contains a match for a specified pattern, returning a boolean
+<code>true()</code> or <code>false()</code>.</p>
+<h3 id="syntax">Syntax</h3>
+<pre class="xpath"><code>matches($input as xs:string?, $pattern as xs:string) as xs:boolean
+matches($input as xs:string?, $pattern as xs:string, $flags as xs:string) as xs:boolean
+</code></pre>
+<h3 id="usage-and-behavior">Usage and Behavior</h3>
+<p>Unlike the XML Schema <code>pattern</code> facet, which enforces a
+full-string match by default, <code>matches()</code> checks for a
+substring match unless explicitly anchored with <code>^</code> and
+<code>$</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;matches(@code, &#39;^[A-Z]{3}-\d{4}$&#39;)&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;Valid Product Code&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>Case-insensitive matching can be achieved with the <code>"i"</code>
+flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;matches(title, &#39;xslt&#39;, &#39;i&#39;)&quot;</span>/&gt;</span></code></pre></div>
+<h2 id="2-string-substitution-with-replace">2. String Substitution with
+<code>replace()</code></h2>
+<p>The <code>replace()</code> function searches an input string for a
+pattern and substitutes all occurrences with a replacement string.</p>
+<h3 id="syntax-1">Syntax</h3>
+<pre class="xpath"><code>replace($input as xs:string?, $pattern as xs:string, $replacement as xs:string) as xs:string
+replace($input as xs:string?, $pattern as xs:string, $replacement as xs:string, $flags as xs:string) as xs:string
+</code></pre>
+<h3 id="capturing-groups-and-backreferences">Capturing Groups and
+Backreferences</h3>
+<p>The replacement string can reference captured groups from the pattern
+using <code>$1</code>, <code>$2</code>, through <code>$n</code>. A
+literal dollar sign must be escaped as <code>\$</code>, and a literal
+backslash must be escaped as <code>\\</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Converts &#39;YYYY-MM-DD&#39; to &#39;DD/MM/YYYY&#39; --&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;replace(date, &#39;^(\d{4})-(\d{2})-(\d{2})$&#39;, &#39;$3/$2/$1&#39;)&quot;</span>/&gt;</span></code></pre></div>
+<p>If the pattern matches multiple occurrences across the string,
+<code>replace()</code> replaces every non-overlapping instance:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Normalizes all consecutive whitespace characters into a single space --&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;replace(description, &#39;\s+&#39;, &#39; &#39;)&quot;</span>/&gt;</span></code></pre></div>
+<h2 id="3-string-splitting-with-tokenize">3. String Splitting with
+<code>tokenize()</code></h2>
+<p>The <code>tokenize()</code> function splits an input string into a
+sequence of strings (<code>xs:string*</code>) using a regex pattern as
+the delimiter.</p>
+<h3 id="syntax-2">Syntax</h3>
+<pre class="xpath"><code>tokenize($input as xs:string?, $pattern as xs:string) as xs:string*
+tokenize($input as xs:string?, $pattern as xs:string, $flags as xs:string) as xs:string*
+</code></pre>
+<h3 id="processing-sequences">Processing Sequences</h3>
+<p>Because <code>tokenize()</code> returns an XPath sequence, the result
+can be iterated using <code>xsl:for-each</code> or queried using
+sequence functions.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;keywords&quot;</span> <span class="ot">select=</span><span class="st">&quot;tokenize(&#39;apple, banana; orange,grape&#39;, &#39;[,;]\s*&#39;)&quot;</span>/&gt;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">keywords</span>&gt;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;$keywords&quot;</span>&gt;</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">keyword</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;&lt;/<span class="kw">keyword</span>&gt;</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">keywords</span>&gt;</span></code></pre></div>
+<h3 id="handling-edge-cases">Handling Edge Cases</h3>
+<p>If the delimiter pattern matches at the start or end of the string,
+or matches consecutive occurrences, <code>tokenize()</code> produces
+empty strings (<code>""</code>) in the sequence. If the input string is
+an empty sequence or zero-length string, <code>tokenize()</code> returns
+an empty sequence.</p>
+<h2 id="function-comparison">Function Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Return Type</th>
+<th>Primary Purpose</th>
+<th>Common Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>matches()</code></td>
+<td><code>xs:boolean</code></td>
+<td>Evaluates if pattern exists</td>
+<td>Schema validation, conditional logic</td>
+</tr>
+<tr>
+<td><code>replace()</code></td>
+<td><code>xs:string</code></td>
+<td>Substitutes matched text</td>
+<td>Reformatting dates, stripping tags, cleanup</td>
+</tr>
+<tr>
+<td><code>tokenize()</code></td>
+<td><code>xs:string*</code></td>
+<td>Splits string by delimiter regex</td>
+<td>Parsing CSV/TSV data, token processing</td>
+</tr>
+</tbody>
+</table>
+<p>XSLT 2.0 also includes the <code>&lt;xsl:analyze-string&gt;</code>
+instruction for scenarios requiring conditional processing of matched
+and non-matched substrings, complementing the basic functional
+capabilities provided by <code>matches()</code>, <code>replace()</code>,
+and <code>tokenize()</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

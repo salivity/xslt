@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is TEI and How Does XSLT Render Scholarly Texts? - xslt</title>
+    <meta name="description" content="The Text Encoding Initiative (TEI) is the foundational standard for encoding complex textual sources in the digital humanities, utilizing specialized XML to capture the deep structural, linguistic, and critical features of historical and literary manuscr">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-tei-and-how-does-xslt-render-scholarly-texts">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is TEI and How Does XSLT Render Scholarly Texts? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-tei-and-how-does-xslt-render-scholarly-texts" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Text Encoding Initiative (TEI) is the foundational standard for encoding complex textual sources in the digital humanities, utilizing specialized XML to capture the deep structural, linguistic, and critical features of historical and literary manuscr" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-tei-and-how-does-xslt-render-scholarly-texts">What Is
+TEI and How Does XSLT Render Scholarly Texts?</h1>
+<p>The Text Encoding Initiative (TEI) is the foundational standard for
+encoding complex textual sources in the digital humanities, utilizing
+specialized XML to capture the deep structural, linguistic, and critical
+features of historical and literary manuscripts. Because TEI XML
+emphasizes scholarly semantics rather than visual display, modern web
+browsers cannot render it effectively on their own. Extensible
+Stylesheet Language Transformations (XSLT) bridge this gap by
+functioning as a translation engine, transforming raw, semantically rich
+TEI XML files into accessible, interactive formats such as HTML, EPUB,
+or print-ready PDF.</p>
+<h2 id="what-is-the-text-encoding-initiative-tei">What Is the Text
+Encoding Initiative (TEI)?</h2>
+<p>Established in 1987, the Text Encoding Initiative develops and
+maintains standard guidelines for representing machine-readable texts.
+Rather than focusing on fonts, colors, or page margins, TEI uses XML
+tags to capture the meaning and history of a document.</p>
+<p>A standard TEI document contains two core parts:</p>
+<ul>
+<li><strong>The <code>&lt;teiHeader&gt;</code>:</strong> Comprehensive
+metadata describing the electronic file, the source document, the
+encoding principles applied, and the revision history.</li>
+<li><strong>The <code>&lt;text&gt;</code> element:</strong> The actual
+document, marked up to represent structural divisions (chapters, poems,
+scenes) as well as critical editorial phenomena.</li>
+</ul>
+<p>In scholarly editing, standard HTML is insufficient because it lacks
+the vocabulary to describe paleographical nuances, editorial
+interventions, and textual variations across multiple manuscript
+witnesses. TEI solves this by providing specialized elements. For
+example, it can record scribal deletions and additions
+(<code>&lt;del&gt;</code> and <code>&lt;add&gt;</code>), encode personal
+and geographic names (<code>&lt;persName&gt;</code> and
+<code>&lt;placeName&gt;</code>), or represent an apparatus criticus
+(<code>&lt;app&gt;</code>, <code>&lt;rdg&gt;</code>) that documents
+variant readings across historical copies.</p>
+<h2 id="the-role-of-xslt-in-processing-tei">The Role of XSLT in
+Processing TEI</h2>
+<p>Because TEI separates content and semantics from visual presentation,
+the markup itself contains no layout instructions. A web browser
+encountering a tag like <code>&lt;persName&gt;</code> does not know
+whether to render it as bold text, a hyperlink, or a tooltip. This is
+where XSLT becomes essential.</p>
+<p>XSLT is a declarative, template-based programming language
+specifically designed to transform XML documents into other XML
+documents, HTML, or plain text. In the context of scholarly editions, an
+XSLT stylesheet evaluates the hierarchy of the TEI XML file using XPath
+queries, identifies specific elements, and generates corresponding
+markup for display.</p>
+<h3 id="how-xslt-translates-tei-into-formatted-output">How XSLT
+Translates TEI into Formatted Output</h3>
+<p>XSLT operates on a rule-based model known as template matching. When
+an XSLT processor (such as Saxon) evaluates a TEI document against a
+stylesheet, it follows these mechanisms:</p>
+<ol type="1">
+<li><p><strong>Mapping Semantic Tags to Presentation
+Tags:</strong><br />
+Simple structural elements are directly translated into web components.
+For instance, an XSLT rule can match a TEI paragraph
+(<code>&lt;p&gt;</code>) and output an HTML paragraph
+(<code>&lt;p&gt;</code>), or match a division
+(<code>&lt;div type="chapter"&gt;</code>) and wrap it in an HTML
+<code>&lt;section&gt;</code> with an appropriate heading.</p></li>
+<li><p><strong>Handling Complex Critical Markup:</strong><br />
+Scholarly editions frequently need to present alternative views of a
+text. A scholar may encode an original manuscript error alongside a
+corrected version using the <code>&lt;choice&gt;</code>,
+<code>&lt;sic&gt;</code>, and <code>&lt;corr&gt;</code> elements:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">choice</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">sic</span>&gt;recieve&lt;/<span class="kw">sic</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">corr</span>&gt;receive&lt;/<span class="kw">corr</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">choice</span>&gt;</span></code></pre></div>
+<p>An XSLT template can process this structure to output the corrected
+word in the main text while automatically placing the original scribal
+error into an interactive tooltip or an apparatus note at the bottom of
+the page.</p></li>
+<li><p><strong>Extracting and Organizing Metadata:</strong><br />
+XSLT extracts administrative data from the
+<code>&lt;teiHeader&gt;</code>—such as manuscript shelfmarks,
+transcribers, and publication dates—and formats it into structured
+landing pages, bibliographies, or citation blocks for
+researchers.</p></li>
+<li><p><strong>Generating Navigation and Indices:</strong><br />
+Because XSLT can traverse the entire document tree, it can gather all
+instances of specific tags (such as every <code>&lt;persName&gt;</code>
+or <code>&lt;placeName&gt;</code>) to automatically construct a table of
+contents, a comprehensive index of historical figures, or a gazetteer
+linked back to the exact occurrences within the text.</p></li>
+</ol>
+<h2 id="the-standard-scholarly-publishing-pipeline">The Standard
+Scholarly Publishing Pipeline</h2>
+<p>The combination of TEI and XSLT creates a resilient, future-proof
+publishing pipeline. Scholars encode the text once in TEI XML,
+preserving it in an archival, platform-independent format.</p>
+<p>When publishing, an XSLT processor can run server-side, client-side
+in the browser, or during a static-site generation build step. Multiple
+distinct stylesheets can be applied to the exact same source file: one
+stylesheet can generate a diplomatic view that preserves original
+lineation and scribal quirks, another can generate a normalized reading
+edition for students, and a third can convert the text via XSL-FO into a
+camera-ready PDF for print publication. Through XSLT, complex textual
+research becomes usable, readable, and widely distributable across
+modern digital platforms.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

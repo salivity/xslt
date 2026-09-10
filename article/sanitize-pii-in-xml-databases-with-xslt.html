@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanitize PII in XML Databases with XSLT - xslt</title>
+    <meta name="description" content="XML databases frequently house sensitive Personally Identifiable Information (PII)—such as social security numbers, medical records, and credit card details—that must be redacted or masked to comply with regulations like GDPR and HIPAA. Extensible St">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/sanitize-pii-in-xml-databases-with-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sanitize PII in XML Databases with XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/sanitize-pii-in-xml-databases-with-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XML databases frequently house sensitive Personally Identifiable Information (PII)—such as social security numbers, medical records, and credit card details—that must be redacted or masked to comply with regulations like GDPR and HIPAA. Extensible St" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="sanitize-pii-in-xml-databases-with-xslt">Sanitize PII in XML
+Databases with XSLT</h1>
+<p>XML databases frequently house sensitive Personally Identifiable
+Information (PII)—such as social security numbers, medical records, and
+credit card details—that must be redacted or masked to comply with
+regulations like GDPR and HIPAA. Extensible Stylesheet Language
+Transformations (XSLT) provides a robust, native, and declarative method
+to scrub this sensitive data. By using XSLT rule-based templates,
+organizations can systematically modify, anonymize, or remove PII across
+entire XML repositories while fully preserving the underlying document
+hierarchy and schema validity.</p>
+<h3 id="the-identity-transform-foundation">The Identity Transform
+Foundation</h3>
+<p>The standard approach to scrubbing XML using XSLT relies on the
+<strong>Identity Transform pattern</strong>. This pattern recursively
+copies every node, element, and attribute from the source document to
+the output document by default, allowing you to write targeted rules
+only for the specific PII fields you want to alter.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Default rule: copy all nodes and attributes unchanged --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;@*|node()&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@*|node()&quot;</span>/&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>With this base rule established, any additional template you define
+acts as an override for matching nodes, enabling precise data
+sanitization.</p>
+<h3 id="common-pii-scrubbing-strategies">Common PII Scrubbing
+Strategies</h3>
+<p>Depending on compliance requirements and testing needs, different
+sanitization techniques can be applied to targeted XML nodes.</p>
+<h4 id="1-complete-node-removal">1. Complete Node Removal</h4>
+<p>When downstream consumers (such as third-party analytics platforms)
+have no operational need for certain PII elements, you can remove them
+entirely by applying an empty template match.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Suppress SSN and date of birth tags entirely --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;ssn | dateOfBirth&quot;</span> /&gt;</span></code></pre></div>
+<h4 id="2-full-redaction-static-masking">2. Full Redaction (Static
+Masking)</h4>
+<p>If the database schema enforces strict element presence, the node
+must remain, but its text node should be replaced with a static
+placeholder.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Redact national identity numbers with a static mask --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;nationalId/text()&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;[REDACTED]&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h4 id="3-partial-masking-using-xpath-functions">3. Partial Masking
+Using XPath Functions</h4>
+<p>Testing environments often require data that resembles production
+formats—such as retaining the last four digits of a credit card or the
+domain of an email address. Standard XPath string functions
+(<code>substring</code>, <code>string-length</code>,
+<code>concat</code>) enable dynamic partial redaction.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Mask credit card numbers, showing only the last four digits --&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;creditCard/text()&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;val&quot;</span> <span class="ot">select=</span><span class="st">&quot;normalize-space(.)&quot;</span> /&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;len&quot;</span> <span class="ot">select=</span><span class="st">&quot;string-length($val)&quot;</span> /&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;concat(&#39;XXXX-XXXX-XXXX-&#39;, substring($val, $len - 3, 4))&quot;</span> /&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h4 id="4-pseudonymization-and-tokenization">4. Pseudonymization and
+Tokenization</h4>
+<p>In XSLT 2.0 and 3.0, you can use built-in functions or extension
+functions to tokenize sensitive values consistently. Using hashing
+algorithms or lookup tables ensures that referential integrity is
+maintained across related XML documents (e.g., preserving
+foreign-key-style customer IDs across multiple collections without
+revealing the actual identity).</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Hash user identifiers using standard XSLT 3.0 functions --&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;customerId/text()&quot;</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Conceptual example using an extension or custom mapping function --&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;concat(&#39;ANON-&#39;, generate-id(..))&quot;</span> /&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="complete-working-example">Complete Working Example</h3>
+<p>Below is a complete stylesheet demonstrating the identity transform
+alongside targeted redaction for names, email addresses, and tax
+identifiers:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span>/&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 1. Copy everything by default --&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;@*|node()&quot;</span>&gt;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;@*|node()&quot;</span>/&gt;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:copy</span>&gt;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 2. Completely eliminate social security numbers --&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;ssn&quot;</span>/&gt;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 3. Mask email addresses while retaining the domain --&gt;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;email/text()&quot;</span>&gt;</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;domain&quot;</span> <span class="ot">select=</span><span class="st">&quot;substring-after(., &#39;@&#39;)&quot;</span> /&gt;</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;concat(&#39;user_&#39;, generate-id(..), &#39;@&#39;, $domain)&quot;</span> /&gt;</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- 4. Replace real names with generic values --&gt;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;firstName/text()&quot;</span>&gt;&lt;<span class="kw">xsl:text</span>&gt;Jane&lt;/<span class="kw">xsl:text</span>&gt;&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;lastName/text()&quot;</span>&gt;&lt;<span class="kw">xsl:text</span>&gt;Doe&lt;/<span class="kw">xsl:text</span>&gt;&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="integration-into-xml-database-pipelines">Integration into XML
+Database Pipelines</h3>
+<p>XSLT can be integrated at several stages of the XML database
+lifecycle:</p>
+<ul>
+<li><strong>Export and ETL Pipelines:</strong> Execute the XSLT
+stylesheet during bulk data extraction (e.g., via Saxon or Xalan
+processors) before transferring data dumps to development, QA, or
+third-party staging environments.</li>
+<li><strong>Database Triggers and Pipelines:</strong> Native XML
+databases (such as MarkLogic, BaseX, or eXist-db) allow XSLT stylesheets
+to be executed directly within database pipelines, automating
+sanitization whenever records are copied into non-production
+partitions.</li>
+<li><strong>API Gateways:</strong> Apply XSLT dynamically at the gateway
+layer to strip out sensitive metadata or attributes before returning XML
+payloads to external consumers.</li>
+</ul>
+<h3 id="best-practices">Best Practices</h3>
+<ul>
+<li><strong>Validate Post-Transformation:</strong> Always run the
+sanitized XML against the target XSD (XML Schema Definition) or DTD to
+verify that type constraints and cardinality rules remain
+satisfied.</li>
+<li><strong>Audit Attributes:</strong> Remember that PII can exist
+inside XML attributes as well as element text. Write selectors (e.g.,
+<code>@taxId</code>) specifically targeting sensitive attributes.</li>
+<li><strong>Optimize for Large Datasets:</strong> For massive XML
+collections, utilize streaming transformations (available in XSLT 3.0)
+to sanitize documents without loading the entire DOM tree into
+memory.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control DTD Output in XSLT with Doctype Attributes - xslt</title>
+    <meta name="description" content="In XSLT, the doctype-public and doctype-system attributes of the <xsl:output> element control how a Document Type Declaration (DTD or <!DOCTYPE>) is generated in the final serialized document. By specifying one or both of these attributes, a developer in">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/control-dtd-output-in-xslt-with-doctype-attributes">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Control DTD Output in XSLT with Doctype Attributes - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/control-dtd-output-in-xslt-with-doctype-attributes" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT, the doctype-public and doctype-system attributes of the <xsl:output> element control how a Document Type Declaration (DTD or <!DOCTYPE>) is generated in the final serialized document. By specifying one or both of these attributes, a developer in" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="control-dtd-output-in-xslt-with-doctype-attributes">Control DTD
+Output in XSLT with Doctype Attributes</h1>
+<p>In XSLT, the <code>doctype-public</code> and
+<code>doctype-system</code> attributes of the
+<code>&lt;xsl:output&gt;</code> element control how a Document Type
+Declaration (DTD or <code>&lt;!DOCTYPE&gt;</code>) is generated in the
+final serialized document. By specifying one or both of these
+attributes, a developer instructs the XSLT processor to emit a standard
+public or private system DTD reference without manually writing DOCTYPE
+tags inside the transformation logic. This article explains how these
+two attributes interact, the syntax they produce in XML and HTML
+outputs, and the rules governing their behavior.</p>
+<h3 id="the-role-of-xsloutput">The Role of
+<code>&lt;xsl:output&gt;</code></h3>
+<p>The <code>&lt;xsl:output&gt;</code> element defines the serialization
+parameters for the transformation result. When you need the output
+document to include a <code>&lt;!DOCTYPE&gt;</code> declaration, you
+configure <code>doctype-system</code> and <code>doctype-public</code> as
+top-level attributes inside this element.</p>
+<p>The name of the root element in the generated
+<code>&lt;!DOCTYPE&gt;</code> declaration is automatically determined by
+the XSLT processor based on the first element created in the output
+document.</p>
+<h3 id="using-doctype-system-alone">Using <code>doctype-system</code>
+Alone</h3>
+<p>The <code>doctype-system</code> attribute specifies a private or
+local URI pointing to the DTD file. When used without
+<code>doctype-public</code>, the processor generates a
+<code>SYSTEM</code> identifier.</p>
+<p><strong>XSLT Declaration:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">doctype-system=</span><span class="st">&quot;rules.dtd&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p><strong>Resulting Output:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">root</span> SYSTEM &quot;rules.dtd&quot;<span class="dt">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">root</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">root</span>&gt;</span></code></pre></div>
+<h3 id="using-both-doctype-public-and-doctype-system">Using Both
+<code>doctype-public</code> and <code>doctype-system</code></h3>
+<p>When both attributes are present, the processor outputs a
+<code>PUBLIC</code> declaration containing both the formal public
+identifier (FPI) and the system URI fallback.</p>
+<p><strong>XSLT Declaration:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>            <span class="ot">doctype-public=</span><span class="st">&quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot;</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">doctype-system=</span><span class="st">&quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&quot;</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p><strong>Resulting Output:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">html</span> PUBLIC &quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&quot;<span class="dt">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">html</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/1999/xhtml&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">html</span>&gt;</span></code></pre></div>
+<h3 id="behavior-when-only-doctype-public-is-provided">Behavior When
+Only <code>doctype-public</code> Is Provided</h3>
+<p>The behavior for specifying only <code>doctype-public</code> depends
+on the output method:</p>
+<ul>
+<li><strong>XML Output (<code>method="xml"</code>):</strong> The XML
+standard requires that any external <code>PUBLIC</code> identifier must
+be accompanied by a system identifier. Consequently, if
+<code>doctype-system</code> is omitted in an XML transformation, most
+conforming XSLT processors will omit the <code>&lt;!DOCTYPE&gt;</code>
+declaration entirely or signal an error.</li>
+<li><strong>HTML Output (<code>method="html"</code>):</strong> Standard
+HTML allows a public identifier without a system URI. If
+<code>doctype-public</code> is specified alone with
+<code>method="html"</code>, the processor outputs:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> HTML PUBLIC <span class="st">&quot;public-id&quot;</span><span class="dt">&gt;</span></span></code></pre></div></li>
+</ul>
+<h3 id="summary-of-doctype-generation-rules">Summary of DOCTYPE
+Generation Rules</h3>
+<ol type="1">
+<li><strong>Neither attribute set:</strong> No
+<code>&lt;!DOCTYPE&gt;</code> tag is emitted in the output.</li>
+<li><strong><code>doctype-system</code> only:</strong> Produces
+<code>&lt;!DOCTYPE root SYSTEM "system-uri"&gt;</code>.</li>
+<li><strong><code>doctype-public</code> and
+<code>doctype-system</code>:</strong> Produces
+<code>&lt;!DOCTYPE root PUBLIC "public-id" "system-uri"&gt;</code>.</li>
+<li><strong><code>doctype-public</code> only:</strong> Produces
+<code>&lt;!DOCTYPE HTML PUBLIC "public-id"&gt;</code> in HTML mode;
+ignored or invalid in XML mode.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

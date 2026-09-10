@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Analysis with XSLT string-to-codepoints - xslt</title>
+    <meta name="description" content="This article explores how the XPath and XSLT function string-to-codepoints() facilitates low-level character analysis in modern XML processing pipelines. By converting abstract text strings into sequences of discrete Unicode integer code points, XSLT dev">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/character-analysis-with-xslt-string-to-codepoints">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Character Analysis with XSLT string-to-codepoints - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/character-analysis-with-xslt-string-to-codepoints" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how the XPath and XSLT function string-to-codepoints() facilitates low-level character analysis in modern XML processing pipelines. By converting abstract text strings into sequences of discrete Unicode integer code points, XSLT dev" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="character-analysis-with-xslt-string-to-codepoints">Character
+Analysis with XSLT string-to-codepoints</h1>
+<p>This article explores how the XPath and XSLT function
+<code>string-to-codepoints()</code> facilitates low-level character
+analysis in modern XML processing pipelines. By converting abstract text
+strings into sequences of discrete Unicode integer code points, XSLT
+developers gain the ability to inspect, filter, and sanitize text at the
+individual byte and glyph level. This technique resolves issues that
+standard high-level string manipulation functions and regular
+expressions often struggle to address.</p>
+<h2 id="how-string-to-codepoints-works">How
+<code>string-to-codepoints()</code> Works</h2>
+<p>Introduced in XPath and XSLT 2.0 and carried through XSLT 3.0,
+<code>fn:string-to-codepoints($arg as xs:string?) as xs:integer*</code>
+takes an input string and converts it into a sequence of zero or more
+integers. Each returned integer represents the unique Unicode scalar
+value (code point) assigned to each character in the string.</p>
+<p>For example, evaluating <code>string-to-codepoints('XML')</code>
+yields the sequence <code>(88, 77, 76)</code>. If the input is an empty
+string or an empty sequence, the function returns an empty sequence.</p>
+<h2 id="detecting-invisible-and-control-characters">Detecting Invisible
+and Control Characters</h2>
+<p>High-level functions like <code>contains()</code>,
+<code>starts-with()</code>, or standard regex-based replacements can
+obscure non-printable or invisible characters. These include zero-width
+spaces (<code>&amp;#x200B;</code> / 8203), byte order marks
+(<code>&amp;#xFEFF;</code> / 65279), and legacy ASCII control characters
+(values 0 through 31).</p>
+<p>By converting text to integers, developers can run direct numerical
+comparisons to identify and strip problematic characters:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;codepoints&quot;</span> <span class="ot">select=</span><span class="st">&quot;string-to-codepoints(.)&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;has-control-chars&quot;</span> <span class="ot">select=</span><span class="st">&quot;some $cp in $codepoints satisfies ($cp lt 32 and not($cp = (9, 10, 13)))&quot;</span>/&gt;</span></code></pre></div>
+<p>This logic evaluates whether a string contains any invalid XML
+control characters without relying on fragile string-matching
+techniques.</p>
+<h2 id="range-based-unicode-validation">Range-Based Unicode
+Validation</h2>
+<p>Text verification often requires ensuring that input data belongs to
+specific scripts, such as standard ASCII, Basic Latin, or extended
+alphabets. <code>string-to-codepoints()</code> enables range-based
+arithmetic validation across Unicode blocks:</p>
+<ul>
+<li><strong>Basic ASCII Validation:</strong> Checking if every code
+point is less than or equal to 127
+(<code>every $cp in string-to-codepoints($input) satisfies $cp le 127</code>).</li>
+<li><strong>Non-BMP / Surrogate Character Detection:</strong>
+Identifying characters residing outside the Basic Multilingual Plane
+(code points greater than 65535, such as modern emojis or rare
+historical scripts).</li>
+</ul>
+<p>This approach provides a reliable way to enforce legacy encoding
+limits (such as Latin-1 or ASCII-only requirements) before data is
+serialized or forwarded to downstream systems.</p>
+<h2 id="reconstructing-strings-with-codepoints-to-string">Reconstructing
+Strings with <code>codepoints-to-string()</code></h2>
+<p>Low-level analysis frequently concludes with transformation or
+cleanup. The companion function
+<code>fn:codepoints-to-string($arg as xs:integer*) as xs:string</code>
+takes a sequence of integers and reconstructs a valid string.</p>
+<p>Together, these functions allow you to filter text dynamically using
+sequence expressions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;clean-text&quot;</span> <span class="ot">select=</span><span class="st">&quot;codepoints-to-string(string-to-codepoints(.)[. &gt;= 32])&quot;</span>/&gt;</span></code></pre></div>
+<p>This pattern strips out all characters below Unicode 32 in a single
+step, giving you fine-grained control over character streams directly
+within XSLT stylesheets.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

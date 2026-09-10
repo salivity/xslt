@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isomorphic XSLT 3.0 in Node.js Using Saxon-JS - xslt</title>
+    <meta name="description" content="This article explores how modern web architectures use Saxon-JS to achieve isomorphic XSLT 3.0 processing across both server-side Node.js environments and client-side web browsers. By leveraging a unified compilation pipeline and the JavaScript-based Sax">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/isomorphic-xslt-3-0-in-node-js-using-saxon-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Isomorphic XSLT 3.0 in Node.js Using Saxon-JS - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/isomorphic-xslt-3-0-in-node-js-using-saxon-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how modern web architectures use Saxon-JS to achieve isomorphic XSLT 3.0 processing across both server-side Node.js environments and client-side web browsers. By leveraging a unified compilation pipeline and the JavaScript-based Sax" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="isomorphic-xslt-30-in-nodejs-using-saxon-js">Isomorphic XSLT 3.0
+in Node.js Using Saxon-JS</h1>
+<p>This article explores how modern web architectures use Saxon-JS to
+achieve isomorphic XSLT 3.0 processing across both server-side Node.js
+environments and client-side web browsers. By leveraging a unified
+compilation pipeline and the JavaScript-based Saxon-JS runtime,
+developers can write complex XML transformations once and execute them
+interchangeably on the server for initial rendering or in the browser
+for dynamic client-side updates.</p>
+<h3 id="the-role-of-stylesheet-export-files-sef">The Role of Stylesheet
+Export Files (SEF)</h3>
+<p>True isomorphism with Saxon-JS relies on precompiling XSLT 3.0
+stylesheets into Stylesheet Export Format (SEF) files. Because the full
+compilation of an XSLT 3.0 document is computationally heavy and
+requires enterprise Java tools, Saxon-JS separates compilation from
+execution. Developers use the Node.js CLI tool <code>xslt3</code>
+(backed by Saxon-EE or a native compilation layer) to convert
+<code>.xsl</code> stylesheets into <code>.sef.json</code> files.</p>
+<p>These JSON-based artifacts contain the parsed execution tree of the
+stylesheet. Because JSON is natively supported by both Node.js and web
+browsers, the generated SEF file acts as the universal binary that
+either environment can ingest and execute without needing to re-parse
+raw XML stylesheet logic.</p>
+<h3 id="server-side-execution-in-nodejs">Server-Side Execution in
+Node.js</h3>
+<p>On the server, Node.js uses the <code>saxon-js</code> npm package to
+process incoming data and render output. By calling the
+<code>SaxonJS.transform()</code> API, Node.js can perform operations
+synchronously or asynchronously:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> SaxonJS <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;saxon-js&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> SaxonJS<span class="op">.</span><span class="fu">transform</span>({</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">stylesheetFileName</span><span class="op">:</span> <span class="st">&#39;transform.sef.json&#39;</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sourceFileName</span><span class="op">:</span> <span class="st">&#39;input.xml&#39;</span><span class="op">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">destination</span><span class="op">:</span> <span class="st">&#39;serialized&#39;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&#39;sync&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(result<span class="op">.</span><span class="at">principalResult</span>)<span class="op">;</span></span></code></pre></div>
+<p>In this context, Node.js often functions as a server-side renderer
+(SSR) for XML data pipelines. It takes raw XML payloads, applies the SEF
+transformation, and outputs standard HTML5, JSON, or XML to return
+directly to the client. This handles first-page loads efficiently,
+improves Search Engine Optimization (SEO), and hides transformation
+logic that involves sensitive business rules.</p>
+<h3 id="client-side-execution-in-the-browser">Client-Side Execution in
+the Browser</h3>
+<p>The browser environment utilizes the client-targeted build of
+Saxon-JS, typically loaded via a <code>&lt;script&gt;</code> tag or
+bundled via frontend tooling. It uses the exact same
+<code>SaxonJS.transform()</code> API:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>SaxonJS<span class="op">.</span><span class="fu">transform</span>({</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">stylesheetLocation</span><span class="op">:</span> <span class="st">&#39;transform.sef.json&#39;</span><span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sourceLocation</span><span class="op">:</span> <span class="st">&#39;dynamic-data.xml&#39;</span><span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">destination</span><span class="op">:</span> <span class="st">&#39;replaceBody&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&#39;async&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<p>Instead of generating raw strings, the client execution engine can
+target the Document Object Model (DOM) directly. Saxon-JS supports
+interactive XSLT (IXSL) extensions, allowing templates to listen for
+browser events (like clicks or form inputs) and update specific parts of
+the DOM directly from the XSLT definitions.</p>
+<h3 id="achieving-true-isomorphism">Achieving True Isomorphism</h3>
+<p>Node.js coordinates this isomorphic lifecycle by bridging initial
+delivery and progressive enhancement:</p>
+<ol type="1">
+<li><strong>Shared Logic:</strong> The core presentation and business
+rules remain in a single <code>.xsl</code> file, eliminating duplicate
+codebases for server rendering and frontend interactivity.</li>
+<li><strong>Hybrid Rendering Strategy:</strong> Node.js executes the SEF
+file to deliver a fully populated, accessible HTML page on the initial
+request. Subsequent client interactions can download the same SEF file,
+fetch smaller XML or JSON diffs from an API, and apply transformations
+locally in the user's browser.</li>
+<li><strong>Consistent Context:</strong> The execution options—including
+global parameters, initial template modes, and serialization rules—are
+structurally identical across both Node.js and browser APIs, allowing
+full reuse of configuration code.</li>
+</ol>
+<p>By abstracting away platform-specific execution details behind the
+SEF runtime, Node.js and Saxon-JS deliver an efficient, unified pipeline
+for processing enterprise XML across the full web stack.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intersect and Except Operators in XSLT 2.0 - xslt</title>
+    <meta name="description" content="In XSLT 2.0, the intersect and except operators provide powerful set-manipulation capabilities for node sequences. This article explains the specific purpose of these two operators, how they evaluate node identity and document order, and how they allow d">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/intersect-and-except-operators-in-xslt-2-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Intersect and Except Operators in XSLT 2.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/intersect-and-except-operators-in-xslt-2-0" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0, the intersect and except operators provide powerful set-manipulation capabilities for node sequences. This article explains the specific purpose of these two operators, how they evaluate node identity and document order, and how they allow d" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="intersect-and-except-operators-in-xslt-20">Intersect and Except
+Operators in XSLT 2.0</h1>
+<p>In XSLT 2.0, the <code>intersect</code> and <code>except</code>
+operators provide powerful set-manipulation capabilities for node
+sequences. This article explains the specific purpose of these two
+operators, how they evaluate node identity and document order, and how
+they allow developers to perform precise sequence comparisons and
+filtering without complex XPath workarounds.</p>
+<h3 id="the-purpose-of-intersect">The Purpose of
+<code>intersect</code></h3>
+<p>The <code>intersect</code> operator takes two sequences of nodes and
+returns a new sequence containing only the nodes that are present in
+both sequences.</p>
+<p>In XSLT 1.0, finding common nodes between two sets required
+cumbersome predicates using node identity tests (such as comparing
+<code>generate-id()</code> or counting node intersections). In XSLT 2.0,
+the syntax is simplified:</p>
+<pre class="xpath"><code>$sequenceA intersect $sequenceB</code></pre>
+<p>The resulting sequence contains only the elements, attributes, or
+other nodes that appear in both <code>$sequenceA</code> and
+<code>$sequenceB</code>.</p>
+<h3 id="the-purpose-of-except">The Purpose of <code>except</code></h3>
+<p>The <code>except</code> operator takes two sequences of nodes and
+returns a new sequence containing all the nodes from the first sequence
+that do not appear in the second sequence. It functions as a set
+difference or subtraction operation.</p>
+<pre class="xpath"><code>$sequenceA except $sequenceB</code></pre>
+<p>This operator is commonly used to exclude specific elements, such as
+selecting all child nodes except for certain metadata elements, or
+processing a collection of nodes while omitting items that match an
+exclusion list.</p>
+<h3 id="key-operational-rules">Key Operational Rules</h3>
+<p>To use <code>intersect</code> and <code>except</code> effectively,
+you must understand how XSLT processes them:</p>
+<ol type="1">
+<li><strong>Node Identity, Not Value:</strong> Both operators evaluate
+nodes based on <strong>node identity</strong>, not string or typed
+values. Two nodes are considered identical only if they represent the
+exact same node in the XML tree hierarchy. Nodes with identical tag
+names, attributes, and text content are treated as distinct if they are
+located at different positions in the source tree.</li>
+<li><strong>Nodes Only:</strong> Both operators require both operands to
+be sequences of nodes (<code>node()*</code>). Passing sequences
+containing atomic values (such as strings, integers, or dates) results
+in a type error (<code>XPTY0004</code>).</li>
+<li><strong>Deduplication and Document Order:</strong> Like the
+<code>union</code> operator (or <code>|</code>), both
+<code>intersect</code> and <code>except</code> automatically eliminate
+duplicate nodes from the final result and return the remaining nodes
+sorted in document order.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

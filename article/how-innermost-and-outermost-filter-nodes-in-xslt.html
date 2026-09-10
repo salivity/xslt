@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How innermost() and outermost() Filter Nodes in XSLT - xslt</title>
+    <meta name="description" content="This article provides an overview of how the XPath and XSLT 3.0 functions fn:innermost() and fn:outermost() simplify hierarchical node processing. When querying deeply nested XML structures using descendant axes, queries often return redundant nodes that">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-innermost-and-outermost-filter-nodes-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How innermost() and outermost() Filter Nodes in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-innermost-and-outermost-filter-nodes-in-xslt" />
+    <meta property="og:image:url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how the XPath and XSLT 3.0 functions fn:innermost() and fn:outermost() simplify hierarchical node processing. When querying deeply nested XML structures using descendant axes, queries often return redundant nodes that" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-innermost-and-outermost-filter-nodes-in-xslt">How
+innermost() and outermost() Filter Nodes in XSLT</h1>
+<p>This article provides an overview of how the XPath and XSLT 3.0
+functions <code>fn:innermost()</code> and <code>fn:outermost()</code>
+simplify hierarchical node processing. When querying deeply nested XML
+structures using descendant axes, queries often return redundant nodes
+that share ancestor-descendant relationships within the same selection.
+You will learn the operational mechanics of both functions, how they
+resolve overlapping node sets, and practical examples illustrating their
+filtering behavior.</p>
+<h2 id="the-problem-with-descendant-axes">The Problem with Descendant
+Axes</h2>
+<p>In hierarchical data processing, selecting elements using descendant
+axes like <code>//</code> frequently yields elements that contain other
+selected elements. For instance, evaluating <code>//section</code> on a
+document containing nested sections returns both parent sections and
+their child sections in a single sequence.</p>
+<p>Before XPath 3.0, filtering these nodes to retain only the top-level
+or bottom-level elements required verbose, computationally expensive
+predicate expressions involving axes such as
+<code>not(ancestor::section)</code> or
+<code>not(descendant::section)</code>. The standard functions
+<code>outermost()</code> and <code>innermost()</code> address this
+challenge natively.</p>
+<h2 id="how-outermost-works">How <code>outermost()</code> Works</h2>
+<p>The <code>fn:outermost($nodes as node()*) as node()*</code> function
+takes a sequence of nodes and filters out any node that is a descendant
+of another node present within the input sequence.</p>
+<ul>
+<li><strong>Primary Purpose:</strong> Retains only the highest-level
+nodes relative to the sequence itself.</li>
+<li><strong>Mechanism:</strong> For every node <span
+class="math inline">\(N\)</span> in the input sequence, <span
+class="math inline">\(N\)</span> is kept if and only if no ancestor of
+<span class="math inline">\(N\)</span> is also in the input
+sequence.</li>
+<li><strong>Document Order:</strong> The returned sequence maintains the
+document order of the original nodes.</li>
+</ul>
+<h3 id="example-scenario">Example Scenario</h3>
+<p>Consider the following XML:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">div</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">id=</span><span class="st">&quot;1.1&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">p</span>&gt;Text&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">id=</span><span class="st">&quot;1.2&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">div</span> <span class="ot">id=</span><span class="st">&quot;1.2.1&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">div</span>&gt;</span></code></pre></div>
+<p>Applying <code>outermost(//div)</code> evaluates all four
+<code>div</code> elements. Because <code>div 1</code> contains
+<code>div 1.1</code>, <code>div 1.2</code>, and <code>div 1.2.1</code>,
+those descendants are discarded. The function returns only:</p>
+<ul>
+<li><code>&lt;div id="1"&gt;</code></li>
+</ul>
+<h2 id="how-innermost-works">How <code>innermost()</code> Works</h2>
+<p>The <code>fn:innermost($nodes as node()*) as node()*</code> function
+performs the inverse operation. It takes a sequence of nodes and filters
+out any node that is an ancestor of another node in the sequence.</p>
+<ul>
+<li><strong>Primary Purpose:</strong> Retains only the leaf nodes
+relative to the sequence itself.</li>
+<li><strong>Mechanism:</strong> For every node <span
+class="math inline">\(N\)</span> in the input sequence, <span
+class="math inline">\(N\)</span> is kept if and only if no descendant of
+<span class="math inline">\(N\)</span> is also present in the input
+sequence.</li>
+<li><strong>Document Order:</strong> The returned nodes remain in
+original document order, with duplicate nodes removed.</li>
+</ul>
+<h3 id="example-scenario-1">Example Scenario</h3>
+<p>Using the same XML structure:</p>
+<p>Applying <code>innermost(//div)</code> evaluates all four
+<code>div</code> elements:</p>
+<ul>
+<li><code>div 1</code> is removed because it is an ancestor of
+<code>1.1</code>, <code>1.2</code>, and <code>1.2.1</code>.</li>
+<li><code>div 1.2</code> is removed because it is an ancestor of
+<code>1.2.1</code>.</li>
+<li><code>div 1.1</code> is retained because it contains no other
+<code>div</code>.</li>
+<li><code>div 1.2.1</code> is retained because it contains no other
+<code>div</code>.</li>
+</ul>
+<p>The function returns:</p>
+<ul>
+<li><code>&lt;div id="1.1"&gt;</code></li>
+<li><code>&lt;div id="1.2.1"&gt;</code></li>
+</ul>
+<h2 id="key-behavioral-rules">Key Behavioral Rules</h2>
+<ol type="1">
+<li><strong>Self-Contained Evaluation:</strong> Both functions only
+evaluate ancestor-descendant relationships existing <em>within the
+supplied sequence</em>. Ancestors or descendants outside the provided
+sequence have no impact on the outcome.</li>
+<li><strong>Node Types:</strong> While most commonly used with elements,
+both functions operate on any node types (such as text nodes or
+comments) that can have hierarchical relationships.</li>
+<li><strong>Empty Sequences:</strong> If the input sequence is empty, an
+empty sequence is returned. If no nodes in the sequence share
+ancestor-descendant relationships, the original sequence is returned
+unchanged.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
