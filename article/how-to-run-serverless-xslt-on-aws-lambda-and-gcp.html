@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Run Serverless XSLT on AWS Lambda and GCP - xslt</title>
+    <meta name="description" content="Exposing XSLT (Extensible Stylesheet Language Transformations) as serverless microservices allows organizations to modernize legacy XML workflows into scalable, on-demand data transformation APIs without maintaining dedicated infrastructure. This article">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-run-serverless-xslt-on-aws-lambda-and-gcp">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Run Serverless XSLT on AWS Lambda and GCP - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-run-serverless-xslt-on-aws-lambda-and-gcp" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Exposing XSLT (Extensible Stylesheet Language Transformations) as serverless microservices allows organizations to modernize legacy XML workflows into scalable, on-demand data transformation APIs without maintaining dedicated infrastructure. This article" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-run-serverless-xslt-on-aws-lambda-and-gcp">How to Run
+Serverless XSLT on AWS Lambda and GCP</h1>
+<p>Exposing XSLT (Extensible Stylesheet Language Transformations) as
+serverless microservices allows organizations to modernize legacy XML
+workflows into scalable, on-demand data transformation APIs without
+maintaining dedicated infrastructure. This article outlines how to
+architect, package, and deploy XSLT transformation engines using AWS
+Lambda and Google Cloud Functions, detailing engine selection, API
+integration, and performance optimization techniques.</p>
+<h3 id="selecting-the-right-xslt-engine-and-runtime">Selecting the Right
+XSLT Engine and Runtime</h3>
+<p>Cloud function runtimes offer varying degrees of XSLT support
+depending on the required specification (XSLT 1.0 vs. XSLT 2.0/3.0):</p>
+<ul>
+<li><strong>Java (Saxon-HE):</strong> The industry standard for XSLT 2.0
+and 3.0. A Java-based Lambda or Cloud Function utilizing the Saxon Home
+Edition provides complete spec compliance, high performance, and
+streaming capabilities.</li>
+<li><strong>Python (<code>lxml</code> or <code>SaxonC</code>):</strong>
+Python runtimes support XSLT 1.0 natively through <code>lxml</code>
+(wrapping <code>libxslt</code>). For XSLT 2.0/3.0, you must bundle
+<code>SaxonC</code>, which requires compilation against specific Linux
+shared libraries.</li>
+<li><strong>Node.js (<code>Saxon-JS</code>):</strong> For fast startup
+times and minimal memory footprint, <code>Saxon-JS</code> runs natively
+inside Node.js environments and executes pre-compiled SEF (Stylesheet
+Execution Format) files for XSLT 3.0.</li>
+</ul>
+<h3 id="core-architecture-pattern">Core Architecture Pattern</h3>
+<p>A serverless XSLT microservice typically adheres to one of two
+invocation models:</p>
+<ol type="1">
+<li><strong>Synchronous HTTP API:</strong> A client sends an XML payload
+via an HTTP POST request through AWS API Gateway or Google Cloud
+Endpoints. The serverless function processes the XML with a defined
+stylesheet and returns the transformed document (XML, JSON, or HTML)
+directly in the HTTP response.</li>
+<li><strong>Asynchronous Event-Driven Processing:</strong> An XML file
+is uploaded to object storage (Amazon S3 or Google Cloud Storage). An
+event notification triggers the function, which downloads the file,
+applies the transformation, and writes the output back to an egress
+bucket.</li>
+</ol>
+<h3 id="deploying-on-aws-lambda">Deploying on AWS Lambda</h3>
+<p>To deploy an XSLT transformation service on AWS Lambda:</p>
+<ol type="1">
+<li><strong>Packaging:</strong> If using complex C-bindings or large
+runtimes (like Java), package your function as an OCI-compliant Docker
+container image or deploy dependencies using AWS Lambda Layers.</li>
+<li><strong>Caching Stylesheets:</strong> Compile and instantiate the
+XSLT stylesheet <em>outside</em> the invocation handler. By loading the
+template during the execution environment's initialization phase,
+subsequent "warm" invocations avoid redundant stylesheet
+compilation.</li>
+<li><strong>Handling Payloads:</strong> API Gateway has a maximum
+payload limit of 6 MB. For payloads exceeding this threshold, configure
+the Lambda function to retrieve and store XML documents directly using
+Amazon S3 presigned URLs.</li>
+</ol>
+<h3 id="deploying-on-google-cloud-functions">Deploying on Google Cloud
+Functions</h3>
+<p>To deploy an equivalent service on Google Cloud Functions (2nd
+generation, backed by Cloud Run):</p>
+<ol type="1">
+<li><strong>Function Definition:</strong> Define an HTTP-triggered
+function in your preferred language. For Python or Node.js, declare the
+transformation libraries in <code>requirements.txt</code> or
+<code>package.json</code>.</li>
+<li><strong>State Management:</strong> Similar to Lambda, store parsed
+transformation templates in global memory scope to ensure reuse across
+requests within the same function instance.</li>
+<li><strong>Concurrency Optimization:</strong> Google Cloud Functions
+(2nd gen) supports handling multiple concurrent requests per instance.
+Ensure the XSLT transformer implementation is thread-safe, or initialize
+transformer pools to handle parallel transformations efficiently.</li>
+</ol>
+<h3 id="security-and-production-considerations">Security and Production
+Considerations</h3>
+<ul>
+<li><strong>Disable XXE (XML External Entity):</strong> Modern XSLT
+processors must be explicitly configured to disallow external entity
+resolution (<code>FEATURE_SECURE_PROCESSING</code> in Java or disabling
+<code>resolve_entities</code> in Python). This prevents SSRF, local file
+disclosure, and XML-bomb denial of service attacks.</li>
+<li><strong>Memory and Timeouts:</strong> XSLT processing builds
+Document Object Models (DOMs) in memory, which often require 5 to 10
+times the size of the source XML. Allocate function memory (typically
+512 MB to 2048 MB) accordingly to prevent out-of-memory errors.</li>
+<li><strong>Payload Size Limits:</strong> Cloud Functions enforces a 32
+MB HTTP payload limit, while AWS Lambda enforces a 6 MB limit via API
+Gateway. Always implement S3/GCS streaming for bulk data.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using codepoints-to-string for Entities in XSLT - xslt</title>
+    <meta name="description" content="In XSLT development, generating specific symbols, control characters, or non-standard character entities can lead to serialization conflicts or XML parsing errors. The XPath function codepoints-to-string() solves this issue by converting Unicode code poi">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-codepoints-to-string-for-entities-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using codepoints-to-string for Entities in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-codepoints-to-string-for-entities-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT development, generating specific symbols, control characters, or non-standard character entities can lead to serialization conflicts or XML parsing errors. The XPath function codepoints-to-string() solves this issue by converting Unicode code poi" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-codepoints-to-string-for-entities-in-xslt">Using
+codepoints-to-string for Entities in XSLT</h1>
+<p>In XSLT development, generating specific symbols, control characters,
+or non-standard character entities can lead to serialization conflicts
+or XML parsing errors. The XPath function
+<code>codepoints-to-string()</code> solves this issue by converting
+Unicode code point integers into their corresponding string characters
+directly in the transformation pipeline. This article explains the role
+of <code>codepoints-to-string()</code> in handling specialized character
+output, avoiding entity declaration overhead, and maintaining clean
+encoding standards across XML and text outputs.</p>
+<h3 id="what-is-codepoints-to-string">What is
+<code>codepoints-to-string()</code>?</h3>
+<p>Introduced in XPath 2.0 and natively supported in XSLT 2.0 and later,
+<code>codepoints-to-string()</code> is a built-in function with the
+following signature:</p>
+<pre class="text"><code>fn:codepoints-to-string($arg as xs:integer*) as xs:string</code></pre>
+<p>It takes one or more Unicode code point values represented as decimal
+integers and outputs a string composed of the characters identified by
+those code points.</p>
+<h3 id="the-challenge-with-non-standard-character-entities">The
+Challenge with Non-Standard Character Entities</h3>
+<p>Standard XML recognizes only five predefined entity references:
+<code>&amp;amp;</code>, <code>&amp;lt;</code>, <code>&amp;gt;</code>,
+<code>&amp;quot;</code>, and <code>&amp;apos;</code>. When transforming
+XML documents, handling characters outside standard character sets
+presents multiple challenges:</p>
+<ol type="1">
+<li><strong>Parser Validation Errors:</strong> Trying to output
+non-standard named entities (like <code>&amp;customChar;</code>) without
+an explicit DTD declaration causes XML parsers to throw fatal
+errors.</li>
+<li><strong>Encoding Conflicts:</strong> Hardcoding raw characters in
+the stylesheet can cause corruption if files are saved, transmitted, or
+interpreted across incompatible encodings (such as UTF-8 versus
+ISO-8859-1).</li>
+<li><strong>Dynamic Character Generation:</strong> When character
+representations arrive as numeric data (such as Unicode hex or decimal
+values from an external database), standard text nodes cannot
+dynamically interpret them as characters without programmatic
+conversion.</li>
+</ol>
+<h3 id="the-purpose-of-codepoints-to-string-in-xslt">The Purpose of
+<code>codepoints-to-string()</code> in XSLT</h3>
+<p>Using <code>codepoints-to-string()</code> resolves these issues by
+handling character generation at the data model level rather than
+relying on textual entity parsing.</p>
+<h4 id="1-dynamic-unicode-resolution">1. Dynamic Unicode Resolution</h4>
+<p>When input data contains numeric Unicode identifiers,
+<code>codepoints-to-string()</code> converts these numbers directly into
+characters without needing complex string manipulation or lookup
+tables:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Outputs the Euro symbol (€) using decimal code point 8364 --&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;codepoints-to-string(8364)&quot;</span>/&gt;</span></code></pre></div>
+<h4 id="2-safe-injection-of-reserved-or-special-characters">2. Safe
+Injection of Reserved or Special Characters</h4>
+<p>When outputting plain text, CSVs, or proprietary legacy formats,
+developers frequently need to insert non-printable control characters
+(such as line feeds, tabs, or ASCII separators).
+<code>codepoints-to-string()</code> inserts these cleanly without
+modifying XML whitespace rules:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Inserts a horizontal tab (code point 9) --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;codepoints-to-string(9)&quot;</span>/&gt;</span></code></pre></div>
+<h4 id="3-working-with-character-maps-for-named-entities">3. Working
+with Character Maps for Named Entities</h4>
+<p>If the final serialized output must contain literal non-standard
+entities (such as outputting legacy HTML or custom SGML containing
+<code>&amp;specialEntity;</code>), <code>codepoints-to-string()</code>
+pairs with XSLT's <code>&lt;xsl:character-map&gt;</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:character-map</span> <span class="ot">name=</span><span class="st">&quot;custom-entities&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output-character</span> <span class="ot">character=</span><span class="st">&quot;</span><span class="dv">&amp;#xE001;</span><span class="st">&quot;</span> <span class="ot">string=</span><span class="st">&quot;</span><span class="dv">&amp;amp;</span><span class="st">customChar;&quot;</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:character-map</span>&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">use-character-maps=</span><span class="st">&quot;custom-entities&quot;</span>/&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Dynamically outputs the mapped entity reference &amp;customChar; --&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;codepoints-to-string(57345)&quot;</span>/&gt;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this pattern, the processor safely holds the character as a valid
+Unicode point internally (in the Private Use Area at <code>57345</code>
+/ <code>0xE001</code>) during processing, only expanding it into the
+literal entity string at serialization time.</p>
+<h3 id="key-advantages">Key Advantages</h3>
+<ul>
+<li><strong>Encoding Independence:</strong> Because characters are
+identified by numeric code points, stylesheets remain safe against
+accidental text encoding conversions during deployment.</li>
+<li><strong>No DTD Dependency:</strong> Eliminates the need to declare
+custom entity lists inside Document Type Definitions just to output
+specific symbols.</li>
+<li><strong>Precision and Validation:</strong> The function immediately
+fails if provided an invalid XML character code point (such as surrogate
+code points or values out of Unicode range), catching character errors
+early during transformation.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

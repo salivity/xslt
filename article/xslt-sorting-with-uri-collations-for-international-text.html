@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Sorting with URI Collations for International Text - xslt</title>
+    <meta name="description" content="This article provides an overview of how XSLT handles sorting and collation for international character sets using URI-based collations. Starting with XSLT 2.0 and continuing through XSLT 3.0, the language moved beyond basic system-dependent sorting to a">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-sorting-with-uri-collations-for-international-text">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Sorting with URI Collations for International Text - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-sorting-with-uri-collations-for-international-text" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how XSLT handles sorting and collation for international character sets using URI-based collations. Starting with XSLT 2.0 and continuing through XSLT 3.0, the language moved beyond basic system-dependent sorting to a" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-sorting-with-uri-collations-for-international-text">XSLT
+Sorting with URI Collations for International Text</h1>
+<p>This article provides an overview of how XSLT handles sorting and
+collation for international character sets using URI-based collations.
+Starting with XSLT 2.0 and continuing through XSLT 3.0, the language
+moved beyond basic system-dependent sorting to a robust, standardized
+mechanism using Collation URIs. By mapping specific Internationalized
+Resource Identifiers (URIs) to Unicode Collation Algorithm (UCA) rules,
+XSLT allows developers to achieve precise, locale-aware, and culturally
+accurate sorting across diverse languages and scripts.</p>
+<h2 id="the-evolution-of-sorting-in-xslt">The Evolution of Sorting in
+XSLT</h2>
+<p>In XSLT 1.0, sorting non-English text relied heavily on the
+<code>lang</code> attribute inside <code>&lt;xsl:sort&gt;</code>.
+However, implementations varied significantly across different
+processors, leading to inconsistent behavior regarding diacritics, case
+sensitivity, and language-specific alphabetic rules.</p>
+<p>XSLT 2.0 and XSLT 3.0 resolved this fragmentation by formalizing the
+use of <strong>Collation URIs</strong>. A collation in XSLT represents a
+set of rules that determines the relative order of strings and whether
+two strings are considered equal. Instead of relying on operating system
+defaults, processors look up rules identified by absolute or relative
+URIs.</p>
+<h2 id="the-unicode-codepoint-collation">The Unicode Codepoint
+Collation</h2>
+<p>The standard fallback in XSLT is the <strong>Unicode Codepoint
+Collation</strong>, identified by:</p>
+<pre><code>http://www.w3.org/2005/xpath-functions/collation/codepoint</code></pre>
+<p>When this URI is used, characters are compared strictly by their
+binary Unicode code points. While fast and completely uniform across all
+platforms, it does not conform to natural language rules:</p>
+<ul>
+<li>All uppercase ASCII letters (<code>A-Z</code>) sort before lowercase
+ASCII letters (<code>a-z</code>).</li>
+<li>Accented letters (such as <code>é</code> or <code>ü</code>) appear
+far down the list after standard Latin characters.</li>
+<li>It is generally unsuitable for human-facing internationalized
+displays.</li>
+</ul>
+<h2 id="the-w3c-unicode-collation-algorithm-uca-uri">The W3C Unicode
+Collation Algorithm (UCA) URI</h2>
+<p>To handle internationalization correctly, the W3C defined a standard
+URI format for the Unicode Collation Algorithm (UCA):</p>
+<pre><code>http://www.w3.org/2013/collation/UCA</code></pre>
+<p>This URI supports query parameters that allow developers to fine-tune
+sorting behavior for international character sets:</p>
+<ul>
+<li><strong><code>lang</code></strong>: Specifies the BCP 47 language
+tag (e.g., <code>lang=de</code> for German, <code>lang=sv</code> for
+Swedish).</li>
+<li><strong><code>strength</code></strong>: Defines the level of
+differences considered significant:
+<ul>
+<li><code>primary</code>: Only base letters are considered
+(<code>e</code> equals <code>E</code> and <code>é</code>).</li>
+<li><code>secondary</code>: Distinguishes accents and diacritics
+(<code>e</code> differs from <code>é</code>).</li>
+<li><code>tertiary</code>: Distinguishes case and variants
+(<code>e</code> differs from <code>E</code>).</li>
+</ul></li>
+<li><strong><code>case-order</code></strong>: Specifies whether
+uppercase or lowercase comes first (<code>upper-first</code> or
+<code>lower-first</code>).</li>
+<li><strong><code>numeric</code></strong>: Accepts <code>yes</code> or
+<code>no</code>. When set to <code>yes</code>, sequences of digits are
+treated as numbers (e.g., "item 2" comes before "item 10").</li>
+<li><strong><code>decomposition</code></strong>: Controls how
+precomposed characters are normalized (<code>standard</code> or
+<code>none</code>).</li>
+</ul>
+<h3 id="example-uri-construction">Example URI Construction</h3>
+<p>To sort German text using German phonebook order (where
+<code>ä</code> is treated like <code>ae</code>), you configure the URI
+as:</p>
+<pre><code>http://www.w3.org/2013/collation/UCA?lang=de;rules=phonebook</code></pre>
+<p>To sort Swedish text (where <code>å</code>, <code>ä</code>, and
+<code>ö</code> are separate letters that appear at the end of the
+alphabet):</p>
+<pre><code>http://www.w3.org/2013/collation/UCA?lang=sv</code></pre>
+<h2 id="applying-collation-uris-in-xslt">Applying Collation URIs in
+XSLT</h2>
+<p>Collation URIs can be applied directly to
+<code>&lt;xsl:sort&gt;</code> elements or declared globally across an
+entire stylesheet.</p>
+<h3 id="local-application-via-xslsort">Local Application via
+<code>&lt;xsl:sort&gt;</code></h3>
+<p>You can specify the collation directly on a sort element using the
+<code>collation</code> attribute:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;employees/employee&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;last-name&quot;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">collation=</span><span class="st">&quot;http://www.w3.org/2013/collation/UCA?lang=es;case-order=lower-first&quot;</span> /&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;last-name&quot;</span> /&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<p>In Spanish sorting, this correctly positions characters according to
+Spanish rules while prioritizing lowercase letters over uppercase
+letters.</p>
+<h3 id="global-application-via-default-collation">Global Application via
+<code>default-collation</code></h3>
+<p>Instead of repeating the URI in every sorting or comparison
+operation, you can define a <code>default-collation</code> on the
+<code>&lt;xsl:stylesheet&gt;</code> element:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="ot">default-collation=</span><span class="st">&quot;http://www.w3.org/2013/collation/UCA?lang=fr;strength=secondary&quot;</span>&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;catalog&quot;</span>&gt;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;book&quot;</span>&gt;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Inherits the French collation automatically --&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>This default also applies to string comparison functions like
+<code>fn:compare()</code>, <code>fn:contains()</code>, and
+<code>fn:index-of()</code>.</p>
+<h2 id="processor-specific-uri-schemes">Processor-Specific URI
+Schemes</h2>
+<p>While the W3C UCA URI is widely supported in modern processors, major
+XSLT engines also provide proprietary URI schemes that bridge with
+platform-native collation libraries:</p>
+<ul>
+<li><strong>Saxon</strong>: Uses Java or .NET collations via URLs such
+as <code>http://saxon.sf.net/collation?lang=ja</code> or
+<code>http://saxon.sf.net/collation?class=my.custom.Collator</code>.</li>
+<li><strong>Altova (RaptorXML)</strong>: Supports standard W3C URIs
+along with operating system-level collations.</li>
+</ul>
+<p>When developing cross-platform stylesheets, sticking to the standard
+<code>http://www.w3.org/2013/collation/UCA</code> scheme ensures the
+highest level of portability across conformant XSLT processors.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

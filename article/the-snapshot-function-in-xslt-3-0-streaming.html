@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The snapshot() Function in XSLT 3.0 Streaming - xslt</title>
+    <meta name="description" content="The snapshot() function in XSLT 3.0 enables developers to capture an in-memory, fully navigable representation of a subtree while processing an XML document in streaming mode. In streamed transformations, nodes are read sequentially, preventing backward">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/the-snapshot-function-in-xslt-3-0-streaming">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The snapshot() Function in XSLT 3.0 Streaming - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/the-snapshot-function-in-xslt-3-0-streaming" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The snapshot() function in XSLT 3.0 enables developers to capture an in-memory, fully navigable representation of a subtree while processing an XML document in streaming mode. In streamed transformations, nodes are read sequentially, preventing backward" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="the-snapshot-function-in-xslt-30-streaming">The snapshot()
+Function in XSLT 3.0 Streaming</h1>
+<p>The <code>snapshot()</code> function in XSLT 3.0 enables developers
+to capture an in-memory, fully navigable representation of a subtree
+while processing an XML document in streaming mode. In streamed
+transformations, nodes are read sequentially, preventing backward
+navigation and multi-pass operations. Calling <code>snapshot()</code> on
+a streamed node bridges this gap by decoupling the selected node and its
+descendants from the strict forward-only pipeline, restoring full XPath
+navigation capabilities without consuming the memory required to load
+the entire document.</p>
+<h3 id="the-challenge-of-streaming-in-xslt-30">The Challenge of
+Streaming in XSLT 3.0</h3>
+<p>Streaming in XSLT 3.0 is designed to process XML documents too large
+to fit into available memory. To achieve this, the XSLT processor reads
+the input sequentially and discards elements once passed. As a result,
+streamed nodes are subject to severe restrictions:</p>
+<ul>
+<li><strong>Forward-only traversal:</strong> You cannot use reverse axes
+such as <code>ancestor::</code>, <code>preceding::</code>, or
+<code>parent::</code>.</li>
+<li><strong>Single-pass consumption:</strong> You cannot iterate over
+the same set of child nodes more than once.</li>
+<li><strong>Restricted XPath functions:</strong> Operations requiring
+random access, sorting, or lookahead cannot be executed directly on
+streamed nodes.</li>
+</ul>
+<p>When complex transformation logic requires arbitrary navigation
+within a specific section of a large document, streaming rules often
+reject the stylesheet as non-streamable.</p>
+<h3 id="how-snapshot-solves-the-problem">How snapshot() Solves the
+Problem</h3>
+<p>The <code>snapshot()</code> function creates a deep copy of a
+targeted streamed node and its entire subtree, loading that specific
+segment into memory. Once a node is captured via
+<code>snapshot()</code>, all standard non-streamed operations become
+valid for that fragment.</p>
+<p>Key behaviors of <code>snapshot()</code> include:</p>
+<ol type="1">
+<li><strong>Full Axis Availability:</strong> Within the captured
+subtree, you can freely use child, descendant, following-sibling, and
+preceding-sibling axes.</li>
+<li><strong>Multiple Traversals:</strong> The captured nodes can be
+queried, sorted, and processed multiple times.</li>
+<li><strong>Preservation of Ancestor Context:</strong> Unlike standard
+tree detachment, <code>snapshot()</code> retains structural context by
+creating shallow copies of all ancestor elements up to the document
+root, including their attributes and namespace declarations.</li>
+</ol>
+<h3 id="snapshot-vs-copy-of">snapshot() vs. copy-of()</h3>
+<p>While <code>copy-of()</code> can also materialize a streamed node
+into memory, <code>snapshot()</code> provides distinct advantages
+regarding document context:</p>
+<ul>
+<li><strong><code>copy-of()</code></strong> creates a detached document
+fragment rooted at the selected element. Any information located on
+ancestor elements—such as <code>xml:lang</code>, <code>xml:base</code>,
+or custom inherited metadata attributes—is lost.</li>
+<li><strong><code>snapshot()</code></strong> retains the ancestor chain.
+While the ancestors do not contain their other non-ancestor children
+(siblings to the current path), their presence allows expressions such
+as <code>ancestor::department/@id</code> or <code>f:is-in-scope()</code>
+to function correctly.</li>
+</ul>
+<h3 id="practical-application">Practical Application</h3>
+<p>Consider a scenario where a multi-gigabyte log or catalog file must
+be transformed:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:mode</span> <span class="ot">streamable=</span><span class="st">&quot;yes&quot;</span> <span class="ot">on-no-match=</span><span class="st">&quot;shallow-skip&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;record&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;rec&quot;</span> <span class="ot">select=</span><span class="st">&quot;snapshot(.)&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Full XPath is now legal on $rec --&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">output-item</span> <span class="ot">id=</span><span class="st">&quot;{$rec/@id}&quot;</span> <span class="ot">parent-type=</span><span class="st">&quot;{$rec/ancestor::batch/@type}&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;$rec/entry&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;@timestamp&quot;</span> <span class="ot">order=</span><span class="st">&quot;descending&quot;</span>/&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">entry</span> <span class="ot">val=</span><span class="st">&quot;{@val}&quot;</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">output-item</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this example, the processor streams the root and only keeps
+individual <code>&lt;record&gt;</code> elements in memory one at a time.
+The sorting operation and the reference to
+<code>ancestor::batch/@type</code> would cause a static analysis failure
+in pure streaming, but wrapping the node in <code>snapshot()</code>
+makes the template conform to streamability rules.</p>
+<h3 id="performance-considerations">Performance Considerations</h3>
+<p>Because <code>snapshot()</code> allocates memory for the selected
+node, its descendants, and copies of its ancestors, it should be applied
+to relatively small, granular subtrees rather than broad container
+elements. Once the template finishes executing and references to the
+captured fragment go out of scope, the memory is reclaimed by the
+runtime garbage collector, maintaining a flat and predictable memory
+footprint throughout the transformation.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

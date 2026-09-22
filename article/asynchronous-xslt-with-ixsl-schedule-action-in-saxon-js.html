@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asynchronous XSLT With ixsl:schedule-action in SaxonJS - xslt</title>
+    <meta name="description" content="This article provides an overview of the ixsl:schedule-action extension instruction in SaxonJS, explaining how it enables asynchronous XSLT 3.0 execution in web browsers. By delegating tasks to the JavaScript event loop, ixsl:schedule-action allows devel">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/asynchronous-xslt-with-ixsl-schedule-action-in-saxon-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Asynchronous XSLT With ixsl:schedule-action in SaxonJS - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/asynchronous-xslt-with-ixsl-schedule-action-in-saxon-js" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the ixsl:schedule-action extension instruction in SaxonJS, explaining how it enables asynchronous XSLT 3.0 execution in web browsers. By delegating tasks to the JavaScript event loop, ixsl:schedule-action allows devel" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="asynchronous-xslt-with-ixslschedule-action-in-saxonjs">Asynchronous
+XSLT With ixsl:schedule-action in SaxonJS</h1>
+<p>This article provides an overview of the
+<code>ixsl:schedule-action</code> extension instruction in SaxonJS,
+explaining how it enables asynchronous XSLT 3.0 execution in web
+browsers. By delegating tasks to the JavaScript event loop,
+<code>ixsl:schedule-action</code> allows developers to fetch remote
+data, introduce timed delays, and perform background processing without
+freezing the browser's user interface.</p>
+<h2 id="the-need-for-asynchronous-processing-in-saxonjs">The Need for
+Asynchronous Processing in SaxonJS</h2>
+<p>Standard XSLT is a functional, synchronous language. When running in
+a web browser via SaxonJS, standard transformations execute on the main
+JavaScript UI thread. If a stylesheet attempts to fetch large external
+datasets or execute computationally expensive routines synchronously,
+the browser becomes unresponsive, leading to a degraded user
+experience.</p>
+<p>The <code>ixsl:schedule-action</code> instruction, part of the
+Interactive XSLT (iXSLT) extension library
+(<code>xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"</code>),
+resolves this limitation. It allows SaxonJS to defer operations,
+effectively bridging the gap between XSLT execution and modern
+asynchronous web platform APIs.</p>
+<h2 id="core-roles-and-capabilities">Core Roles and Capabilities</h2>
+<p>The primary role of <code>ixsl:schedule-action</code> is to schedule
+a task to run after an asynchronous event completes or after a defined
+time interval. Instead of blocking thread execution, SaxonJS yields
+control back to the browser's event loop and resumes the enclosed
+instructions once the specified condition is met.</p>
+<h3 id="1-asynchronous-http-requests">1. Asynchronous HTTP Requests</h3>
+<p>The instruction is widely used to initiate non-blocking network
+requests for XML, JSON, HTML, or plain text resources. By using the
+<code>http-request</code> attribute, developers pass an HTTP request map
+(or supply child <code>ixsl:http-request</code> configurations) to
+retrieve resources:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">ixsl:schedule-action</span> <span class="ot">http-request=</span><span class="st">&quot;$request-map&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;handle-response&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">ixsl:schedule-action</span>&gt;</span></code></pre></div>
+<p>When the network response is received, the instructions inside
+<code>ixsl:schedule-action</code> are invoked, and the response data
+becomes available through the <code>ixsl:event()</code> or
+<code>ixsl:http-response()</code> functions without having stalled the
+DOM during the transfer.</p>
+<h3 id="2-timers-and-delays">2. Timers and Delays</h3>
+<p>Using the <code>wait</code> attribute,
+<code>ixsl:schedule-action</code> functions similarly to JavaScript's
+<code>setTimeout</code>. It pauses execution for a specified number of
+milliseconds before evaluating its child sequence constructor:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">ixsl:schedule-action</span> <span class="ot">wait=</span><span class="st">&quot;500&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ixsl:set-property</span> <span class="ot">name=</span><span class="st">&quot;className&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;fade-in&#39;&quot;</span> <span class="ot">object=</span><span class="st">&quot;id(&#39;status-box&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">ixsl:schedule-action</span>&gt;</span></code></pre></div>
+<p>This capability is essential for managing user-feedback transitions,
+polling endpoints at regular intervals, throttling input events, and
+pacing DOM mutations.</p>
+<h3 id="3-asynchronous-document-loading">3. Asynchronous Document
+Loading</h3>
+<p>SaxonJS supports asynchronous fetching and parsing of documents via
+the <code>document</code> attribute. Rather than halting the transform
+using the standard synchronous <code>doc()</code> function,
+<code>ixsl:schedule-action document="data.xml"</code> loads the target
+document in the background and evaluates its inner template once parsing
+is complete.</p>
+<h2 id="execution-context-and-state-management">Execution Context and
+State Management</h2>
+<p>When <code>ixsl:schedule-action</code> executes, SaxonJS captures the
+current dynamic context—such as local variables and the context item—so
+that they remain accessible when the callback executes.</p>
+<p>Key behavioral details include:</p>
+<ul>
+<li><strong>Non-Blocking Flow:</strong> Any XSLT instructions
+immediately following the <code>ixsl:schedule-action</code> element
+continue to evaluate without waiting for the scheduled action to
+resolve.</li>
+<li><strong>Result Tree Isolation:</strong> The instructions contained
+<em>inside</em> the <code>ixsl:schedule-action</code> do not contribute
+directly to the primary result tree of the invoking template. Instead,
+they interact with the application state via side-effect instructions,
+such as DOM updates (<code>ixsl:set-property</code>,
+<code>xsl:result-document</code>), or by triggering secondary
+templates.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<p>In SaxonJS, <code>ixsl:schedule-action</code> acts as the fundamental
+boundary between declarative XSLT logic and the asynchronous JavaScript
+execution model. It allows applications to perform network I/O, handle
+timed events, and parse dynamic data while maintaining fluid, responsive
+user interfaces.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

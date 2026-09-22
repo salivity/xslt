@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safer XSLT Output with xsl:character-map - xslt</title>
+    <meta name="description" content="This article explores how the <xsl:character-map> element in XSLT 2.0 and later provides a robust, secure alternative to the hazardous disable-output-escaping attribute. While developers historically relied on unescaped output to emit specific characters">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/safer-xslt-output-with-xsl-character-map">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Safer XSLT Output with xsl:character-map - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/safer-xslt-output-with-xsl-character-map" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how the <xsl:character-map> element in XSLT 2.0 and later provides a robust, secure alternative to the hazardous disable-output-escaping attribute. While developers historically relied on unescaped output to emit specific characters" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="safer-xslt-output-with-xslcharacter-map">Safer XSLT Output with
+xsl:character-map</h1>
+<p>This article explores how the <code>&lt;xsl:character-map&gt;</code>
+element in XSLT 2.0 and later provides a robust, secure alternative to
+the hazardous <code>disable-output-escaping</code> attribute. While
+developers historically relied on unescaped output to emit specific
+characters or raw markup, this approach frequently creates serious
+security vulnerabilities, including Cross-Site Scripting (XSS). By
+contrast, character mapping introduces controlled, precise
+serialization, allowing developers to substitute designated characters
+without compromising the escaping mechanisms that safeguard application
+output.</p>
+<h3 id="the-inherent-risks-of-disable-output-escaping">The Inherent
+Risks of <code>disable-output-escaping</code></h3>
+<p>In XSLT 1.0, developers wanting to output raw characters—such as an
+ampersand (<code>&amp;</code>), non-breaking space, or raw HTML
+tags—often relied on:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;content&quot;</span> <span class="ot">disable-output-escaping=</span><span class="st">&quot;yes&quot;</span> /&gt;</span></code></pre></div>
+<p>While functional, this approach presents major architectural and
+security hazards:</p>
+<ol type="1">
+<li><strong>Injection Vulnerabilities:</strong> Disabling escaping turns
+off the serializer's safety filters across the entire node content. If
+the selected data contains untrusted user input, unescaped output
+enables arbitrary script execution (XSS) or malformed document
+structures.</li>
+<li><strong>Implementation Portability Issues:</strong> The XSLT 1.0
+specification defines <code>disable-output-escaping</code> as an
+optional feature. Modern transformation pipelines (such as processing to
+an in-memory DOM or chaining transformations) frequently ignore the
+attribute entirely.</li>
+<li><strong>All-or-Nothing Scope:</strong> It operates at the node
+level, meaning you cannot selectively unescape only safe, specific
+characters while protecting the rest of the text.</li>
+</ol>
+<h3 id="how-xslcharacter-map-works">How
+<code>&lt;xsl:character-map&gt;</code> Works</h3>
+<p>Introduced in XSLT 2.0, <code>&lt;xsl:character-map&gt;</code>
+functions at the serialization phase. It defines a set of rules where a
+specific character in the result tree is replaced by a defined
+replacement string during output generation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:character-map</span> <span class="ot">name=</span><span class="st">&quot;custom-entities&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output-character</span> <span class="ot">character=</span><span class="st">&quot;</span><span class="dv">&amp;#160;</span><span class="st">&quot;</span> <span class="ot">string=</span><span class="st">&quot;</span><span class="dv">&amp;amp;</span><span class="st">nbsp;&quot;</span> /&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output-character</span> <span class="ot">character=</span><span class="st">&quot;©&quot;</span> <span class="ot">string=</span><span class="st">&quot;</span><span class="dv">&amp;amp;</span><span class="st">copy;&quot;</span> /&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:character-map</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;html&quot;</span> <span class="ot">use-character-maps=</span><span class="st">&quot;custom-entities&quot;</span> /&gt;</span></code></pre></div>
+<p>When the processor converts the result tree into a byte stream, it
+applies this map only to designated target characters.</p>
+<h3 id="why-character-mapping-is-the-safer-alternative">Why Character
+Mapping is the Safer Alternative</h3>
+<h4 id="1-surgical-precision-over-global-suppression">1. Surgical
+Precision Over Global Suppression</h4>
+<p>Unlike <code>disable-output-escaping</code>, which permits all
+characters (including <code>&lt;</code>, <code>&gt;</code>, and quotes)
+to bypass escaping, <code>&lt;xsl:character-map&gt;</code> maps only the
+exact characters specified in <code>&lt;xsl:output-character&gt;</code>.
+All standard escaping mechanisms remain active for the rest of the
+content. Untrusted input containing dangerous markup will still be
+escaped safely, eliminating the risk of arbitrary code injection.</p>
+<h4 id="2-clear-separation-of-transformation-and-serialization">2. Clear
+Separation of Transformation and Serialization</h4>
+<p>Character maps separate data transformation logic from output
+encoding rules. The stylesheet templates generate a standard,
+well-formed result tree. The serializer then handles how specific
+characters should appear in the final file format. This prevents the
+source tree from becoming contaminated with pseudo-markup or fragments
+meant solely to manipulate output encoding.</p>
+<h4 id="3-predictable-pipeline-compatibility">3. Predictable Pipeline
+Compatibility</h4>
+<p>Because character mapping is a strictly defined part of the
+serialization specification in XSLT 2.0, 3.0, and modern processors
+(such as Saxon), its behavior is standardized. The stylesheet can safely
+process data internally as well-formed text nodes, applying the
+substitution exclusively when the final serialization to disk or stream
+occurs.</p>
+<h3 id="summary">Summary</h3>
+<p>Relying on <code>disable-output-escaping="yes"</code> undermines the
+structured safety guarantees of XML and XSLT. By switching to
+<code>&lt;xsl:character-map&gt;</code>, developers gain fine-grained
+control over raw character output while preserving the automated
+escaping necessary to prevent injection attacks.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

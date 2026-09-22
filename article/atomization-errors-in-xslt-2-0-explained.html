@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomization Errors in XSLT 2.0 Explained - xslt</title>
+    <meta name="description" content="An atomization error in XSLT 2.0 occurs when a processor attempts to extract the typed atomic values from a sequence of nodes or items and fails due to incompatible data structures or cardinality mismatches. This article explains the mechanics of atomiza">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/atomization-errors-in-xslt-2-0-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Atomization Errors in XSLT 2.0 Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/atomization-errors-in-xslt-2-0-explained" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="An atomization error in XSLT 2.0 occurs when a processor attempts to extract the typed atomic values from a sequence of nodes or items and fails due to incompatible data structures or cardinality mismatches. This article explains the mechanics of atomiza" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="atomization-errors-in-xslt-20-explained">Atomization Errors in
+XSLT 2.0 Explained</h1>
+<p>An atomization error in XSLT 2.0 occurs when a processor attempts to
+extract the typed atomic values from a sequence of nodes or items and
+fails due to incompatible data structures or cardinality mismatches.
+This article explains the mechanics of atomization in the XPath and XSLT
+2.0 data model, identifies the primary triggers of atomization failures
+during node evaluations, and details practical solutions to resolve
+them.</p>
+<h2 id="what-is-atomization-in-xslt-20">What Is Atomization in XSLT
+2.0?</h2>
+<p>In XSLT 2.0 and XPath 2.0, atomization is the standard process of
+converting an item or a sequence of items into a sequence of atomic
+values. When an operation requires primitive values (such as strings,
+integers, or dates) rather than complex node trees, the processor
+automatically invokes the internal <code>data()</code> function to
+retrieve the "typed value" of each node.</p>
+<p>For example, when evaluating an arithmetic expression like
+<code>$nodeA + $nodeB</code>, the processor cannot directly add two XML
+elements. It first atomizes <code>$nodeA</code> and <code>$nodeB</code>
+to read their underlying typed values (e.g., <code>xs:integer</code> or
+<code>xs:double</code>) before completing the calculation.</p>
+<h2 id="common-causes-of-atomization-errors">Common Causes of
+Atomization Errors</h2>
+<p>Atomization errors typically manifest as static or dynamic type
+errors (such as <code>FOTY0012</code> or <code>XPTY0004</code>). During
+node evaluation, these errors generally stem from the following
+scenarios:</p>
+<h3 id="1-nodes-with-complex-content">1. Nodes with Complex Content</h3>
+<p>The most frequent cause of an atomization error occurs in
+schema-aware XSLT processing when an operation attempts to atomize an
+element that has complex content (element-only content).</p>
+<p>Under W3C specifications, an element containing child elements rather
+than simple text does not possess a valid typed value. If an expression
+implicitly or explicitly calls for the atomization of such an
+element—for instance, passing it to a function expecting an atomic
+value—the processor raises a type error because complex-typed nodes
+cannot be converted into an atomic value.</p>
+<h3 id="2-cardinality-mismatches-sequences-vs-singletons">2. Cardinality
+Mismatches (Sequences vs. Singletons)</h3>
+<p>Many functions, operators, and variable declarations expect an atomic
+sequence of a specific length—often exactly one item (cardinality
+<code>1</code>).</p>
+<p>If an XPath expression evaluates to a sequence of multiple nodes
+(e.g., <code>//item</code>) and that sequence is passed to a context
+requiring a single atomic value (e.g., an arithmetic operator or a
+function typed as <code>as="xs:string"</code>), atomization yields a
+sequence of multiple atomic values. This violates the expected singleton
+cardinality and results in a type error during evaluation.</p>
+<h3 id="3-untyped-nodes-in-strict-type-declarations">3. Untyped Nodes in
+Strict Type Declarations</h3>
+<p>In non-schema-aware transformations, elements and attributes are
+treated as <code>xs:untypedAtomic</code>. While
+<code>xs:untypedAtomic</code> can often be cast automatically to
+expected types, issues arise when functions or operations strictly
+demand a specific primitive type that cannot be derived from the node's
+string representation. If a node evaluates to a non-convertible string
+(such as non-numeric text in an arithmetic expression), the atomization
+and subsequent casting step will fail dynamically.</p>
+<h3 id="4-non-atomizable-items-in-sequences">4. Non-Atomizable Items in
+Sequences</h3>
+<p>XSLT 2.0 supports sequences containing various item types, including
+function items in higher-order contexts. If an operation attempts to
+atomize a sequence containing an item that has no typed value
+accessor—such as a function item or certain namespace nodes—an
+atomization failure immediately occurs.</p>
+<h2 id="how-to-prevent-atomization-errors">How to Prevent Atomization
+Errors</h2>
+<p>To prevent atomization errors during node evaluation:</p>
+<ul>
+<li><strong>Use Explicit String Extraction:</strong> When schema
+validation is not required and simple text extraction is intended, use
+<code>string(.)</code> instead of relying on implicit atomization. The
+<code>string()</code> function navigates the entire subtree and extracts
+text nodes, avoiding complex-type atomization restrictions.</li>
+<li><strong>Control Cardinality:</strong> Ensure XPath selectors target
+a single node using positional predicates (e.g.,
+<code>path/to/element[1]</code>) or process sequences using iteration
+(<code>xsl:for-each</code>) when handing nodes to singleton-expecting
+operations.</li>
+<li><strong>Explicit Typing with <code>xs:</code> Constructors:</strong>
+Explicitly cast untyped node values using constructor functions like
+<code>xs:integer(data($node))</code> to identify and catch invalid data
+inputs before processor-level atomization fails.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

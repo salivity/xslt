@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Default XSLT Unicode Codepoint Collation Behavior - xslt</title>
+    <meta name="description" content="This article explains the default behavior of the Unicode codepoint collation during string comparisons in modern XSLT. In XSLT 2.0 and later versions, string comparisons and sorting operations rely on the Unicode Codepoint Collation by default unless an">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/default-xslt-unicode-codepoint-collation-behavior">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Default XSLT Unicode Codepoint Collation Behavior - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/default-xslt-unicode-codepoint-collation-behavior" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the default behavior of the Unicode codepoint collation during string comparisons in modern XSLT. In XSLT 2.0 and later versions, string comparisons and sorting operations rely on the Unicode Codepoint Collation by default unless an" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="default-xslt-unicode-codepoint-collation-behavior">Default XSLT
+Unicode Codepoint Collation Behavior</h1>
+<p>This article explains the default behavior of the Unicode codepoint
+collation during string comparisons in modern XSLT. In XSLT 2.0 and
+later versions, string comparisons and sorting operations rely on the
+Unicode Codepoint Collation by default unless another collation is
+explicitly defined. Understanding this behavior is critical for handling
+case sensitivity, diacritics, and deterministic sorting in XML
+transformations.</p>
+<h3 id="the-default-collation-uri">The Default Collation URI</h3>
+<p>The W3C XPath and XSLT specifications identify the Unicode Codepoint
+Collation by the URI:</p>
+<p><code>http://www.w3.org/2005/xpath-functions/collation/codepoint</code></p>
+<p>Unless a stylesheet specifies <code>default-collation</code> at the
+<code>&lt;xsl:stylesheet&gt;</code> level or provides an explicit
+<code>collation</code> attribute on functions or instructions, an XSLT
+processor falls back to this collation for all string comparisons.</p>
+<h3 id="mechanics-of-unicode-codepoint-comparison">Mechanics of Unicode
+Codepoint Comparison</h3>
+<p>The Unicode Codepoint Collation operates strictly on the numeric
+scalar values of Unicode characters. It compares strings character by
+character from left to right:</p>
+<ol type="1">
+<li><strong>Numeric Comparison</strong>: The processor checks the
+integer value assigned to each character in the Unicode standard. If the
+codepoints differ at the first non-matching position, the string
+containing the lower numeric codepoint is considered smaller.</li>
+<li><strong>Length Evaluation</strong>: If one string is a prefix of
+another, the shorter string is evaluated as smaller (e.g.,
+<code>"cat"</code> precedes <code>"catalog"</code>).</li>
+<li><strong>Exact Matching</strong>: Two strings are equal only if they
+contain the exact same sequence of codepoints.</li>
+</ol>
+<h3 id="key-behavioral-characteristics">Key Behavioral
+Characteristics</h3>
+<ul>
+<li><strong>Strict Case Sensitivity</strong>: Because uppercase Latin
+letters occupy codepoints U+0041 to U+005A and lowercase Latin letters
+occupy U+0061 to U+007A, all uppercase ASCII characters evaluate as
+smaller than all lowercase ASCII characters. For example,
+<code>"Zebra"</code> evaluates as less than <code>"apple"</code>.</li>
+<li><strong>No Canonical Equivalence</strong>: The collation does not
+normalize characters. A precomposed character such as <code>é</code>
+(U+00E9) will not match an identical visual representation created with
+the combining character sequence <code>e</code> + <code>´</code> (U+0065
+followed by U+0301).</li>
+<li><strong>Absence of Cultural Awareness</strong>: The collation
+ignores language-specific alphabetization rules. For instance, in
+Swedish, <code>ö</code> comes after <code>z</code>, but in codepoint
+sorting, standard European accented characters generally appear after
+the basic ASCII block.</li>
+<li><strong>Deterministic and High Performance</strong>: Because the
+algorithm avoids complex locale rules, Unicode Collation Algorithm (UCA)
+weight tables, and case folding, it is the fastest and most predictable
+method for string comparison across different XSLT processors.</li>
+</ul>
+<h3 id="impact-on-xslt-operations">Impact on XSLT Operations</h3>
+<p>This default collation governs multiple areas of transformation:</p>
+<ul>
+<li><strong>Comparison Operators</strong>: Operators such as
+<code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>,
+<code>&gt;=</code>, <code>=</code>, and <code>!=</code> evaluate strings
+using their numeric code values.</li>
+<li><strong>Sorting (<code>&lt;xsl:sort&gt;</code>)</strong>: Omitting a
+collation or language specification in an <code>&lt;xsl:sort&gt;</code>
+instruction defaults to codepoint ordering, grouping all
+uppercase-initial items ahead of lowercase ones.</li>
+<li><strong>Functions</strong>: Core XPath functions such as
+<code>fn:compare()</code>, <code>fn:min()</code>, <code>fn:max()</code>,
+and <code>fn:distinct-values()</code> rely on this behavior unless
+passed a specific collation argument.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

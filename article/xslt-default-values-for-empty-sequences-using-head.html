@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Default Values for Empty Sequences Using head() - xslt</title>
+    <meta name="description" content="In XSLT and XPath processing, missing elements or attributes often resolve to an empty sequence rather than a null or default value. While developers traditionally rely on verbose if-then-else expressions to handle missing data, modern XPath (3.0 and lat">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-default-values-for-empty-sequences-using-head">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Default Values for Empty Sequences Using head() - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-default-values-for-empty-sequences-using-head" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath processing, missing elements or attributes often resolve to an empty sequence rather than a null or default value. While developers traditionally rely on verbose if-then-else expressions to handle missing data, modern XPath (3.0 and lat" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-default-values-for-empty-sequences-using-head">XSLT Default
+Values for Empty Sequences Using head()</h1>
+<p>In XSLT and XPath processing, missing elements or attributes often
+resolve to an empty sequence rather than a null or default value. While
+developers traditionally rely on verbose <code>if-then-else</code>
+expressions to handle missing data, modern XPath (3.0 and later) allows
+for a much cleaner approach. By combining sequence construction with the
+<code>head()</code> function, you can provide elegant, inline fallback
+values for empty sequences with minimal syntactic overhead.</p>
+<h3 id="the-problem-with-traditional-fallbacks">The Problem with
+Traditional Fallbacks</h3>
+<p>When querying an optional element or attribute, such as
+<code>user/role</code>, an absent node produces an empty sequence
+<code>()</code>. Traditionally, assigning a default value required a
+conditional construct:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;role&quot;</span> <span class="ot">select=</span><span class="st">&quot;if (user/role) then user/role else &#39;guest&#39;&quot;</span> /&gt;</span></code></pre></div>
+<p>While functional, this approach becomes repetitive and cluttered when
+transforming multiple optional fields, and it requires repeating the
+target XPath expression twice.</p>
+<h3 id="the-head-pattern">The <code>head()</code> Pattern</h3>
+<p>XPath flattens sequences automatically. When you place an expression
+and a fallback literal inside parentheses, XPath concatenates them into
+a single sequence:</p>
+<pre class="xpath"><code>(user/role, &#39;guest&#39;)</code></pre>
+<ul>
+<li>If <code>user/role</code> evaluates to a node, the resulting
+sequence is <code>(user/role, 'guest')</code>.</li>
+<li>If <code>user/role</code> is missing (an empty sequence
+<code>()</code>), the sequence collapses to simply
+<code>('guest')</code>.</li>
+</ul>
+<p>The <code>head()</code> function returns the first item of a
+sequence, or an empty sequence if the input sequence is completely
+empty. By wrapping the concatenated sequence in <code>head()</code>, you
+reliably extract either the resolved value or the specified default:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;head((user/role, &#39;guest&#39;))&quot;</span> /&gt;</span></code></pre></div>
+<p>If <code>user/role</code> exists, <code>head()</code> returns its
+value. If it does not exist, <code>head()</code> returns
+<code>'guest'</code>.</p>
+<h3 id="the-subscript-index-alternative">The Subscript Index
+Alternative</h3>
+<p>An alternative to <code>head()</code> that works similarly across
+XPath 2.0 and later is using the positional predicate
+<code>[1]</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;(user/role, &#39;guest&#39;)[1]&quot;</span> /&gt;</span></code></pre></div>
+<p>Both patterns achieve the same outcome. The <code>head()</code>
+function is often preferred in XPath 3.0+ stylesheets for readability,
+as it explicitly signals the functional intent of selecting the leading
+item.</p>
+<h3 id="handling-empty-strings-vs-empty-sequences">Handling Empty
+Strings vs. Empty Sequences</h3>
+<p>A common pitfall occurs when an element exists in the XML source but
+contains no text (e.g., <code>&lt;role&gt;&lt;/role&gt;</code>).</p>
+<p>In this scenario, <code>user/role</code> does not return an empty
+sequence; it returns a node with an empty string value
+(<code>""</code>). Because the node exists,
+<code>head((user/role, 'guest'))</code> will return the empty string
+instead of the fallback value.</p>
+<p>To ensure the default is applied to both missing nodes and
+whitespace-only nodes, filter the target expression with a predicate
+before applying <code>head()</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;head((user/role[normalize-space()], &#39;guest&#39;))&quot;</span> /&gt;</span></code></pre></div>
+<p>This predicate ensures that only elements containing non-whitespace
+text are treated as valid, allowing whitespace-only or empty elements to
+fall through to the default value.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

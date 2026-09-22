@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synchronization Constraints in Concurrent XSLT - xslt</title>
+    <meta name="description" content="This article examines the primary synchronization constraints and execution mechanics governing concurrent template processing in XSLT. While XSLT is a side-effect-free, declarative language intrinsically suited for parallel evaluation, maintaining speci">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/synchronization-constraints-in-concurrent-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Synchronization Constraints in Concurrent XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/synchronization-constraints-in-concurrent-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines the primary synchronization constraints and execution mechanics governing concurrent template processing in XSLT. While XSLT is a side-effect-free, declarative language intrinsically suited for parallel evaluation, maintaining speci" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="synchronization-constraints-in-concurrent-xslt">Synchronization
+Constraints in Concurrent XSLT</h1>
+<p>This article examines the primary synchronization constraints and
+execution mechanics governing concurrent template processing in XSLT.
+While XSLT is a side-effect-free, declarative language intrinsically
+suited for parallel evaluation, maintaining specification compliance
+under concurrent execution requires strict synchronization around
+document order preservation, accumulator updates, secondary output
+serialization, and non-pure extension handling.</p>
+<h3 id="result-tree-document-order">Result Tree Document Order</h3>
+<p>The core constraint in concurrent XSLT template matching is
+preserving the document order of the generated output tree. While
+multiple <code>xsl:apply-templates</code> or <code>xsl:for-each</code>
+instructions can evaluate matching source nodes concurrently across
+separate threads, their contributions to the target result tree must
+appear exactly as if processed sequentially.</p>
+<p>To achieve this without blocking worker threads:</p>
+<ul>
+<li>Processors assign logical sequencing markers to tasks based on the
+source node’s structural order.</li>
+<li>Template matches produce isolated result tree fragments in
+memory.</li>
+<li>A consumer thread or synchronization barrier stitches these
+fragments into the main pipeline in deterministic document order.</li>
+<li>If an earlier node's template execution is delayed, subsequent
+completed fragments must be buffered, introducing memory pressure
+constraints.</li>
+</ul>
+<h3 id="accumulator-state-management-xslt-30">Accumulator State
+Management (XSLT 3.0)</h3>
+<p>XSLT 3.0 introduced accumulators to maintain state across document
+streaming and processing. Accumulators are calculated based on
+pre-descent and post-descent phases through the node tree.</p>
+<p>Concurrent matching creates significant synchronization barriers when
+accumulators are active:</p>
+<ul>
+<li><strong>Sequential Dependencies</strong>: Because an accumulator's
+value on a given node depends on its value at preceding nodes, threads
+cannot evaluate a template requiring an accumulator until prior nodes in
+document order have resolved that accumulator's state.</li>
+<li><strong>Phase Alignment</strong>: Processors must either serialize
+the evaluation of accumulator-dependent nodes or compute accumulator
+values in an isolated, sequential pre-pass before parallelizing the
+execution of the actual template rules.</li>
+</ul>
+<h3 id="immutability-and-dependency-graphs">Immutability and Dependency
+Graphs</h3>
+<p>Because XSLT variables cannot be modified once bound, classical
+concurrency hazards such as race conditions on shared memory do not
+occur at the stylesheet level. However, runtime engines face
+synchronization constraints when managing deferred (lazy)
+evaluation.</p>
+<p>When multiple concurrent templates reference the same global or
+tunnel variable:</p>
+<ul>
+<li>The engine must ensure the variable's initializing expression is
+evaluated only once (double-checked locking or future-based
+promises).</li>
+<li>Thread contention on common dependencies must not lead to deadlocks,
+requiring an acyclic dependency graph across all template contexts
+before concurrent scheduling begins.</li>
+</ul>
+<h3 id="output-serialization-and-xslresult-document">Output
+Serialization and <code>xsl:result-document</code></h3>
+<p>Templates generating secondary output streams via
+<code>xsl:result-document</code> introduce specific I/O-level
+synchronization constraints:</p>
+<ul>
+<li><strong>URI Collision</strong>: The XSLT specification forbids
+writing to the same URI more than once during a single transformation.
+When concurrent templates invoke <code>xsl:result-document</code>, the
+runtime must lock the target URI registry to prevent multiple threads
+from claiming or corrupting the same output destination.</li>
+<li><strong>Non-blocking Write Channels</strong>: Each secondary result
+pipeline must operate on independent thread-local streams until closed,
+ensuring that delays in writing one document do not deadlock the
+concurrent execution of other templates.</li>
+</ul>
+<h3 id="external-functions-and-non-pure-extensions">External Functions
+and Non-Pure Extensions</h3>
+<p>While native XSLT operations are functional and side-effect-free,
+stylesheets utilizing extension functions (such as Java, C#, or external
+XPath functions) introduce unpredictable side effects.</p>
+<ul>
+<li>Processors cannot inherently detect whether an extension function is
+thread-safe or mutates global state.</li>
+<li>Synchronization constraints dictate that unless an extension
+function is explicitly declared as deterministic and stateless, the XSLT
+runtime must either acquire a global lock (serializing calls to that
+function) or restrict the template containing the extension to
+single-threaded execution.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

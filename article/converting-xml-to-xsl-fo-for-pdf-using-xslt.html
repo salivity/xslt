@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converting XML to XSL-FO for PDF Using XSLT - xslt</title>
+    <meta name="description" content="Extensible Stylesheet Language Transformations (XSLT) serves as the structural and presentation bridge between raw, complex XML data and Extensible Stylesheet Language Formatting Objects (XSL-FO). By transforming semantic, hierarchically nested XML into">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/converting-xml-to-xsl-fo-for-pdf-using-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Converting XML to XSL-FO for PDF Using XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/converting-xml-to-xsl-fo-for-pdf-using-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Extensible Stylesheet Language Transformations (XSLT) serves as the structural and presentation bridge between raw, complex XML data and Extensible Stylesheet Language Formatting Objects (XSL-FO). By transforming semantic, hierarchically nested XML into" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="converting-xml-to-xsl-fo-for-pdf-using-xslt">Converting XML to
+XSL-FO for PDF Using XSLT</h1>
+<p>Extensible Stylesheet Language Transformations (XSLT) serves as the
+structural and presentation bridge between raw, complex XML data and
+Extensible Stylesheet Language Formatting Objects (XSL-FO). By
+transforming semantic, hierarchically nested XML into
+presentation-specific FO elements, XSLT allows developers to define
+document pagination, geometry, dynamic layouts, and typographic rules.
+This intermediate XSL-FO document is then compiled by an FO rendering
+engine into a production-ready, pixel-perfect PDF.</p>
+<h3 id="the-pipeline-architecture">The Pipeline Architecture</h3>
+<p>Automated PDF generation via XSL-FO involves a two-step process:</p>
+<ol type="1">
+<li><strong>Transformation:</strong> An XSLT processor (such as Saxon)
+applies an XSLT stylesheet to the source XML, producing an XSL-FO
+document (<code>.fo</code>).</li>
+<li><strong>Formatting and Rendering:</strong> An FO processor (such as
+Apache FOP, Antenna House Formatter, or RenderX XEP) interprets the FO
+tree and renders the final PDF.</li>
+</ol>
+<p>XSLT's responsibility is solely step one: mapping abstract data into
+explicit layout primitives.</p>
+<h3 id="defining-document-structure-and-page-masters">Defining Document
+Structure and Page Masters</h3>
+<p>Every XSL-FO document requires a foundational structure composed of
+<code>fo:root</code>, an <code>fo:layout-master-set</code>, and at least
+one <code>fo:page-sequence</code>. XSLT initializes these structures in
+the root matching template:</p>
+<ul>
+<li><strong>Page Masters:</strong> The XSLT defines page geometry via
+<code>fo:simple-page-master</code>, specifying physical dimensions,
+margins, and regions (header, body, footer).</li>
+<li><strong>Page Sequences:</strong> Using
+<code>&lt;xsl:template match="/"&gt;</code>, the XSLT generates
+<code>fo:page-sequence</code> elements that bind source XML content to
+specific page layouts. Complex XML with distinct sections (e.g., front
+matter vs. body chapters) can be split into separate page sequences
+using conditional logic or template matching.</li>
+</ul>
+<h3 id="navigating-and-normalizing-complex-xml">Navigating and
+Normalizing Complex XML</h3>
+<p>Raw business XML often features deeply nested tags, recursive
+structures, or relational schemas that do not naturally match a visual,
+page-oriented layout. XSLT addresses this through structural
+normalization:</p>
+<ul>
+<li><strong>Rule-Based Template Matching:</strong> By applying
+<code>&lt;xsl:apply-templates select="..." /&gt;</code>, XSLT decouples
+the source hierarchy from visual order. Nested XML nodes are intercepted
+and mapped directly to visual containers like <code>fo:block</code> (for
+paragraphs and sections) or <code>fo:inline</code> (for inline
+formatting like bold or italic text).</li>
+<li><strong>Grouping and Aggregation:</strong> Complex XML data
+frequently requires reorganization before printing, such as sorting line
+items or grouping transactions by category. XSLT 2.0/3.0 constructs like
+<code>xsl:for-each-group</code> allow developers to group data on the
+fly and output structured visual components like <code>fo:table</code>
+hierarchies with repeated headers across page breaks.</li>
+</ul>
+<h3 id="translating-data-to-fo-objects">Translating Data to FO
+Objects</h3>
+<p>During transformation, XSLT translates domain-specific elements into
+FO layout objects:</p>
+<ul>
+<li><strong>Paragraphs and Flow:</strong> <code>&lt;paragraph&gt;</code>
+or <code>&lt;description&gt;</code> nodes are mapped to
+<code>&lt;fo:block&gt;</code>, where XSLT attributes set font families,
+sizes, line heights, and margins.</li>
+<li><strong>Tables:</strong> Complex datasets are converted into
+<code>&lt;fo:table&gt;</code>, <code>&lt;fo:table-column&gt;</code>,
+<code>&lt;fo:table-header&gt;</code>, and
+<code>&lt;fo:table-body&gt;</code>. XSLT calculates column widths, sets
+borders, and applies alternating row background colors dynamically.</li>
+<li><strong>Pagination Controls:</strong> XSLT attributes inject
+page-breaking properties directly into FO blocks—such as
+<code>break-before="page"</code>, <code>keep-with-next="always"</code>,
+or <code>orphans</code> and <code>widows</code> constraints—to ensure
+clean visual separation.</li>
+<li><strong>Headers and Footers:</strong> Static repeating elements are
+assigned to <code>fo:static-content</code> nodes mapped to the
+region-before or region-after of the page master. XSLT uses
+<code>fo:page-number</code> and <code>fo:page-number-citation</code> to
+handle dynamic page counters and table-of-contents references.</li>
+</ul>
+<h3 id="dynamic-styling-and-conditional-logic">Dynamic Styling and
+Conditional Logic</h3>
+<p>XSLT employs <code>&lt;xsl:choose&gt;</code>,
+<code>&lt;xsl:when&gt;</code>, and <code>&lt;xsl:if&gt;</code>
+instructions to inject contextual styles into FO elements based on the
+data attributes or position. For example, status fields can dynamically
+change font colors, missing optional nodes can cleanly collapse without
+leaving empty vertical space, and specific data attributes can trigger
+multi-column page layouts.</p>
+<p>By abstracting layout rules away from the source data, XSLT provides
+the structural flexibility and algorithmic power needed to turn highly
+complex, non-visual XML into an exact, paginated formatting object tree
+ready for PDF synthesis.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

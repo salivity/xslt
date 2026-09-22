@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitigating Financial Bias with XSLT round-half-to-even - xslt</title>
+    <meta name="description" content="This article explains how the round-half-to-even() function in XSLT 2.0 addresses cumulative statistical bias in financial calculations. In large-scale financial processing, traditional rounding techniques consistently skew ledger totals upward. By exami">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/mitigating-financial-bias-with-xslt-round-half-to-even">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mitigating Financial Bias with XSLT round-half-to-even - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/mitigating-financial-bias-with-xslt-round-half-to-even" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the round-half-to-even() function in XSLT 2.0 addresses cumulative statistical bias in financial calculations. In large-scale financial processing, traditional rounding techniques consistently skew ledger totals upward. By exami" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="mitigating-financial-bias-with-xslt-round-half-to-even">Mitigating
+Financial Bias with XSLT round-half-to-even</h1>
+<p>This article explains how the <code>round-half-to-even()</code>
+function in XSLT 2.0 addresses cumulative statistical bias in financial
+calculations. In large-scale financial processing, traditional rounding
+techniques consistently skew ledger totals upward. By examining the
+mechanics of round-half-to-even—commonly known as banker's rounding—this
+guide demonstrates why adopting this method preserves balance sheet
+accuracy, adheres to IEEE 754 standards, and prevents systematic drift
+across aggregated monetary datasets.</p>
+<h3 id="the-inherent-bias-in-standard-rounding">The Inherent Bias in
+Standard Rounding</h3>
+<p>Traditional arithmetic rounding, often termed "round-half-up," rounds
+any value halfway between two integers (such as 2.5 or 3.5) to the
+nearest integer away from zero. Under this rule, 2.5 becomes 3, and 3.5
+becomes 4. While intuitive for individual human calculations, this
+method introduces a consistent upward bias when applied across large
+volumes of transactional data.</p>
+<p>In a uniform distribution of decimal fractions, numbers ending in
+<code>.1</code>, <code>.2</code>, <code>.3</code>, and <code>.4</code>
+round down, while numbers ending in <code>.6</code>, <code>.7</code>,
+<code>.8</code>, and <code>.9</code> round up. The tie-breaker fraction
+<code>.5</code> sits precisely in the middle. Always rounding
+<code>.5</code> upward skews the mean of the dataset higher. In
+high-frequency billing systems, currency exchanges, or tax aggregations,
+this systematic error compounds, resulting in distorted financial
+reports and artificial ledger surpluses.</p>
+<h3 id="how-round-half-to-even-operates">How round-half-to-even()
+Operates</h3>
+<p>The XSLT 2.0 function <code>fn:round-half-to-even()</code> implements
+banker's rounding (convergent rounding), an approach formalized by the
+IEEE 754 standard for floating-point arithmetic.</p>
+<p>When applied to an equidistant midpoint ending in <code>.5</code>,
+the function evaluates the digit immediately preceding the midpoint:</p>
+<ul>
+<li>If the preceding digit is <strong>odd</strong>, the value rounds up
+to the nearest even number.</li>
+<li>If the preceding digit is <strong>even</strong>, the value rounds
+down to the nearest even number.</li>
+</ul>
+<p>For example:</p>
+<ul>
+<li><code>round-half-to-even(1.5)</code> evaluates to <code>2</code>
+(rounds up because 1 is odd).</li>
+<li><code>round-half-to-even(2.5)</code> evaluates to <code>2</code>
+(rounds down because 2 is even).</li>
+<li><code>round-half-to-even(3.5)</code> evaluates to <code>4</code>
+(rounds up because 3 is odd).</li>
+<li><code>round-half-to-even(4.5)</code> evaluates to <code>4</code>
+(rounds down because 4 is even).</li>
+</ul>
+<p>Values that are not exact midpoints behave normally:
+<code>2.5001</code> rounds to <code>3</code>, and <code>2.4999</code>
+rounds to <code>2</code>.</p>
+<h3 id="eliminating-upward-drift-in-financial-datasets">Eliminating
+Upward Drift in Financial Datasets</h3>
+<p>Assuming a roughly equal distribution of odd and even digits
+preceding the midpoint in financial amounts,
+<code>round-half-to-even()</code> rounds <code>.5</code> down
+approximately 50% of the time and up approximately 50% of the time.</p>
+<p>By balancing the upward and downward adjustments, the cumulative
+rounding errors cancel each other out over large sample sizes. When
+ledger columns, invoice batches, or portfolio dividends are rounded
+prior to summation, the sum of the rounded numbers remains statistically
+much closer to the sum of the unrounded numbers than it would under
+round-half-up arithmetic.</p>
+<h3 id="usage-in-xslt-20">Usage in XSLT 2.0</h3>
+<p>XSLT 2.0 provides two signatures for the function:</p>
+<ol type="1">
+<li><code>round-half-to-even($arg as xs:numeric?) as xs:numeric?</code></li>
+<li><code>round-half-to-even($arg as xs:numeric?, $precision as xs:integer) as xs:numeric?</code></li>
+</ol>
+<p>The optional <code>$precision</code> argument specifies the number of
+decimal places to retain, making it directly applicable to standard
+currency formats:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Rounding line-item amounts to two decimal places (cents) --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;round-half-to-even(line-item/amount, 2)&quot;</span> /&gt;</span></code></pre></div>
+<p>If a line item calculates to <code>$12.125</code>, it rounds down to
+<code>$12.12</code> because the second decimal place (<code>2</code>) is
+even. If the item calculates to <code>$12.135</code>, it rounds up to
+<code>$12.14</code> because the second decimal place (<code>3</code>) is
+odd. This precision control allows XML transformation pipelines to
+maintain rigorous statistical equilibrium across financial data
+pipelines.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using xsl:on-empty for Fallback Content in XSLT 3.0 - xslt</title>
+    <meta name="description" content="In XSLT 3.0, the <xsl:on-empty> instruction provides a clean, declarative mechanism to supply fallback content whenever an enclosing sequence constructor produces an empty result. Prior to this feature, developers had to rely on cumbersome workarounds, s">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xsl-on-empty-for-fallback-content-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using xsl:on-empty for Fallback Content in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xsl-on-empty-for-fallback-content-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, the <xsl:on-empty> instruction provides a clean, declarative mechanism to supply fallback content whenever an enclosing sequence constructor produces an empty result. Prior to this feature, developers had to rely on cumbersome workarounds, s" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-xslon-empty-for-fallback-content-in-xslt-30">Using
+xsl:on-empty for Fallback Content in XSLT 3.0</h1>
+<p>In XSLT 3.0, the <code>&lt;xsl:on-empty&gt;</code> instruction
+provides a clean, declarative mechanism to supply fallback content
+whenever an enclosing sequence constructor produces an empty result.
+Prior to this feature, developers had to rely on cumbersome workarounds,
+such as storing computed output in temporary variables and evaluating
+them with <code>&lt;xsl:if&gt;</code> or
+<code>&lt;xsl:choose&gt;</code>. This article explains the mechanics of
+<code>&lt;xsl:on-empty&gt;</code>, how it interacts with sequence
+constructors and empty nodes, and how to use it effectively alongside
+<code>&lt;xsl:where-populated&gt;</code> to simplify stylesheet
+logic.</p>
+<h3 id="the-problem-with-traditional-fallbacks">The Problem with
+Traditional Fallbacks</h3>
+<p>In older XSLT versions (1.0 and 2.0), checking whether a sequence
+constructor generated content required capturing the output in a
+variable and inspecting its contents before generating wrapper elements
+or fallback values:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;desc&quot;</span> <span class="ot">select=</span><span class="st">&quot;description&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;normalize-space($desc)&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$desc&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;No description provided.&lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>This pattern creates boilerplate, hurts readability, and incurs
+performance overhead by buffering intermediate trees or sequences into
+memory.</p>
+<h3 id="how-xslon-empty-operates">How <code>&lt;xsl:on-empty&gt;</code>
+Operates</h3>
+<p>The <code>&lt;xsl:on-empty&gt;</code> element is an XSLT instruction
+placed inside any sequence constructor (such as within an
+<code>&lt;xsl:template&gt;</code>, literal result element, or
+<code>&lt;xsl:element&gt;</code>).</p>
+<p>When the stylesheet executes:</p>
+<ol type="1">
+<li>The processor evaluates the primary instructions within the
+enclosing sequence constructor.</li>
+<li>It monitors the resulting sequence to see if any items (nodes or
+atomic values) are generated.</li>
+<li>If the primary instructions produce an empty sequence—or yield no
+output—the contents of the <code>&lt;xsl:on-empty&gt;</code> instruction
+are evaluated and emitted instead.</li>
+<li>If the primary instructions produce at least one item, the
+<code>&lt;xsl:on-empty&gt;</code> element is completely ignored.</li>
+</ol>
+<h4 id="basic-example">Basic Example</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">div</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;user/bio&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:on-empty</span>&gt;User has not provided a biography.&lt;/<span class="kw">xsl:on-empty</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">div</span>&gt;</span></code></pre></div>
+<p>If <code>user/bio</code> does not exist or evaluates to an empty
+sequence, the output is:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">div</span>&gt;User has not provided a biography.&lt;/<span class="kw">div</span>&gt;</span></code></pre></div>
+<p>If <code>user/bio</code> contains the string
+<code>"Software Architect"</code>, the output is:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">div</span>&gt;Software Architect&lt;/<span class="kw">div</span>&gt;</span></code></pre></div>
+<h3 id="handling-empty-nodes-and-xslwhere-populated">Handling Empty
+Nodes and <code>&lt;xsl:where-populated&gt;</code></h3>
+<p>A critical distinction in XSLT is the difference between an
+<strong>empty sequence</strong> and a <strong>node containing no text or
+child nodes</strong>.</p>
+<p>If a sequence constructor produces an empty element (for example,
+<code>&lt;span/&gt;</code>), that result is technically a populated
+sequence containing one element node. By default,
+<code>&lt;xsl:on-empty&gt;</code> will not trigger because an item was
+produced.</p>
+<p>To handle empty nodes properly, XSLT 3.0 pairs
+<code>&lt;xsl:on-empty&gt;</code> with
+<code>&lt;xsl:where-populated&gt;</code>. The
+<code>&lt;xsl:where-populated&gt;</code> instruction suppresses the
+generation of an element if its contents are empty or contain only
+whitespace.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:where-populated</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;summary&quot;</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;summary-points&quot;</span>/&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:on-empty</span>&gt;No summary points found.&lt;/<span class="kw">xsl:on-empty</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:where-populated</span>&gt;</span></code></pre></div>
+<p>In this scenario:</p>
+<ul>
+<li>If <code>summary-points</code> yields items, they appear inside
+<code>&lt;div class="summary"&gt;</code>.</li>
+<li>If <code>summary-points</code> matches templates that produce no
+output, the sequence is empty, triggering
+<code>&lt;xsl:on-empty&gt;</code> to output
+<code>"No summary points found."</code> inside the
+<code>&lt;div&gt;</code>.</li>
+<li>If the entire sequence constructor—including the fallback—were
+empty, <code>&lt;xsl:where-populated&gt;</code> would omit the
+<code>&lt;div&gt;</code> element entirely.</li>
+</ul>
+<h3 id="companion-instruction-xslon-non-empty">Companion Instruction:
+<code>&lt;xsl:on-non-empty&gt;</code></h3>
+<p>XSLT 3.0 also introduces <code>&lt;xsl:on-non-empty&gt;</code>, the
+logical inverse of <code>&lt;xsl:on-empty&gt;</code>. While
+<code>&lt;xsl:on-empty&gt;</code> renders only when nothing else was
+produced, <code>&lt;xsl:on-non-empty&gt;</code> evaluates its contents
+only when the preceding or surrounding instructions successfully produce
+at least one item. Together, these two instructions allow fine-grained,
+conditional layout generation without the need for temporary variables
+or pre-testing data conditions.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

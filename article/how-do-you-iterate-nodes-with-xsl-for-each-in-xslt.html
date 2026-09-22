@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Do You Iterate Nodes with xsl:for-each in XSLT? - xslt</title>
+    <meta name="description" content="This article examines how the <xsl:for-each> element processes node-sets in Extensible Stylesheet Language Transformations (XSLT). It explains how the processor evaluates the target node-set, manages context shifts during traversal, applies sorting rules">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-do-you-iterate-nodes-with-xsl-for-each-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Do You Iterate Nodes with xsl:for-each in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-do-you-iterate-nodes-with-xsl-for-each-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines how the <xsl:for-each> element processes node-sets in Extensible Stylesheet Language Transformations (XSLT). It explains how the processor evaluates the target node-set, manages context shifts during traversal, applies sorting rules" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-do-you-iterate-nodes-with-xslfor-each-in-xslt">How Do You
+Iterate Nodes with xsl:for-each in XSLT?</h1>
+<p>This article examines how the <code>&lt;xsl:for-each&gt;</code>
+element processes node-sets in Extensible Stylesheet Language
+Transformations (XSLT). It explains how the processor evaluates the
+target node-set, manages context shifts during traversal, applies
+sorting rules, and constructs the resulting output tree.</p>
+<h2 id="the-mechanism-of-xslfor-each">The Mechanism of
+<code>&lt;xsl:for-each&gt;</code></h2>
+<p>The <code>&lt;xsl:for-each&gt;</code> instruction directs an XSLT
+processor to iterate over a sequence of nodes selected by an XPath
+expression. Unlike imperative programming loops (such as
+<code>for</code> or <code>while</code>), which evaluate state changes
+sequentially across iterations, <code>&lt;xsl:for-each&gt;</code> acts
+as a declarative iteration pattern across an immutable node-set.</p>
+<p>When the processor encounters
+<code>&lt;xsl:for-each select="expression"&gt;</code>, it performs the
+following steps:</p>
+<ol type="1">
+<li><strong>Evaluation:</strong> The processor evaluates the XPath
+expression in the <code>select</code> attribute against the current
+context node to generate a node-set (or sequence in XSLT 2.0+).</li>
+<li><strong>Context Establishment:</strong> The processor establishes a
+current node list containing all matched nodes, arranged by default in
+document order.</li>
+<li><strong>Execution:</strong> The processor loops through the node
+list, applying the inner template body to each node individually.</li>
+</ol>
+<h2 id="context-switching-inside-the-loop">Context Switching Inside the
+Loop</h2>
+<p>During each iteration of <code>&lt;xsl:for-each&gt;</code>, the
+processor automatically alters the evaluation context:</p>
+<ul>
+<li><strong>Current Node (<code>.</code>):</strong> The node currently
+being processed becomes the context node. All relative XPath expressions
+evaluated within the body of the loop originate from this node.</li>
+<li><strong>Context Position (<code>position()</code>):</strong> Returns
+the 1-based index of the current node within the iteration list.</li>
+<li><strong>Context Size (<code>last()</code>):</strong> Returns the
+total count of nodes contained in the selected node-set.</li>
+</ul>
+<h3 id="example-xml-source">Example XML Source</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">catalog</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">book</span> <span class="ot">id=</span><span class="st">&quot;bk101&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">title</span>&gt;XML Guide&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">price</span>&gt;44.95&lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">book</span> <span class="ot">id=</span><span class="st">&quot;bk102&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">title</span>&gt;XPath Basics&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">price</span>&gt;29.99&lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">catalog</span>&gt;</span></code></pre></div>
+<h3 id="example-transformation">Example Transformation</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/catalog&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ul</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;book&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">li</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;position()&quot;</span>/&gt;: </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt; - </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>          $&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span>/&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">li</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">ul</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>In this transformation, the expression <code>select="book"</code>
+yields a node-set containing both <code>&lt;book&gt;</code> elements.
+Within the loop body, <code>select="title"</code> and
+<code>select="price"</code> evaluate relative to each active
+<code>&lt;book&gt;</code> node rather than the root
+<code>&lt;catalog&gt;</code>.</p>
+<h2 id="sorting-iteration-output">Sorting Iteration Output</h2>
+<p>By default, <code>&lt;xsl:for-each&gt;</code> traverses nodes in
+document order. You can override this sequence by inserting one or more
+<code>&lt;xsl:sort&gt;</code> child elements immediately inside the
+<code>&lt;xsl:for-each&gt;</code> block before any template content.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;book&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:sort</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;number&quot;</span> <span class="ot">order=</span><span class="st">&quot;ascending&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">li</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt; (&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;price&quot;</span>/&gt;)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">li</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<p>When <code>&lt;xsl:sort&gt;</code> is present, the processor reorders
+the node list before beginning iteration. Consequently,
+<code>position()</code> reflects the sorted rank rather than the
+original document position.</p>
+<h2
+id="xslfor-each-versus-xslapply-templates"><code>&lt;xsl:for-each&gt;</code>
+Versus <code>&lt;xsl:apply-templates&gt;</code></h2>
+<p>While <code>&lt;xsl:for-each&gt;</code> provides a compact way to
+handle repetitive structures, it tightly couples template logic to a
+specific document hierarchy. In standard XSLT design,
+<code>&lt;xsl:apply-templates&gt;</code> is preferred for recursive or
+polymorphic XML structures, while <code>&lt;xsl:for-each&gt;</code> is
+best suited for tabular data rendering and straightforward, localized
+iterations.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

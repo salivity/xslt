@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Element Names with XSLT QName Function - xslt</title>
+    <meta name="description" content="This article explains how the XPath and XSLT QName() constructor dynamically instantiates qualified XML element names at runtime. By combining a namespace URI with a lexical QName (a prefix and local name), this function enables stylesheets to generate e">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/dynamic-element-names-with-xslt-q-name-function">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dynamic Element Names with XSLT QName Function - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/dynamic-element-names-with-xslt-q-name-function" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the XPath and XSLT QName() constructor dynamically instantiates qualified XML element names at runtime. By combining a namespace URI with a lexical QName (a prefix and local name), this function enables stylesheets to generate e" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="dynamic-element-names-with-xslt-qname-function">Dynamic Element
+Names with XSLT QName Function</h1>
+<p>This article explains how the XPath and XSLT <code>QName()</code>
+constructor dynamically instantiates qualified XML element names at
+runtime. By combining a namespace URI with a lexical QName (a prefix and
+local name), this function enables stylesheets to generate elements
+whose identities are determined programmatically from source data,
+parameters, or external configurations rather than being hardcoded into
+the transformation template.</p>
+<h3 id="the-role-of-fnqname-in-xslt">The Role of <code>fn:QName()</code>
+in XSLT</h3>
+<p>In standard XSLT transformations, element names and namespaces are
+often static or evaluated using attribute value templates in the
+<code>&lt;xsl:element&gt;</code> instruction. However, when working with
+complex XML pipelines, schemas, or dynamic vocabularies, an XSLT
+processor needs a reliable, atomic representation of an element
+identity.</p>
+<p>The
+<code>fn:QName($paramURI as xs:string?, $paramQName as xs:string) as xs:QName</code>
+function serves this purpose. Available in XPath 2.0 and XSLT 2.0 and
+later, it constructs an instance of the <code>xs:QName</code> data type
+directly from arbitrary string values during execution.</p>
+<h3 id="function-signature-and-parameters">Function Signature and
+Parameters</h3>
+<p>The <code>QName()</code> constructor takes two parameters:</p>
+<ol type="1">
+<li><strong>Namespace URI (<code>$paramURI</code>):</strong> An optional
+string representing the target namespace. If passed as an empty sequence
+or zero-length string, the resulting QName resides in no namespace.</li>
+<li><strong>Lexical QName (<code>$paramQName</code>):</strong> A
+required string consisting either of a single <code>NCName</code> (the
+local element name) or a prefix and local name separated by a colon
+(<code>prefix:localName</code>).</li>
+</ol>
+<p>If a prefix is supplied in <code>$paramQName</code>, the
+<code>$paramURI</code> cannot be empty, as a prefix must always be
+mapped to an explicit URI according to XML namespace specifications.</p>
+<h3 id="the-dynamic-instantiation-process">The Dynamic Instantiation
+Process</h3>
+<p>When the XSLT processor evaluates <code>QName()</code>, it performs
+the following operational steps:</p>
+<ol type="1">
+<li><strong>Lexical Validation:</strong> The processor validates the
+<code>$paramQName</code> string to ensure that both the prefix (if
+present) and the local part conform to the syntactic rules of an
+<code>NCName</code> (Non-Colonized Name). If invalid characters are
+detected, a dynamic error is thrown.</li>
+<li><strong>Namespace Binding:</strong> Unlike
+<code>resolve-QName()</code>, which looks up prefixes in the static
+in-scope namespace context of the stylesheet, <code>QName()</code>
+explicitly binds the supplied prefix to the URI provided in
+<code>$paramURI</code>. This allows the creation of prefix-to-URI
+associations that do not exist statically within the stylesheet
+itself.</li>
+<li><strong>Atomic Instantiation:</strong> The processor outputs an
+<code>xs:QName</code> item containing three distinct components: the
+local name, the namespace URI, and the optional prefix.</li>
+</ol>
+<h3 id="applying-dynamically-created-qnames">Applying Dynamically
+Created QNames</h3>
+<p>Once instantiated, dynamic QNames can be utilized across several XSLT
+constructs:</p>
+<ul>
+<li><strong>Generating Dynamic Elements:</strong> In XSLT 2.0+, elements
+are typically created using <code>&lt;xsl:element&gt;</code>. By
+extracting the local name and prefix via
+<code>local-name-from-QName()</code> and
+<code>prefix-from-QName()</code>, or passing the raw variables into the
+<code>name</code> and <code>namespace</code> attributes, the processor
+constructs the output element tree dynamically:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;dynamicQName&quot;</span> <span class="ot">select=</span><span class="st">&quot;QName(&#39;https://example.com/ns&#39;, &#39;custom:DynamicNode&#39;)&quot;</span> /&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{local-name-from-QName($dynamicQName)}&quot;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>             <span class="ot">namespace=</span><span class="st">&quot;{namespace-uri-from-QName($dynamicQName)}&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;&#39;Dynamic content&#39;&quot;</span> /&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>Introspection and Dynamic Matching:</strong> Dynamic QNames
+can be compared against the <code>node-name()</code> of incoming source
+nodes. This allows stylesheets to match and transform nodes whose
+definitions vary at runtime without requiring static matching templates
+for every possible namespace combination.</li>
+<li><strong>XSLT 3.0 Node Constructors:</strong> In modern functional
+transformations or XQuery-adjacent patterns, <code>xs:QName</code>
+instances can be supplied directly to node-generation functions and
+dynamic function calls to generate fully qualified elements on the
+fly.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

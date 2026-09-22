@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static Shadow Attributes vs AVTs in XSLT 3.0 - xslt</title>
+    <meta name="description" content="In XSLT 3.0, static shadow attributes and standard Attribute Value Templates (AVTs) both use curly bracket notation to evaluate expressions, but they serve fundamentally different purposes and operate at different phases of execution. The primary distinc">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/static-shadow-attributes-vs-av-ts-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Static Shadow Attributes vs AVTs in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/static-shadow-attributes-vs-av-ts-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, static shadow attributes and standard Attribute Value Templates (AVTs) both use curly bracket notation to evaluate expressions, but they serve fundamentally different purposes and operate at different phases of execution. The primary distinc" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="static-shadow-attributes-vs-avts-in-xslt-30">Static Shadow
+Attributes vs AVTs in XSLT 3.0</h1>
+<p>In XSLT 3.0, static shadow attributes and standard Attribute Value
+Templates (AVTs) both use curly bracket notation to evaluate
+expressions, but they serve fundamentally different purposes and operate
+at different phases of execution. The primary distinction is that static
+shadow attributes are evaluated at compile time to dynamically configure
+the stylesheet itself, whereas standard AVTs are evaluated at run time
+to construct values for the resulting output document or specific
+instruction properties.</p>
+<h3 id="execution-phase-and-evaluation-context">Execution Phase and
+Evaluation Context</h3>
+<p>Static shadow attributes—denoted by a leading underscore before the
+attribute name, such as <code>_select</code> or <code>_test</code>—are
+processed during the static analysis phase (stylesheet compilation).
+They can only evaluate static expressions. These expressions have access
+exclusively to static parameters
+(<code>&lt;xsl:param static="yes"&gt;</code>), system properties, and
+static functions. They have no access to the source XML document, the
+dynamic context, or standard runtime variables.</p>
+<p>Standard Attribute Value Templates (using <code>{expression}</code>
+within supported attributes) are evaluated dynamically during the
+transformation phase (run time). They operate within the dynamic
+evaluation context, possessing full access to the current node, runtime
+variables, document trees, and context-dependent functions like
+<code>position()</code> and <code>current()</code>.</p>
+<h3 id="applicability-and-scope">Applicability and Scope</h3>
+<p>Standard AVTs are only permitted on Literal Result Elements and
+specific XSLT attributes where the W3C specification explicitly allows
+them (such as the <code>name</code> attribute of
+<code>&lt;xsl:element&gt;</code>). They cannot be used on structural
+XSLT control attributes like <code>match</code>, <code>select</code>, or
+<code>test</code>.</p>
+<p>In contrast, shadow attributes can be applied to almost any attribute
+of any XSLT element. By prefixing an attribute with an underscore, the
+XSLT processor evaluates the curly-bracketed expression at compile time
+and generates the corresponding standard attribute without the
+underscore. This enables dynamic generation of attributes that normally
+forbid AVTs, including <code>select</code>, <code>test</code>,
+<code>use-when</code>, and <code>as</code>.</p>
+<h3 id="primary-use-cases">Primary Use Cases</h3>
+<ul>
+<li><strong>Static Shadow Attributes:</strong> Used for metaprogramming,
+conditional compilation, feature toggling, and target-environment
+optimization. For example, a stylesheet can set
+<code>_select="if ($DEBUG) then 'debug-mode' else 'production'"</code>
+on an <code>&lt;xsl:apply-templates&gt;</code> instruction, fixing the
+execution path at compile time without incurring runtime performance
+overhead.</li>
+<li><strong>Standard AVTs:</strong> Used for generating dynamic output
+attributes in literal result elements (e.g.,
+<code>&lt;a href="{$url}"&gt;</code>) or computing string values for
+runtime instructions, based directly on the content of the input
+document being transformed.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

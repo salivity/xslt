@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purpose of xsl:context-item in XSLT 3.0 - xslt</title>
+    <meta name="description" content="The xsl:context-item declaration in XSLT 3.0 establishes the contract for the initial context item of a stylesheet or package by specifying whether it is required, optional, or prohibited, and defining its expected data type. It provides static and dynam">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/purpose-of-xsl-context-item-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Purpose of xsl:context-item in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/purpose-of-xsl-context-item-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The xsl:context-item declaration in XSLT 3.0 establishes the contract for the initial context item of a stylesheet or package by specifying whether it is required, optional, or prohibited, and defining its expected data type. It provides static and dynam" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="purpose-of-xslcontext-item-in-xslt-30">Purpose of
+xsl:context-item in XSLT 3.0</h1>
+<p>The <code>xsl:context-item</code> declaration in XSLT 3.0 establishes
+the contract for the initial context item of a stylesheet or package by
+specifying whether it is required, optional, or prohibited, and defining
+its expected data type. It provides static and dynamic type-checking
+before transformation begins, preventing runtime failures and clarifying
+whether a stylesheet expects a source document or is designed to run
+independently.</p>
+<h2 id="defining-input-requirements-with-the-use-attribute">Defining
+Input Requirements with the <code>use</code> Attribute</h2>
+<p>In older versions of XSLT, stylesheets implicitly expected a primary
+XML input document to set the initial context node. XSLT 3.0 allows
+transformations to initiate via named templates or functions without any
+source document. The <code>use</code> attribute of
+<code>xsl:context-item</code> explicitly declares this dependency using
+one of three values:</p>
+<ul>
+<li><strong><code>required</code></strong>: The transformation engine
+must be supplied with an initial context item. If none is provided, the
+processor raises an error before execution begins.</li>
+<li><strong><code>optional</code></strong>: The stylesheet can accept an
+initial context item, but it can also execute without one (for example,
+falling back to a default value or alternative logic).</li>
+<li><strong><code>absent</code></strong>: The stylesheet explicitly
+prohibits an initial context item. If an input document or node is
+passed, the processor rejects it. This is typical for standalone
+utilities that generate data or pull from external APIs using functions
+like <code>doc()</code> or <code>json-doc()</code>.</li>
+</ul>
+<h2 id="enforcing-data-types-with-the-as-attribute">Enforcing Data Types
+with the <code>as</code> Attribute</h2>
+<p>Beyond declaring presence, <code>xsl:context-item</code> uses the
+<code>as</code> attribute to define the sequence type expected for the
+context item.</p>
+<p>For instance, setting
+<code>as="document-node(element(orders))"</code> ensures that the
+context item is not just any XML node, but specifically a document node
+containing an <code>&lt;orders&gt;</code> root element. If the calling
+application passes an unexpected document structure, a text node, or a
+map, the processor immediately generates a type error.</p>
+<h2 id="benefits-of-xslcontext-item">Benefits of
+<code>xsl:context-item</code></h2>
+<ul>
+<li><strong>Early Error Detection:</strong> Type mismatches and missing
+inputs are identified at the initialization stage rather than deep
+inside complex template rules.</li>
+<li><strong>Self-Documentation:</strong> It acts as a formal interface
+definition at the top of the stylesheet, making it clear to other
+developers and systems what input is expected.</li>
+<li><strong>Package Encapsulation:</strong> When writing reusable
+components in XSLT 3.0 packages, <code>xsl:context-item</code> defines
+the preconditions necessary for the package's public components to
+function reliably.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

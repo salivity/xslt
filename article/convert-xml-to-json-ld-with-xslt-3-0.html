@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert XML to JSON-LD with XSLT 3.0 - xslt</title>
+    <meta name="description" content="This article outlines the end-to-end workflow for transforming legacy or structured XML datasets into semantic JSON-LD format using the modern features of XSLT 3.0. By leveraging XSLT 3.0’s native JSON support—such as maps, arrays, and serialization">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/convert-xml-to-json-ld-with-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert XML to JSON-LD with XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/convert-xml-to-json-ld-with-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article outlines the end-to-end workflow for transforming legacy or structured XML datasets into semantic JSON-LD format using the modern features of XSLT 3.0. By leveraging XSLT 3.0’s native JSON support—such as maps, arrays, and serialization" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="convert-xml-to-json-ld-with-xslt-30">Convert XML to JSON-LD with
+XSLT 3.0</h1>
+<p>This article outlines the end-to-end workflow for transforming legacy
+or structured XML datasets into semantic JSON-LD format using the modern
+features of XSLT 3.0. By leveraging XSLT 3.0’s native JSON support—such
+as maps, arrays, and serialization functions—developers can
+programmatically bridge traditional hierarchical XML data with linked
+data vocabularies like Schema.org, creating clean,
+search-engine-friendly metadata without relying on intermediary
+scripts.</p>
+<h3 id="1-define-the-semantic-model-and-context">1. Define the Semantic
+Model and <code>@context</code></h3>
+<p>Before writing XSLT templates, determine the target JSON-LD
+schema:</p>
+<ul>
+<li><strong>Select Vocabularies:</strong> Choose standard ontologies
+(e.g., Schema.org, Dublin Core, or custom ontologies) that match the XML
+domain.</li>
+<li><strong>Establish the <code>@context</code>:</strong> Decide whether
+the context will be linked externally via a URI or embedded inline
+within the generated JSON-LD object.</li>
+<li><strong>Map Source to Target:</strong> Create a field-by-field
+mapping between source XML elements/attributes and JSON-LD properties
+(such as mapping <code>&lt;title&gt;</code> to <code>name</code> and
+<code>&lt;id&gt;</code> to <code>@id</code>).</li>
+</ul>
+<h3 id="2-configure-the-xslt-30-processor-and-output">2. Configure the
+XSLT 3.0 Processor and Output</h3>
+<p>XSLT 3.0 introduces native support for JSON output, eliminating the
+string-concatenation workarounds required in older XSLT versions.</p>
+<p>Set up the stylesheet declaration and define the output method:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">exclude-result-prefixes=</span><span class="st">&quot;xs&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;json&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="3-build-the-data-using-xslt-30-maps-and-arrays">3. Build the
+Data Using XSLT 3.0 Maps and Arrays</h3>
+<p>XSLT 3.0 provides native <code>map</code> and <code>array</code> data
+types, which directly serialize to JSON objects (<code>{}</code>) and
+lists (<code>[]</code>).</p>
+<ul>
+<li><strong>Create JSON Objects:</strong> Use the
+<code>map { ... }</code> syntax to define key-value pairs.</li>
+<li><strong>Create JSON Arrays:</strong> Use the
+<code>array { ... }</code> syntax to handle repeating XML nodes.</li>
+<li><strong>Handle Types:</strong> Ensure numerical and boolean values
+are cast explicitly (e.g., <code>xs:integer()</code>,
+<code>xs:boolean()</code>) so they serialize without quotation
+marks.</li>
+</ul>
+<p>Example template:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/catalog/product&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:sequence</span> <span class="ot">select=</span><span class="st">&quot;map {</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;@context&#39;: &#39;https://schema.org&#39;,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;@type&#39;: &#39;Product&#39;,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;@id&#39;: string(@sku),</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;name&#39;: string(title),</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;description&#39;: string(description),</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;offers&#39;: map {</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">            &#39;@type&#39;: &#39;Offer&#39;,</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">            &#39;price&#39;: xs:decimal(price),</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="st">            &#39;priceCurrency&#39;: string(price/@currency)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="st">        }</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="st">    }&quot;</span>/&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="4-alternative-method-using-the-xpath-fnxml-to-json-function">4.
+Alternative Method: Using the XPath <code>fn:xml-to-json</code>
+Function</h3>
+<p>For highly dynamic structures, an alternative XSLT 3.0 pattern
+converts XML into the standard W3C XML representation of JSON
+(<code>http://www.w3.org/2005/xpath-functions</code>), followed by the
+<code>xml-to-json()</code> function:</p>
+<ol type="1">
+<li>Transform the input XML into intermediate elements:
+<code>&lt;map&gt;</code>, <code>&lt;string&gt;</code>,
+<code>&lt;number&gt;</code>, <code>&lt;boolean&gt;</code>, and
+<code>&lt;array&gt;</code>.</li>
+<li>Wrap the conversion inside
+<code>&lt;xsl:value-of select="xml-to-json($intermediate-xml)" transform-text="none"/&gt;</code>.</li>
+<li>Set the output method to <code>method="text"</code>.</li>
+</ol>
+<p>This approach provides granular control when mapping heterogeneous
+XML nodes dynamically.</p>
+<h3 id="5-execute-the-transformation">5. Execute the Transformation</h3>
+<p>Run the transformation using an XSLT 3.0 compliant engine, such as
+Saxon-HE, Saxon-PE, or MorganaXProc.</p>
+<p>Example execution using Saxon:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> saxon-he-12.jar <span class="at">-s:dataset.xml</span> <span class="at">-xsl:transform.xsl</span> <span class="at">-o:output.jsonld</span></span></code></pre></div>
+<h3 id="6-validate-the-output">6. Validate the Output</h3>
+<p>After generation, verify the output meets JSON-LD and semantic web
+requirements:</p>
+<ul>
+<li><strong>Syntax Validation:</strong> Verify the output is valid JSON
+using a JSON linter.</li>
+<li><strong>Semantic Conformance:</strong> Paste the generated data into
+the W3C JSON-LD Playground or Google’s Rich Results Test to confirm the
+<code>@context</code>, <code>@type</code>, and property relationships
+resolve correctly.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

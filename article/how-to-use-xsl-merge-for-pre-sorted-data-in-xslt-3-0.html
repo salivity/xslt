@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use xsl:merge for Pre-Sorted Data in XSLT 3.0 - xslt</title>
+    <meta name="description" content="The xsl:merge instruction introduced in XSLT 3.0 provides a declarative mechanism to combine multiple data sources based on common key values without requiring all datasets to be loaded into memory at once. By declaring input sequences as pre-sorted, the">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-use-xsl-merge-for-pre-sorted-data-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use xsl:merge for Pre-Sorted Data in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-use-xsl-merge-for-pre-sorted-data-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The xsl:merge instruction introduced in XSLT 3.0 provides a declarative mechanism to combine multiple data sources based on common key values without requiring all datasets to be loaded into memory at once. By declaring input sequences as pre-sorted, the" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-use-xslmerge-for-pre-sorted-data-in-xslt-30">How to Use
+xsl:merge for Pre-Sorted Data in XSLT 3.0</h1>
+<p>The <code>xsl:merge</code> instruction introduced in XSLT 3.0
+provides a declarative mechanism to combine multiple data sources based
+on common key values without requiring all datasets to be loaded into
+memory at once. By declaring input sequences as pre-sorted, the XSLT
+processor can apply an efficient merge-sort algorithm across streams,
+processing items incrementally and in constant memory. This article
+explains the technical mechanics of <code>xsl:merge</code>, the roles of
+its child instructions, and how it handles pre-sorted input streams
+efficiently.</p>
+<h2 id="the-problem-of-merging-in-earlier-xslt-versions">The Problem of
+Merging in Earlier XSLT Versions</h2>
+<p>In XSLT 1.0 and 2.0, combining records from two or more external
+documents typically required loading the full documents into tree
+structures, combining their nodes into a single sequence, and applying
+<code>xsl:sort</code> or <code>xsl:for-each-group</code>. For massive
+datasets, this approach often caused out-of-memory errors because
+processors had to buffer the entire collection of documents in memory
+before producing any output.</p>
+<h2 id="architecture-of-xslmerge">Architecture of
+<code>xsl:merge</code></h2>
+<p>XSLT 3.0 solves this bottleneck by introducing a multi-way merge
+framework consisting of four core components:</p>
+<ul>
+<li><strong><code>&lt;xsl:merge&gt;</code></strong>: The parent element
+that orchestrates the merging process.</li>
+<li><strong><code>&lt;xsl:merge-source&gt;</code></strong>: Defines an
+individual input sequence, how to select its items, and whether the
+input is already sorted.</li>
+<li><strong><code>&lt;xsl:merge-key&gt;</code></strong>: Specifies the
+expression used to extract the comparison key for each item in a
+source.</li>
+<li><strong><code>&lt;xsl:merge-action&gt;</code></strong>: Contains the
+template logic evaluated for each unique key or group of matched
+items.</li>
+</ul>
+<h2 id="leveraging-pre-sorted-streams-with-sort-before-merge">Leveraging
+Pre-Sorted Streams with <code>sort-before-merge</code></h2>
+<p>The key attribute that enables streaming and prevents memory
+exhaustion when handling pre-sorted data is
+<code>sort-before-merge="no"</code> on
+<code>&lt;xsl:merge-source&gt;</code>.</p>
+<p>By default, an XSLT processor might assume inputs must be sorted
+prior to merging (<code>sort-before-merge="yes"</code>), forcing it to
+read and sort the entirety of each stream. When set to
+<code>sort-before-merge="no"</code>, the processor trusts that the input
+stream is already ordered according to the specified
+<code>xsl:merge-key</code>.</p>
+<p>Because the data is guaranteed to be ordered, the processor maintains
+an internal cursor at the head of each stream. It only compares the
+current items across the inputs, selecting the lowest key (in ascending
+order) to advance. This reduces the time complexity to <span
+class="math inline">\(O(N)\)</span> across all combined items and limits
+memory usage to <span class="math inline">\(O(K)\)</span>, where <span
+class="math inline">\(K\)</span> is the number of open sources.</p>
+<h2 id="practical-example">Practical Example</h2>
+<p>Consider combining an incremental transaction log with a master
+customer ledger where both files are already sorted ascending by
+<code>customer-id</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:merge</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:merge-source</span> <span class="ot">name=</span><span class="st">&quot;master&quot;</span> </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">for-each-item=</span><span class="st">&quot;doc(&#39;customers.xml&#39;)/customers/customer&quot;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">sort-before-merge=</span><span class="st">&quot;no&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:merge-key</span> <span class="ot">select=</span><span class="st">&quot;@id&quot;</span> <span class="ot">order=</span><span class="st">&quot;ascending&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;text&quot;</span>/&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:merge-source</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:merge-source</span> <span class="ot">name=</span><span class="st">&quot;transactions&quot;</span> </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">for-each-item=</span><span class="st">&quot;doc(&#39;transactions.xml&#39;)/transactions/txn&quot;</span> </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">sort-before-merge=</span><span class="st">&quot;no&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:merge-key</span> <span class="ot">select=</span><span class="st">&quot;@customer-id&quot;</span> <span class="ot">order=</span><span class="st">&quot;ascending&quot;</span> <span class="ot">data-type=</span><span class="st">&quot;text&quot;</span>/&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:merge-source</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:merge-action</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">customer-record</span> <span class="ot">id=</span><span class="st">&quot;{current-merge-key()}&quot;</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-merge-group(&#39;master&#39;)&quot;</span>/&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">transactions</span>&gt;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:copy-of</span> <span class="ot">select=</span><span class="st">&quot;current-merge-group(&#39;transactions&#39;)&quot;</span>/&gt;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">transactions</span>&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">customer-record</span>&gt;</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:merge-action</span>&gt;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:merge</span>&gt;</span></code></pre></div>
+<h2 id="processing-current-items">Processing Current Items</h2>
+<p>Inside <code>&lt;xsl:merge-action&gt;</code>, specific context
+functions provide access to the items associated with the current
+key:</p>
+<ul>
+<li><strong><code>current-merge-key()</code></strong>: Returns the value
+of the key currently being processed.</li>
+<li><strong><code>current-merge-group()</code></strong>: Returns all
+items across all sources matching the current key.</li>
+<li><strong><code>current-merge-group('source-name')</code></strong>:
+Restricts the returned items to a specific named
+<code>&lt;xsl:merge-source&gt;</code>, allowing selective handling when
+a key exists in one source but not another (equivalent to outer
+joins).</li>
+</ul>
+<p>If a pre-sorted stream violates the expected order during execution,
+an conformant processor detecting the mismatch raises a dynamic error
+(<code>XTDE2230</code>), guaranteeing data integrity throughout the
+merge operation.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

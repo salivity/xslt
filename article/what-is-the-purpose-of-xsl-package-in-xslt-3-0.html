@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Purpose of xsl:package in XSLT 3.0? - xslt</title>
+    <meta name="description" content="In XSLT 3.0, the <xsl:package> element introduces a formal module system designed to build reusable, maintainable, and independently compiled stylesheet libraries. While earlier XSLT versions relied on <xsl:include> and <xsl:import>, which merge all temp">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-package-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Purpose of xsl:package in XSLT 3.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-package-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, the <xsl:package> element introduces a formal module system designed to build reusable, maintainable, and independently compiled stylesheet libraries. While earlier XSLT versions relied on <xsl:include> and <xsl:import>, which merge all temp" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-the-purpose-of-xslpackage-in-xslt-30">What Is the
+Purpose of xsl:package in XSLT 3.0?</h1>
+<p>In XSLT 3.0, the <code>&lt;xsl:package&gt;</code> element introduces
+a formal module system designed to build reusable, maintainable, and
+independently compiled stylesheet libraries. While earlier XSLT versions
+relied on <code>&lt;xsl:include&gt;</code> and
+<code>&lt;xsl:import&gt;</code>, which merge all templates, variables,
+and functions into a single global namespace, packages establish strict
+encapsulation boundaries, explicit dependency controls, and semantic
+versioning. This article examines the core purposes and architectural
+advantages of using <code>&lt;xsl:package&gt;</code> in enterprise XSLT
+development.</p>
+<h2 id="true-encapsulation-and-component-visibility">True Encapsulation
+and Component Visibility</h2>
+<p>Before XSLT 3.0, every component defined in an included or imported
+stylesheet was visible to the entire processing tree, frequently leading
+to accidental name collisions and tightly coupled code. The
+<code>&lt;xsl:package&gt;</code> construct solves this by allowing
+developers to define explicit visibility for functions, templates,
+modes, variables, and attribute sets using the <code>visibility</code>
+attribute:</p>
+<ul>
+<li><strong><code>private</code></strong>: The component is only
+accessible within the declaring package and remains hidden from
+consuming stylesheets.</li>
+<li><strong><code>public</code></strong>: The component is exported and
+available to any stylesheet that consumes the package, but consuming
+stylesheets can override it.</li>
+<li><strong><code>final</code></strong>: The component is exported for
+public use but cannot be overridden by consuming stylesheets,
+guaranteeing core library behavior.</li>
+<li><strong><code>abstract</code></strong>: The component defines an
+interface signature that a consuming package or stylesheet must
+implement.</li>
+</ul>
+<p>By enforcing information hiding, developers can safely refactor
+internal library logic without breaking downstream stylesheets that rely
+on the package.</p>
+<h2 id="explicit-dependency-and-version-management">Explicit Dependency
+and Version Management</h2>
+<p>Packages decouple modular stylesheets using the
+<code>&lt;xsl:use-package&gt;</code> declaration. Instead of linking
+stylesheets via relative file paths that tightly bind code to a
+directory structure, <code>&lt;xsl:use-package&gt;</code> identifies
+dependencies by a unique URI and optional version constraints.</p>
+<p>Every package defines a <code>name</code> URI and a
+<code>package-version</code> attribute (using semantic versioning, such
+as <code>1.0.0</code>). When referencing a library, the calling
+stylesheet can specify target version ranges using
+<code>package-version="1.*"</code> or explicit minimums. This enables
+robust distribution of shared transformation modules across multiple
+projects while maintaining predictable compatibility.</p>
+<h2 id="independent-compilation-and-performance">Independent Compilation
+and Performance</h2>
+<p>Traditional <code>&lt;xsl:include&gt;</code> and
+<code>&lt;xsl:import&gt;</code> directives require the XSLT processor to
+re-parse, validate, and compile all referenced templates every time the
+main stylesheet runs.</p>
+<p>Because <code>&lt;xsl:package&gt;</code> units have distinct
+boundaries and explicit dependencies, modern XSLT 3.0 processors (such
+as Saxon) can compile packages into independent, reusable bytecode or
+executable formats (SEF / Saxon Export Files). Pre-compiled packages can
+be loaded directly from disk or memory caches, drastically cutting
+compilation overhead and cold-start latency in high-throughput XML
+processing pipelines.</p>
+<h2 id="clean-namespace-and-conflict-isolation">Clean Namespace and
+Conflict Isolation</h2>
+<p>In massive XSLT codebases, helper templates and internal utility
+functions often suffer from naming conflicts. Because private package
+components are completely isolated from the outer stylesheet's symbol
+space, distinct packages can use identical internal template names or
+utility variables without risk of mutual interference.</p>
+<p>By replacing unstructured stylesheet inclusion with structured
+modules, <code>&lt;xsl:package&gt;</code> elevates XSLT from a scripting
+format to a modern, component-oriented language capable of supporting
+large-scale enterprise XML architectures.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

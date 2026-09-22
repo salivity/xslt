@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Secure Untrusted User-Supplied XSLT - xslt</title>
+    <meta name="description" content="Allowing untrusted users to supply XSLT stylesheets introduces severe security risks, including Remote Code Execution (RCE), Server-Side Request Forgery (SSRF), local file inclusion, and Denial of Service (DoS). This article outlines the critical securit">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-secure-untrusted-user-supplied-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Secure Untrusted User-Supplied XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-secure-untrusted-user-supplied-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Allowing untrusted users to supply XSLT stylesheets introduces severe security risks, including Remote Code Execution (RCE), Server-Side Request Forgery (SSRF), local file inclusion, and Denial of Service (DoS). This article outlines the critical securit" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-secure-untrusted-user-supplied-xslt">How to Secure
+Untrusted User-Supplied XSLT</h1>
+<p>Allowing untrusted users to supply XSLT stylesheets introduces severe
+security risks, including Remote Code Execution (RCE), Server-Side
+Request Forgery (SSRF), local file inclusion, and Denial of Service
+(DoS). This article outlines the critical security precautions and
+parser configurations required to neutralize these threats, focusing on
+disabling dangerous processor capabilities, restricting URI resolution,
+and isolating execution environments.</p>
+<h3 id="disable-extension-functions-and-embedded-scripting">Disable
+Extension Functions and Embedded Scripting</h3>
+<p>The most critical risk associated with untrusted XSLT is arbitrary
+code execution through extension functions and embedded scripts. Many
+XSLT engines, such as .NET's <code>XslCompiledTransform</code> or Java's
+Xalan and Saxon, historically allow execution of host-language methods
+(e.g., C# or Java) or scripting blocks (such as
+<code>msxsl:script</code>).</p>
+<ul>
+<li><strong>In .NET:</strong> Instantiate <code>XsltSettings</code> with
+<code>EnableScript = false</code>. Never use default settings that
+permit script blocks.</li>
+<li><strong>In Java:</strong> Enable the Secure Processing feature
+(<code>XMLConstants.FEATURE_SECURE_PROCESSING</code>) on the
+<code>TransformerFactory</code>. This automatically blocks calls to
+arbitrary external Java functions.</li>
+<li><strong>In PHP/libxslt:</strong> Call
+<code>registerPHPFunctions()</code> only if strictly necessary, and
+never pass it without limiting it to an explicit, safe whitelist. By
+default, ensure it is completely disabled.</li>
+</ul>
+<h3 id="block-the-document-function">Block the <code>document()</code>
+Function</h3>
+<p>The standard XSLT <code>document()</code> function enables a
+stylesheet to fetch and parse external XML resources at runtime.
+Attackers exploit this function to read local files, probe internal
+networks (SSRF), or leak sensitive tokens.</p>
+<ul>
+<li><strong>Disable the function entirely:</strong> In .NET, set
+<code>XsltSettings.EnableDocumentFunction = false</code>.</li>
+<li><strong>Use a custom URI resolver:</strong> If the processor cannot
+disable the function outright, override the default
+<code>URIResolver</code> (Java) or <code>XmlResolver</code> (.NET).
+Configure the custom resolver to reject all requests or enforce a strict
+whitelist that only accepts trusted internal schemas, explicitly denying
+schemes like <code>file://</code>, <code>gopher://</code>,
+<code>http://</code>, and <code>https://</code>.</li>
+</ul>
+<h3 id="prevent-xml-external-entity-xxe-injection">Prevent XML External
+Entity (XXE) Injection</h3>
+<p>Because XSLT stylesheets are themselves XML documents, the parser
+used to read the stylesheet must be secured before the transformation
+engine ever runs. Unsecured parsers can trigger XXE attacks during the
+initial parse phase.</p>
+<ul>
+<li>Completely disable inline Document Type Definitions (DTDs). In Java,
+set <code>http://apache.org/xml/features/disallow-doctype-decl</code> to
+<code>true</code>.</li>
+<li>Disable external general entities
+(<code>http://xml.org/sax/features/external-general-entities</code>) and
+external parameter entities
+(<code>http://xml.org/sax/features/external-parameter-entities</code>).</li>
+<li>Ensure that the XML input document being transformed is parsed with
+these exact same anti-XXE constraints.</li>
+</ul>
+<h3 id="enforce-strict-execution-timeouts-and-resource-limits">Enforce
+Strict Execution Timeouts and Resource Limits</h3>
+<p>Malicious actors can craft recursive templates or infinite loops
+inside XSLT stylesheets to consume 100% of the host system's CPU and
+memory, causing an application-wide Denial of Service.</p>
+<ul>
+<li>Set a hard timeout on the thread or process executing the
+transformation. Terminate the transformation immediately if the
+execution window is exceeded.</li>
+<li>Enforce limits on output size to prevent memory-exhaustion attacks
+where a small input generates gigabytes of transformed text.</li>
+<li>Limit entity expansion depth within the XML parser to mitigate
+Billion Laughs (XML bomb) attacks.</li>
+</ul>
+<h3 id="isolate-the-transformation-environment">Isolate the
+Transformation Environment</h3>
+<p>Due to the historical frequency of parser vulnerabilities and logic
+bypasses in complex XSLT engines, defense-in-depth isolation is
+mandatory.</p>
+<ul>
+<li>Execute the XSLT transformation worker as a dedicated, low-privilege
+OS user with no read access to sensitive files or credentials.</li>
+<li>Run the transformer within a restricted container or ephemeral
+sandbox.</li>
+<li>Apply strict egress network firewall rules to the worker container
+to block all outbound network traffic, mitigating data exfiltration and
+SSRF even if an attacker manages to invoke external resource
+loading.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

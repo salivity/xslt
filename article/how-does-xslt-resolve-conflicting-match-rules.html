@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT Resolve Conflicting Match Rules? - xslt</title>
+    <meta name="description" content="In XSLT, multiple template rules can often match the same node in a source document, creating potential ambiguity during transformation. The XSLT processor resolves these conflicts through a strict, deterministic resolution pipeline based on import prece">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-resolve-conflicting-match-rules">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT Resolve Conflicting Match Rules? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-resolve-conflicting-match-rules" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT, multiple template rules can often match the same node in a source document, creating potential ambiguity during transformation. The XSLT processor resolves these conflicts through a strict, deterministic resolution pipeline based on import prece" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-does-xslt-resolve-conflicting-match-rules">How Does XSLT
+Resolve Conflicting Match Rules?</h1>
+<p>In XSLT, multiple template rules can often match the same node in a
+source document, creating potential ambiguity during transformation. The
+XSLT processor resolves these conflicts through a strict, deterministic
+resolution pipeline based on import precedence, template priority, and
+document declaration order. Understanding this hierarchy allows
+developers to cleanly override styling rules, modularize stylesheets,
+and write maintainable XML transformations without relying on brittle
+workarounds.</p>
+<h2 id="the-three-stage-conflict-resolution-model">The Three-Stage
+Conflict Resolution Model</h2>
+<p>When an <code>&lt;xsl:apply-templates&gt;</code> instruction executes
+on a specific node, the processor identifies all template rules whose
+<code>match</code> pattern matches that node and shares the appropriate
+mode. To select the winning template, the processor applies three
+criteria in a strict cascading order:</p>
+<ol type="1">
+<li><strong>Import Precedence:</strong> Higher import precedence always
+beats lower import precedence.</li>
+<li><strong>Template Priority:</strong> If two templates share the same
+import precedence, the processor evaluates their numeric
+priorities.</li>
+<li><strong>Document Order:</strong> If multiple templates have
+identical import precedence and identical priority, the last declaration
+in document order wins (or the processor raises an error, depending on
+the XSLT version and implementation settings).</li>
+</ol>
+<h2 id="understanding-import-precedence">Understanding Import
+Precedence</h2>
+<p>Import precedence establishes a baseline hierarchy between
+stylesheets included via <code>&lt;xsl:import&gt;</code>. It enables a
+parent stylesheet to import external libraries and systematically
+override specific templates while keeping others intact.</p>
+<p>The rules governing import precedence are based on a post-order
+traversal of the import tree:</p>
+<ul>
+<li>A template defined in the importing stylesheet always has a higher
+import precedence than any template defined in an imported
+stylesheet.</li>
+<li>When a stylesheet imports multiple files, the file imported later in
+document order takes precedence over the one imported earlier.</li>
+<li>If an imported stylesheet itself imports other stylesheets, those
+nested imports carry lower precedence than the file importing them.</li>
+<li>Stylesheets combined using <code>&lt;xsl:include&gt;</code> do not
+alter import precedence; included templates inherit the exact import
+precedence of the stylesheet containing the
+<code>&lt;xsl:include&gt;</code> element.</li>
+</ul>
+<h2 id="template-priority-calculations">Template Priority
+Calculations</h2>
+<p>If two matching templates share the same import precedence, the
+processor moves to step two: evaluating priority. Developers can assign
+an explicit priority using the <code>priority</code> attribute on
+<code>&lt;xsl:template&gt;</code> (for example,
+<code>priority="2"</code>).</p>
+<p>When no explicit priority is provided, XSLT automatically calculates
+a default priority based on pattern specificity:</p>
+<ul>
+<li><strong>Priority 0.5:</strong> Specific patterns utilizing child
+selectors, predicates, or axis steps (such as
+<code>book[@category='fiction']</code> or
+<code>chapter/title</code>).</li>
+<li><strong>Priority 0.0:</strong> Qualified element, attribute, or
+processing-instruction names (such as <code>title</code> or
+<code>@id</code>).</li>
+<li><strong>Priority -0.25:</strong> Wildcard names prefixed with a
+specific namespace (such as <code>svg:*</code>).</li>
+<li><strong>Priority -0.5:</strong> General node-type selectors and
+top-level wildcards (such as <code>node()</code>, <code>text()</code>,
+<code>*</code>, or <code>@*</code>).</li>
+</ul>
+<p>Templates with patterns separated by the union operator
+<code>|</code> are evaluated as separate individual rules, each
+receiving its own computed default priority.</p>
+<h2 id="document-order-resolution-and-overrides">Document Order
+Resolution and Overrides</h2>
+<p>If both import precedence and priority are identical, the processor
+relies on declaration order within the stylesheet. In standard XSLT
+processing, the template that appears last in the physical stylesheet
+document is selected.</p>
+<p>While relying on document order is valid, explicitly defining the
+<code>priority</code> attribute or structuring stylesheets using
+<code>&lt;xsl:import&gt;</code> provides clearer intent and reduces
+subtle bugs during large refactoring tasks.</p>
+<h2 id="invoking-overridden-rules-with-xslapply-imports">Invoking
+Overridden Rules with <code>xsl:apply-imports</code></h2>
+<p>Import precedence does not merely silence lower-precedence rules; it
+enables controlled inheritance. Within a winning template, developers
+can invoke <code>&lt;xsl:apply-imports&gt;</code> (or
+<code>&lt;xsl:next-match&gt;</code> in XSLT 2.0 and later).</p>
+<p>This instruction passes execution directly to the next matching
+template in the import hierarchy, allowing the high-precedence template
+to wrap existing transformation logic with additional markup rather than
+duplicating it entirely.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

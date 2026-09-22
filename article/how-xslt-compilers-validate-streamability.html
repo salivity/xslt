@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How XSLT Compilers Validate Streamability - xslt</title>
+    <meta name="description" content="This article explains how an XSLT 3.0 compiler uses static analysis to validate streamability before executing a stylesheet. It outlines the core mechanics of streamability analysis, focusing on how the compiler constructs an abstract syntax tree (AST),">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-xslt-compilers-validate-streamability">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How XSLT Compilers Validate Streamability - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-xslt-compilers-validate-streamability" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how an XSLT 3.0 compiler uses static analysis to validate streamability before executing a stylesheet. It outlines the core mechanics of streamability analysis, focusing on how the compiler constructs an abstract syntax tree (AST)," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-xslt-compilers-validate-streamability">How XSLT Compilers
+Validate Streamability</h1>
+<p>This article explains how an XSLT 3.0 compiler uses static analysis
+to validate streamability before executing a stylesheet. It outlines the
+core mechanics of streamability analysis, focusing on how the compiler
+constructs an abstract syntax tree (AST), assigns posture and sweep
+properties to expressions, and applies formal inference rules to
+guarantee that an XML document can be processed sequentially in a single
+pass without loading the entire tree into memory.</p>
+<h2 id="the-role-of-static-analysis-in-xslt-streaming">The Role of
+Static Analysis in XSLT Streaming</h2>
+<p>In XSLT 3.0, streaming allows processors to handle multi-gigabyte XML
+documents with a near-zero memory footprint. To guarantee that a
+template or construct can be evaluated without buffering or
+backtracking, the XSLT specification mandates a rigorous static analysis
+phase.</p>
+<p>When a stylesheet declares <code>streamable="yes"</code> on an
+<code>xsl:mode</code>, the compiler must verify that every instruction
+and expression within that mode adheres to streaming constraints at
+compile time. If static analysis detects any construct that might read
+nodes out of sequence, inspect ancestors after processing children, or
+traverse the same node set multiple times, compilation immediately halts
+with a static error (specifically <code>XTSE3430</code> or related
+streaming errors).</p>
+<h2 id="the-core-static-metrics-posture-and-sweep">The Core Static
+Metrics: Posture and Sweep</h2>
+<p>The static streamability engine operates by assigning two fundamental
+properties to every node in the expression's Abstract Syntax Tree (AST):
+<strong>Posture</strong> and <strong>Sweep</strong>.</p>
+<h3 id="1-posture">1. Posture</h3>
+<p>Posture defines the positional relationship between the value
+produced by an expression and the origin of the streamed input. The
+compiler categorizes posture into several static classifications:</p>
+<ul>
+<li><strong>Grounded:</strong> The data is fully held in memory as
+atomic values or newly constructed nodes disconnected from the input
+stream.</li>
+<li><strong>Striding:</strong> The data consists of peer nodes visited
+sequentially along the child axis (for example,
+<code>child::item</code>), where traversing one node moves naturally to
+the next sibling without requiring backtracking.</li>
+<li><strong>Crawling:</strong> The data involves arbitrary depth
+searches, such as using the descendant axis
+(<code>descendant::item</code>), where the processor may encounter
+nested targets.</li>
+<li><strong>Climbing:</strong> The data points upward toward parent or
+ancestor nodes, which inherently complicates single-pass streaming.</li>
+</ul>
+<h3 id="2-sweep">2. Sweep</h3>
+<p>Sweep describes how an expression navigates or consumes the
+underlying token stream. It indicates whether the input stream moves
+forward:</p>
+<ul>
+<li><strong>Motionless:</strong> The expression does not advance the
+input stream read pointer (e.g., literal values, variables, or functions
+like <code>position()</code> and <code>count()</code> on grounded
+items).</li>
+<li><strong>Consuming:</strong> The expression advances the stream read
+pointer forward (e.g., <code>copy-of()</code>, or iterating over child
+elements).</li>
+<li><strong>Free-Ranging:</strong> The expression attempts arbitrary or
+uncontrolled navigation (such as following-sibling or backward axes),
+which is inherently incompatible with single-pass processing.</li>
+</ul>
+<h2 id="expression-classification-and-inference-rules">Expression
+Classification and Inference Rules</h2>
+<p>The compiler evaluates the AST bottom-up using formal inference rules
+defined by the W3C specification. Each operation combines the posture
+and sweep of its sub-expressions to determine the composite result.</p>
+<h3 id="axis-validation">Axis Validation</h3>
+<p>Axes are strictly categorized based on how they interact with an
+incoming stream:</p>
+<ul>
+<li><strong>Allowed:</strong> The <code>child</code> and
+<code>attribute</code> axes maintain predictable stream navigation.
+Child elements are classified as striding, while attributes are
+motionless once the element tag is read.</li>
+<li><strong>Restricted:</strong> The <code>descendant</code> axis is
+permitted only under strict constraints, as overlapping matches can
+require buffering.</li>
+<li><strong>Disallowed:</strong> The <code>preceding</code>,
+<code>preceding-sibling</code>, <code>following</code>,
+<code>following-sibling</code>, and <code>ancestor</code> axes (with
+minor exceptions) require moving backward or looking ahead beyond the
+current parser buffer, immediately causing the static analysis to
+fail.</li>
+</ul>
+<h3 id="aggregation-and-multiple-consumption">Aggregation and Multiple
+Consumption</h3>
+<p>A streaming reader cannot read the same stream segment twice. The
+compiler checks for overlapping consumption within sibling
+expressions:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- This will fail static analysis --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;count(item) + sum(item/@price)&quot;</span>/&gt;</span></code></pre></div>
+<p>In the example above, the compiler assigns a consuming sweep to the
+first reference of <code>item</code> and another consuming sweep to the
+second reference. Because both references consume the same context
+stream within a single expression without grounding, the static analyzer
+flags an operand usage conflict. To pass static validation, the compiler
+requires operations to be grounded via functions like
+<code>snapshot()</code> or restructured into a single traversal.</p>
+<h2 id="context-transmission-and-higher-order-constructs">Context
+Transmission and Higher-Order Constructs</h2>
+<p>The compiler also tracks the <strong>transmission</strong> of context
+through higher-order constructs such as <code>xsl:for-each</code>,
+<code>xsl:iterate</code>, and user-defined functions:</p>
+<ul>
+<li><strong>Loop Scopes:</strong> In
+<code>xsl:for-each select="orders/order"</code>, the compiler checks
+that the <code>select</code> expression produces a striding or crawling
+posture, and then resets the context posture for the loop's body. The
+body may only consume each current item once.</li>
+<li><strong>Streamable Functions:</strong> When a stylesheet function
+processes streamed nodes, the compiler verifies that the argument
+declaration explicitly supports streamed parameters and that the
+function body does not violate posture guarantees.</li>
+</ul>
+<h2 id="compile-time-outcome">Compile-Time Outcome</h2>
+<p>By strictly relying on type signatures, axis classifications, and
+mathematical composition rules, the XSLT compiler determines the
+absolute viability of execution before processing any document data. If
+all rules are satisfied, the compiler emits bytecode or intermediate
+execution plans that read directly from a SAX or StAX event stream. If
+any rule is violated, the stylesheet is rejected outright, preventing
+runtime buffer overflows or unexpected memory failures.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

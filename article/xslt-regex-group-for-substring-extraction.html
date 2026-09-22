@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT regex-group() for Substring Extraction - xslt</title>
+    <meta name="description" content="This article provides an overview of the regex-group() function in XSLT, detailing its primary role in parsing strings and extracting specific tokenized substrings. It covers how the function works within the context of the <xsl:analyze-string> instructi">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-regex-group-for-substring-extraction">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT regex-group() for Substring Extraction - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-regex-group-for-substring-extraction" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the regex-group() function in XSLT, detailing its primary role in parsing strings and extracting specific tokenized substrings. It covers how the function works within the context of the <xsl:analyze-string> instructi" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-regex-group-for-substring-extraction">XSLT regex-group()
+for Substring Extraction</h1>
+<p>This article provides an overview of the <code>regex-group()</code>
+function in XSLT, detailing its primary role in parsing strings and
+extracting specific tokenized substrings. It covers how the function
+works within the context of the <code>&lt;xsl:analyze-string&gt;</code>
+instruction, how captured groups are referenced, and practical examples
+illustrating how to isolate complex data tokens into structured XML
+elements.</p>
+<h2 id="the-role-of-regex-group-in-xslt">The Role of regex-group() in
+XSLT</h2>
+<p>Introduced in XSLT 2.0, the <code>regex-group()</code> function
+extracts parts of a matched string defined by parenthesized capturing
+groups within a regular expression. While functions like
+<code>tokenize()</code> break strings apart using simple delimiters,
+<code>regex-group()</code> enables targeted, pattern-based tokenization
+where individual components of a token need to be extracted
+simultaneously.</p>
+<p>The function operates strictly within the
+<code>&lt;xsl:matching-substring&gt;</code> child element of the
+<code>&lt;xsl:analyze-string&gt;</code> instruction. When a regular
+expression matches an input sequence, <code>regex-group()</code>
+retrieves the exact characters captured by a specific set of parentheses
+inside that regular expression.</p>
+<h2 id="syntax-and-operation">Syntax and Operation</h2>
+<p>The syntax for the function is:</p>
+<pre class="xpath"><code>regex-group($n as xs:integer) as xs:string</code></pre>
+<ul>
+<li><strong><code>regex-group(0)</code></strong>: Returns the entire
+substring matched by the complete regular expression pattern.</li>
+<li><strong><code>regex-group(1)</code></strong>: Returns the substring
+captured by the first open-parenthesis group <code>(...)</code> in the
+pattern.</li>
+<li><strong><code>regex-group(n)</code></strong>: Returns the substring
+captured by the <span class="math inline">\(n\)</span>-th parenthesized
+group, counted from left to right based on the opening parentheses.</li>
+<li>If the specified group was not matched, or if the index exceeds the
+number of capture groups in the pattern, the function returns an empty
+string (<code>""</code>).</li>
+</ul>
+<h2 id="extracting-tokenized-data">Extracting Tokenized Data</h2>
+<p>In data transformation workflows, tokens often contain internal
+structure—such as key-value pairs, dates, or formatted codes—that cannot
+be parsed cleanly using single delimiter characters.
+<code>regex-group()</code> solves this by breaking the match into
+discrete tokens in a single processing step.</p>
+<h3 id="example-parsing-key-value-pairs">Example: Parsing Key-Value
+Pairs</h3>
+<p>Consider an input string containing semi-colon-separated attributes:
+<code>id=101; status=active; role=admin</code>.</p>
+<p>Using <code>regex-group()</code>, you can tokenize the string and
+separate keys from values simultaneously:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:analyze-string</span> <span class="ot">select=</span><span class="st">&quot;&#39;id=101; status=active; role=admin&#39;&quot;</span> <span class="ot">regex=</span><span class="st">&quot;([a-zA-Z]+)=([a-zA-Z0-9]+)&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:matching-substring</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">attribute</span> <span class="ot">name=</span><span class="st">&quot;{regex-group(1)}&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;regex-group(2)&quot;</span>/&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">attribute</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:matching-substring</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:analyze-string</span>&gt;</span></code></pre></div>
+<p>In this transformation:</p>
+<ul>
+<li>Group 1 <code>([a-zA-Z]+)</code> captures the token key (e.g.,
+<code>id</code>, <code>status</code>, <code>role</code>).</li>
+<li>Group 2 <code>([a-zA-Z0-9]+)</code> captures the token value (e.g.,
+<code>101</code>, <code>active</code>, <code>admin</code>).</li>
+<li>The result transforms unstructured text directly into
+<code>&lt;attribute name="id"&gt;101&lt;/attribute&gt;</code>
+nodes.</li>
+</ul>
+<h2 id="advantages-over-standard-tokenization">Advantages Over Standard
+Tokenization</h2>
+<ol type="1">
+<li><strong>Positional Precision</strong>: <code>regex-group()</code>
+allows direct mapping of sub-tokens without secondary parsing steps or
+array indexing.</li>
+<li><strong>Selective Matching</strong>: Non-capturing groups
+<code>(?:...)</code> can be used to control matching logic without
+shifting the index numbers of the extracted tokens.</li>
+<li><strong>Data Cleaning</strong>: Surrounding whitespace, punctuation,
+and structural markers (such as quotes or brackets) can be excluded from
+the captured output by placing them outside the capturing parentheses in
+the regex pattern.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

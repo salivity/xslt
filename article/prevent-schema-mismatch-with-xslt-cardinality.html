@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prevent Schema Mismatch with XSLT Cardinality - xslt</title>
+    <meta name="description" content="Cardinality matching in XSLT sequence types serves as a compile-time and runtime validation layer that guarantees input and output data structures conform strictly to expected quantities. By defining occurrence indicators (?, , +) on variables, function">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/prevent-schema-mismatch-with-xslt-cardinality">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Prevent Schema Mismatch with XSLT Cardinality - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/prevent-schema-mismatch-with-xslt-cardinality" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Cardinality matching in XSLT sequence types serves as a compile-time and runtime validation layer that guarantees input and output data structures conform strictly to expected quantities. By defining occurrence indicators (?, , +) on variables, function" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="prevent-schema-mismatch-with-xslt-cardinality">Prevent Schema
+Mismatch with XSLT Cardinality</h1>
+<p>Cardinality matching in XSLT sequence types serves as a compile-time
+and runtime validation layer that guarantees input and output data
+structures conform strictly to expected quantities. By defining
+occurrence indicators (<code>?</code>, <code>*</code>, <code>+</code>)
+on variables, function parameters, and template returns, developers can
+enforce schema constraints directly within transformations. This
+eliminates silent failures, catches missing or duplicate elements early,
+and prevents downstream schema mismatches against target XML Schemas
+(XSD).</p>
+<h3 id="the-cardinality-indicators">The Cardinality Indicators</h3>
+<p>In XSLT 2.0 and later, sequence types describe both the data type and
+the number of items allowed in a sequence. If no indicator is specified,
+the sequence type defaults to expecting exactly one item. The three
+explicit occurrence indicators are:</p>
+<ul>
+<li><strong><code>?</code> (Zero or One):</strong> Specifies that the
+item is optional. It matches an empty sequence <code>()</code> or a
+sequence containing a single item.</li>
+<li><strong><code>*</code> (Zero or More):</strong> Specifies an
+unbounded sequence that can be empty. It permits any number of items,
+from zero to infinity.</li>
+<li><strong><code>+</code> (One or More):</strong> Specifies a non-empty
+sequence. It requires at least one item and permits any additional
+number of items.</li>
+</ul>
+<h3 id="enforcing-strict-contracts-between-components">Enforcing Strict
+Contracts Between Components</h3>
+<p>Applying sequence types with cardinality constraints across templates
+(<code>&lt;xsl:template as="..."&gt;</code>), variables
+(<code>&lt;xsl:variable as="..."&gt;</code>), and stylesheet functions
+(<code>&lt;xsl:function as="..."&gt;</code>) establishes strict data
+contracts.</p>
+<p>For instance, declaring a parameter as <code>as="xs:string"</code>
+guarantees that exactly one string is passed. If an XPath expression
+returns an empty sequence or multiple values, the XSLT processor
+immediately raises a dynamic type error (<code>XPTY0004</code>). If the
+source XML might legitimately lack the value, declaring
+<code>as="xs:string?"</code> explicitly accounts for optionality while
+continuing to block unintended multiple values.</p>
+<h3 id="direct-mapping-to-xml-schema-xsd-rules">Direct Mapping to XML
+Schema (XSD) Rules</h3>
+<p>XML Schemas define node frequencies using <code>minOccurs</code> and
+<code>maxOccurs</code> attributes. Cardinality indicators in sequence
+types map directly to these schema definitions:</p>
+<ul>
+<li><code>minOccurs="1" maxOccurs="1"</code> maps to default cardinality
+(no indicator).</li>
+<li><code>minOccurs="0" maxOccurs="1"</code> maps to
+<code>?</code>.</li>
+<li><code>minOccurs="0" maxOccurs="unbounded"</code> maps to
+<code>*</code>.</li>
+<li><code>minOccurs="1" maxOccurs="unbounded"</code> maps to
+<code>+</code>.</li>
+</ul>
+<p>By mirroring these constraints within XSLT signatures,
+transformations cannot accidentally produce structures that violate the
+target XSD. If an output requires at least one <code>&lt;item&gt;</code>
+element, defining a variable or template return type as
+<code>as="element(item)+"</code> ensures that an empty sequence is
+intercepted within the transformation pipeline rather than failing
+post-transformation during schema validation.</p>
+<h3 id="fail-fast-error-prevention-over-silent-degeneracy">Fail-Fast
+Error Prevention Over Silent Degeneracy</h3>
+<p>Without cardinality matching, untyped or loosely typed XPath
+expressions can silently introduce bugs. For example, an expression
+intended to select a single identifier (<code>/order/id</code>) might
+return two nodes if the source XML contains unexpected duplicates.</p>
+<p>In loosely typed XSLT, passing a multi-item sequence into a
+single-value context (such as an attribute constructor or string
+function) may only process the first node or cause an obscure error
+later in the process. With strict cardinality matching—such as
+<code>select="/order/id" as="element(id)"</code>—the processor
+immediately aborts execution when duplicates occur, pinpointing the
+schema deviation at the exact point of failure.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

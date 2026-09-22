@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using xsl:output-character in XSLT Character Maps - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and later versions, character maps allow developers to alter how specific characters are serialized into final output formats. The <xsl:output-character> element serves as the core mapping instruction inside an <xsl:character-map>, explicitly">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xsl-output-character-in-xslt-character-maps">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using xsl:output-character in XSLT Character Maps - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xsl-output-character-in-xslt-character-maps" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and later versions, character maps allow developers to alter how specific characters are serialized into final output formats. The <xsl:output-character> element serves as the core mapping instruction inside an <xsl:character-map>, explicitly" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-xsloutput-character-in-xslt-character-maps">Using
+xsl:output-character in XSLT Character Maps</h1>
+<p>In XSLT 2.0 and later versions, character maps allow developers to
+alter how specific characters are serialized into final output formats.
+The <code>&lt;xsl:output-character&gt;</code> element serves as the core
+mapping instruction inside an <code>&lt;xsl:character-map&gt;</code>,
+explicitly pairing an individual target character with a designated
+output string. This article explains the technical role, syntax, and
+common use cases of <code>&lt;xsl:output-character&gt;</code> during the
+transformation serialization phase.</p>
+<h3 id="core-functionality-and-attributes">Core Functionality and
+Attributes</h3>
+<p>The primary role of <code>&lt;xsl:output-character&gt;</code> is to
+intercept a specific Unicode character during serialization and replace
+it with an arbitrary literal string. Under standard XSLT serialization,
+characters with reserved meanings in markup languages (such as
+<code>&lt;</code>, <code>&gt;</code>, and <code>&amp;</code>) are
+automatically escaped into predefined entity references (such as
+<code>&amp;lt;</code> or <code>&amp;amp;</code>) or numeric character
+references. The <code>&lt;xsl:output-character&gt;</code> element
+overrides this default escaping behavior.</p>
+<p>The element relies on two mandatory attributes:</p>
+<ul>
+<li><strong><code>character</code></strong>: Specifies the single
+Unicode character in the transformation result tree that needs to be
+replaced.</li>
+<li><strong><code>string</code></strong>: Specifies the exact sequence
+of characters that should be written to the serialized output in place
+of the matched character.</li>
+</ul>
+<h3 id="execution-during-serialization">Execution During
+Serialization</h3>
+<p>Character mapping occurs at the very end of the XSLT pipeline during
+serialization. The <code>&lt;xsl:output-character&gt;</code> element
+does not modify the XML tree within the stylesheet's intermediate
+execution stages; it only affects the physical byte or text stream
+generated by the serializer.</p>
+<p>To use <code>&lt;xsl:output-character&gt;</code>, the enclosing
+<code>&lt;xsl:character-map&gt;</code> must be declared as a top-level
+element, given a <code>name</code> attribute, and referenced by an
+<code>&lt;xsl:output&gt;</code> declaration via the
+<code>use-character-maps</code> attribute:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:character-map</span> <span class="ot">name=</span><span class="st">&quot;custom-entities&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output-character</span> <span class="ot">character=</span><span class="st">&quot;</span><span class="dv">&amp;#169;</span><span class="st">&quot;</span> <span class="ot">string=</span><span class="st">&quot;</span><span class="dv">&amp;amp;</span><span class="st">copy;&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output-character</span> <span class="ot">character=</span><span class="st">&quot;</span><span class="dv">&amp;#160;</span><span class="st">&quot;</span> <span class="ot">string=</span><span class="st">&quot;</span><span class="dv">&amp;amp;</span><span class="st">nbsp;&quot;</span> /&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:character-map</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;html&quot;</span> <span class="ot">use-character-maps=</span><span class="st">&quot;custom-entities&quot;</span> /&gt;</span></code></pre></div>
+<p>In this scenario, whenever the copyright symbol (<code>©</code> or
+<code>&amp;#169;</code>) appears in the result tree, the serializer
+outputs the raw text <code>&amp;copy;</code> instead of standard numeric
+or UTF-8 representations.</p>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ol type="1">
+<li><strong>Custom Entity Serialization</strong>: Legacy systems, web
+browsers, or specific downstream parsers often require named HTML/XML
+entities (such as <code>&amp;nbsp;</code> or <code>&amp;mdash;</code>)
+rather than numeric character codes or raw Unicode bytes.</li>
+<li><strong>Generating Non-XML Formats</strong>: When generating plain
+text, CSV, RTF, or programming language code, standard XML escaping can
+introduce syntax errors. <code>&lt;xsl:output-character&gt;</code>
+allows you to map specific characters to required escape sequences (for
+example, escaping double quotes as <code>""</code> or
+<code>\"</code>).</li>
+<li><strong>Preventing Double Escaping</strong>: When you intentionally
+need unescaped markup or specific processing instructions in the output,
+you can map placeholder characters to unescaped structural symbols.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

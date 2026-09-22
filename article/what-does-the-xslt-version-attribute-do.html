@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Does the XSLT Version Attribute Do? - xslt</title>
+    <meta name="description" content="The version attribute in an XSLT stylesheet declaration is a mandatory attribute that informs the XSLT processor which version of the W3C XSLT specification the transformation rules follow. Beyond basic syntax validation, this attribute dictates how the">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-does-the-xslt-version-attribute-do">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Does the XSLT Version Attribute Do? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-does-the-xslt-version-attribute-do" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The version attribute in an XSLT stylesheet declaration is a mandatory attribute that informs the XSLT processor which version of the W3C XSLT specification the transformation rules follow. Beyond basic syntax validation, this attribute dictates how the" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-does-the-xslt-version-attribute-do">What Does the XSLT
+Version Attribute Do?</h1>
+<p>The <code>version</code> attribute in an XSLT stylesheet declaration
+is a mandatory attribute that informs the XSLT processor which version
+of the W3C XSLT specification the transformation rules follow. Beyond
+basic syntax validation, this attribute dictates how the processor
+parses instructions, handles advanced features, and manages
+compatibility modes across different specification levels such as XSLT
+1.0, 2.0, and 3.0.</p>
+<h2 id="mandatory-specification-compliance">Mandatory Specification
+Compliance</h2>
+<p>Every XSLT document must include the <code>version</code> attribute
+on its root <code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code> element. If this attribute is
+missing, the document is technically malformed according to W3C XSLT
+standards, causing compliant processors to reject the file before
+execution begins. Specifying the version (for example,
+<code>version="1.0"</code> or <code>version="3.0"</code>) establishes
+the formal baseline grammar and schema expectations for the entire
+transformation document.</p>
+<h2 id="forwards-compatible-processing">Forwards-Compatible
+Processing</h2>
+<p>When an older XSLT processor encounters a stylesheet declaring a
+newer version than it supports—such as an XSLT 1.0 processor reading
+<code>version="2.0"</code>—the <code>version</code> attribute activates
+"forwards-compatible mode." In this mode, the processor does not raise
+immediate syntax errors for unrecognized top-level elements,
+instructions, or unknown attributes. Instead, it bypasses unknown
+constructs and relies on elements like <code>&lt;xsl:fallback&gt;</code>
+to execute alternative logic, allowing developers to write stylesheets
+that degrade gracefully on legacy engines.</p>
+<h2 id="backwards-compatible-processing">Backwards-Compatible
+Processing</h2>
+<p>When a newer processor executes a stylesheet marked with an older
+version—such as an XSLT 3.0 engine running an XSLT 1.0 stylesheet—the
+<code>version</code> attribute triggers "backwards-compatible mode."
+This adjusts the underlying evaluation engine to emulate older
+semantics, particularly regarding XPath data types, implicit type
+coercions, and node-set behaviors. For instance, in 1.0 compatibility
+mode, passing a sequence to a function expecting a single item silently
+extracts the first item rather than throwing a runtime type error.</p>
+<h2 id="feature-availability-and-engine-routing">Feature Availability
+and Engine Routing</h2>
+<p>In multi-engine environments or modular processing pipelines, runtime
+environments inspect the <code>version</code> attribute to dynamically
+route the transformation to the appropriate processor engine. Declaring
+<code>version="2.0"</code> or <code>version="3.0"</code> unlocks
+language features such as schema awareness, grouping with
+<code>&lt;xsl:for-each-group&gt;</code>, regular expressions,
+user-defined functions, package imports, and streaming transformations
+that are unsupported in 1.0 environments.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Push vs Pull: When to Choose Push Processing - xslt</title>
+    <meta name="description" content="XSLT offers two foundational processing paradigms: pull-style and push-style. While pull-style relies on explicit instructions like <xsl:for-each> and <xsl:value-of> to dictate document flow, push-style delegates control to the XSLT processor using <xsl:">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-push-vs-pull-when-to-choose-push-processing">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Push vs Pull: When to Choose Push Processing - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-push-vs-pull-when-to-choose-push-processing" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT offers two foundational processing paradigms: pull-style and push-style. While pull-style relies on explicit instructions like <xsl:for-each> and <xsl:value-of> to dictate document flow, push-style delegates control to the XSLT processor using <xsl:" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-push-vs-pull-when-to-choose-push-processing">XSLT Push vs
+Pull: When to Choose Push Processing</h1>
+<p>XSLT offers two foundational processing paradigms: pull-style and
+push-style. While pull-style relies on explicit instructions like
+<code>&lt;xsl:for-each&gt;</code> and <code>&lt;xsl:value-of&gt;</code>
+to dictate document flow, push-style delegates control to the XSLT
+processor using <code>&lt;xsl:apply-templates&gt;</code>. This article
+examines the mechanics of both approaches and highlights the specific
+scenarios where developers should favor push-style processing to achieve
+cleaner, more maintainable, and highly extensible transformations.</p>
+<h2 id="understanding-the-core-difference">Understanding the Core
+Difference</h2>
+<ul>
+<li><strong>Push-style processing</strong> is rule-driven. The
+stylesheet invokes <code>&lt;xsl:apply-templates&gt;</code> on a set of
+nodes, allowing the processor to match each node to the most appropriate
+template rule. The source document dictates the execution order.</li>
+<li><strong>Pull-style processing</strong> is procedural. The developer
+explicitly queries specific nodes using XPath inside loops
+(<code>&lt;xsl:for-each&gt;</code>) and retrieval elements
+(<code>&lt;xsl:value-of&gt;</code>). The stylesheet dictates the
+execution order.</li>
+</ul>
+<h2 id="when-to-choose-push-style-processing">When to Choose Push-Style
+Processing</h2>
+<h3 id="1-document-oriented-and-mixed-content-xml">1. Document-Oriented
+and Mixed-Content XML</h3>
+<p>Push processing is the standard choice for narrative or
+document-centric XML, such as DocBook, TEI, DITA, or XHTML. These
+formats frequently feature mixed content—text nodes interleaved with
+inline formatting tags (e.g., <code>&lt;b&gt;</code>,
+<code>&lt;i&gt;</code>, <code>&lt;a&gt;</code>).</p>
+<p>Attempting to process mixed content with pull patterns requires
+complex loops and conditionals to determine the identity of each child
+node. In contrast, push processing processes the node stream naturally,
+delegating formatting to dedicated templates for each element type while
+preserving surrounding text.</p>
+<h3 id="2-unpredictable-or-highly-variable-document-hierarchies">2.
+Unpredictable or Highly Variable Document Hierarchies</h3>
+<p>When the exact order, frequency, or nesting depth of child elements
+is unknown, pull processing fails because it requires hard-coded XPath
+traversal paths.</p>
+<p>Push-style processing abstracts away the surrounding context. A
+template matching <code>&lt;para&gt;</code> will execute whenever a
+<code>&lt;para&gt;</code> node is encountered, regardless of whether it
+appears inside a <code>&lt;section&gt;</code>, an
+<code>&lt;article&gt;</code>, or a <code>&lt;blockquote&gt;</code>.</p>
+<h3 id="3-recursive-and-tree-structured-data">3. Recursive and
+Tree-Structured Data</h3>
+<p>Hierarchical data structures with arbitrary nesting—such as
+navigation menus, organizational charts, threaded comments, or category
+trees—are inherently recursive. Push-style templates call
+<code>&lt;xsl:apply-templates select="child::node()"/&gt;</code>
+recursively, enabling clean tree traversal without requiring deep, rigid
+XPath expressions or iterative state tracking.</p>
+<h3 id="4-modular-extensible-and-reusable-codebases">4. Modular,
+Extensible, and Reusable Codebases</h3>
+<p>Large enterprise applications benefit from decoupled stylesheets.
+Push patterns break the transformation logic into atomic, self-contained
+template rules.</p>
+<p>This modularity provides critical architectural benefits:</p>
+<ul>
+<li><strong>Overriding Rules:</strong> Stylesheets importing base
+templates can selectively override processing for specific elements
+without duplicating the overarching document logic.</li>
+<li><strong>Feature Additions:</strong> Supporting a new XML element
+requires simply adding a new <code>&lt;xsl:template&gt;</code> rule,
+leaving all existing templates untouched.</li>
+<li><strong>Polymorphism:</strong> Similar elements can share base
+processing while specializing behavior using the <code>match</code> and
+<code>mode</code> attributes.</li>
+</ul>
+<h3 id="5-eliminating-complex-conditional-logic">5. Eliminating Complex
+Conditional Logic</h3>
+<p>Pull-style stylesheets often become anti-patterns dominated by deeply
+nested <code>&lt;xsl:choose&gt;</code> and <code>&lt;xsl:when&gt;</code>
+structures within massive loops. Replacing these constructs with
+discrete push-style templates relies on the XSLT engine’s native pattern
+matching and priority resolution. This shift improves readability,
+reduces cyclomatic complexity, and makes unit testing individual
+templates straightforward.</p>
+<h2 id="summary-rule-of-thumb">Summary Rule of Thumb</h2>
+<p>Choose <strong>pull-style</strong> when transforming rigid,
+record-based, data-centric XML (such as database dumps, flat CSV
+exports, or predictable SOAP payloads) where the output structure is
+known in advance. Choose <strong>push-style</strong> whenever the input
+document contains mixed content, recursive nesting, unpredictable
+structure, or when the stylesheet must remain extensible and open to
+customization.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

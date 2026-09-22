@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Purpose of xsl:key in XSLT? - xslt</title>
+    <meta name="description" content="The <xsl:key> element in XSLT is a top-level declaration designed to build internal lookup indexes for XML nodes, significantly boosting transformation performance on large datasets and enabling advanced structural manipulation like grouping. By associat">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-key-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Purpose of xsl:key in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-purpose-of-xsl-key-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The <xsl:key> element in XSLT is a top-level declaration designed to build internal lookup indexes for XML nodes, significantly boosting transformation performance on large datasets and enabling advanced structural manipulation like grouping. By associat" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-the-purpose-of-xslkey-in-xslt">What Is the Purpose of
+xsl:key in XSLT?</h1>
+<p>The <code>&lt;xsl:key&gt;</code> element in XSLT is a top-level
+declaration designed to build internal lookup indexes for XML nodes,
+significantly boosting transformation performance on large datasets and
+enabling advanced structural manipulation like grouping. By associating
+specific nodes with calculated key values, XSLT processors can replace
+expensive, full-tree XPath searches with constant-time indexed
+retrievals via the <code>key()</code> function.</p>
+<h2 id="how-the-xslkey-element-works">How the
+<code>&lt;xsl:key&gt;</code> Element Works</h2>
+<p>In standard XSLT transformations, querying nodes using complex XPath
+predicates (such as <code>//item[@category = 'electronics']</code>)
+requires the processor to repeatedly scan the node-set. For large
+documents, repeated linear scans result in <span
+class="math inline">\(O(N^2)\)</span> processing bottlenecks.</p>
+<p>The <code>&lt;xsl:key&gt;</code> element solves this by instructing
+the processor to construct a hash table or search index during the
+initial document load. It requires three core attributes:</p>
+<ul>
+<li><strong><code>name</code></strong>: A unique identifier (QName) used
+to reference the index in transformation logic.</li>
+<li><strong><code>match</code></strong>: An XPath pattern matching the
+nodes that should be indexed.</li>
+<li><strong><code>use</code></strong>: An XPath expression evaluated
+against each matched node to extract the indexing key value.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:key</span> <span class="ot">name=</span><span class="st">&quot;books-by-author&quot;</span> <span class="ot">match=</span><span class="st">&quot;book&quot;</span> <span class="ot">use=</span><span class="st">&quot;author&quot;</span> /&gt;</span></code></pre></div>
+<p>Once defined at the stylesheet level, nodes can be retrieved from
+anywhere in the stylesheet using the <code>key()</code> function:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;key(&#39;books-by-author&#39;, &#39;George Orwell&#39;)/title&quot;</span> /&gt;</span></code></pre></div>
+<h2 id="primary-use-cases">Primary Use Cases</h2>
+<h3 id="1-high-performance-lookups">1. High-Performance Lookups</h3>
+<p>When dealing with deeply nested structures or cross-referencing
+multiple parts of an XML document—such as matching an <code>order</code>
+item's <code>productId</code> against a catalog definition—indexing the
+catalog via <code>&lt;xsl:key&gt;</code> reduces lookup times from <span
+class="math inline">\(O(N)\)</span> to nearly <span
+class="math inline">\(O(1)\)</span>.</p>
+<h3 id="2-muenchian-grouping-xslt-10">2. Muenchian Grouping (XSLT
+1.0)</h3>
+<p>Before XSLT 2.0 introduced <code>&lt;xsl:for-each-group&gt;</code>,
+XSLT lacked native grouping capabilities. The Muenchian Method relies on
+<code>&lt;xsl:key&gt;</code> along with the <code>generate-id()</code>
+function to group elements by value efficiently.</p>
+<p>By comparing the unique ID of a node to the first node returned by
+<code>key()</code>, processors can determine the distinct values in a
+node-set without scanning duplicates:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;//book[generate-id() = generate-id(key(&#39;books-by-author&#39;, author)[1])]&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Processes each unique author group --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<h3 id="3-cross-document-cross-referencing">3. Cross-Document
+Cross-Referencing</h3>
+<p>The <code>key()</code> function accepts a third argument in XSLT 2.0
+and later to specify the source document, allowing indexed lookups
+across secondary files loaded with the <code>document()</code>
+function.</p>
+<h2 id="summary-of-benefits">Summary of Benefits</h2>
+<p>By offloading repetitive node scans to pre-built indexes,
+<code>&lt;xsl:key&gt;</code> minimizes memory overhead, simplifies
+complex XPath expressions, and provides the algorithmic foundation for
+fast data extraction and document restructuring in production XML
+pipelines.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

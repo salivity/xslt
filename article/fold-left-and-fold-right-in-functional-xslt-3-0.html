@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fold-left and fold-right in Functional XSLT 3.0 - xslt</title>
+    <meta name="description" content="This article provides a concise guide to the fold-left() and fold-right() functions in XSLT 3.0 and XPath 3.0, explaining their purpose, syntax, and operational differences. You will learn how these higher-order functions enable sequence reduction and st">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/fold-left-and-fold-right-in-functional-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="fold-left and fold-right in Functional XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/fold-left-and-fold-right-in-functional-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise guide to the fold-left() and fold-right() functions in XSLT 3.0 and XPath 3.0, explaining their purpose, syntax, and operational differences. You will learn how these higher-order functions enable sequence reduction and st" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="fold-left-and-fold-right-in-functional-xslt-30">fold-left and
+fold-right in Functional XSLT 3.0</h1>
+<p>This article provides a concise guide to the <code>fold-left()</code>
+and <code>fold-right()</code> functions in XSLT 3.0 and XPath 3.0,
+explaining their purpose, syntax, and operational differences. You will
+learn how these higher-order functions enable sequence reduction and
+state accumulation, eliminating the need for verbose recursive templates
+while adhering to pure functional programming principles.</p>
+<h2 id="understanding-sequence-reduction">Understanding Sequence
+Reduction</h2>
+<p>In functional programming, folding (also known as reduce, accumulate,
+or aggregate) processes a data structure in a specific order to build up
+a single return value. Prior to XSLT 3.0, reducing a sequence into a
+single computed value—such as calculating a rolling total, reversing a
+list, or building a deeply nested tree—typically required writing custom
+recursive templates or user-defined functions using
+<code>xsl:iterate</code>.</p>
+<p>With the introduction of higher-order functions in XPath 3.0 (and
+thus XSLT 3.0), <code>fn:fold-left()</code> and
+<code>fn:fold-right()</code> became standard tools to process sequences
+declaratively without explicit iteration or template recursion.</p>
+<p>Both functions require three arguments:</p>
+<ol type="1">
+<li><code>$seq</code>: The sequence of items to process
+(<code>item()*</code>).</li>
+<li><code>$zero</code>: The initial value or accumulator
+(<code>item()*</code>).</li>
+<li><code>$f</code>: A function item that accepts two arguments and
+returns the updated accumulator
+(<code>function(item()*, item()) as item()*</code> or vice versa).</li>
+</ol>
+<hr />
+<h2 id="the-fold-left-function">The <code>fold-left()</code>
+Function</h2>
+<p><code>fold-left()</code> processes the sequence from left to right
+(from the first item to the last). In each iteration, it supplies the
+accumulated result as the first argument and the current item from the
+sequence as the second argument to the reduction function.</p>
+<h3 id="signature-and-evaluation-order">Signature and Evaluation
+Order</h3>
+<pre class="xpath"><code>fn:fold-left($seq as item()*, $zero as item()*, $f as function(item()*, item()) as item()*) as item()*</code></pre>
+<p>If the sequence is <code>(1, 2, 3)</code>, the evaluation proceeds as
+follows:</p>
+<pre class="xpath"><code>$f($f($f($zero, 1), 2), 3)</code></pre>
+<h3 id="example-custom-string-aggregation">Example: Custom String
+Aggregation</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;words&quot;</span> <span class="ot">select=</span><span class="st">&quot;(&#39;XSLT&#39;, &#39;3.0&#39;, &#39;Functional&#39;, &#39;Programming&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;result&quot;</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">    fold-left($words, &#39;&#39;, function($accum, $item) {</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">        if ($accum = &#39;&#39;) then $item else concat($accum, &#39; -&gt; &#39;, $item)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">    })</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span>/&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Result: &#39;XSLT -&gt; 3.0 -&gt; Functional -&gt; Programming&#39; --&gt;</span></span></code></pre></div>
+<hr />
+<h2 id="the-fold-right-function">The <code>fold-right()</code>
+Function</h2>
+<p><code>fold-right()</code> processes the sequence from right to left
+(from the last item to the first). In contrast to
+<code>fold-left()</code>, the reduction function receives the current
+item as its first argument and the running accumulator as its second
+argument.</p>
+<h3 id="signature-and-evaluation-order-1">Signature and Evaluation
+Order</h3>
+<pre class="xpath"><code>fn:fold-right($seq as item()*, $zero as item()*, $f as function(item(), item()*) as item()*) as item()*</code></pre>
+<p>If the sequence is <code>(1, 2, 3)</code>, the evaluation proceeds as
+follows:</p>
+<pre class="xpath"><code>$f(1, $f(2, $f(3, $zero)))</code></pre>
+<h3 id="example-building-nested-elements">Example: Building Nested
+Elements</h3>
+<p><code>fold-right()</code> is particularly effective for nesting
+wrappers around content, where the leftmost item becomes the outermost
+container.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;tags&quot;</span> <span class="ot">select=</span><span class="st">&quot;(&#39;div&#39;, &#39;section&#39;, &#39;article&#39;)&quot;</span>/&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;nested&quot;</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">    fold-right($tags, </span><span class="er">&lt;</span><span class="st">p&gt;Content</span><span class="er">&lt;</span><span class="st">/p&gt;, function($tag, $accum) {</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">        element { $tag } { $accum }</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">    })</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span>/&gt;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Result: &lt;div&gt;&lt;section&gt;&lt;article&gt;&lt;p&gt;Content&lt;/p&gt;&lt;/article&gt;&lt;/section&gt;&lt;/div&gt; --&gt;</span></span></code></pre></div>
+<hr />
+<h2 id="key-differences-and-functional-considerations">Key Differences
+and Functional Considerations</h2>
+<h3 id="1-associativity">1. Associativity</h3>
+<p>For commutative and associative operations like addition or
+multiplication, both functions yield identical results:</p>
+<pre class="xpath"><code>fold-left((1, 2, 3), 0, function($a, $b) { $a + $b })  (: Returns 6 :)
+fold-right((1, 2, 3), 0, function($a, $b) { $a + $b }) (: Returns 6 :)</code></pre>
+<p>For non-associative operations such as subtraction, division, or list
+restructuring, the choice directly impacts the outcome:</p>
+<pre class="xpath"><code>fold-left((10, 5, 2), 100, function($a, $b) { $a - $b })  (: ((100 - 10) - 5) - 2 = 83 :)
+fold-right((10, 5, 2), 100, function($a, $b) { $a - $b }) (: 10 - (5 - (2 - 100)) = -83 :)</code></pre>
+<h3 id="2-argument-signatures">2. Argument Signatures</h3>
+<ul>
+<li>In <code>fold-left()</code>, the function item takes
+<code>($accumulator, $item)</code>.</li>
+<li>In <code>fold-right()</code>, the function item takes
+<code>($item, $accumulator)</code>.</li>
+</ul>
+<p>Swapping the functions without adjusting the parameter order of the
+callback will cause evaluation errors or unexpected type mismatch
+failures.</p>
+<h3 id="3-performance-and-memory">3. Performance and Memory</h3>
+<p><code>fold-left()</code> is generally tail-recursive, allowing XSLT
+processors (like Saxon) to optimize execution and evaluate sequences in
+constant stack space. <code>fold-right()</code> requires constructing an
+evaluation stack that holds references to all pending functions until
+the end of the sequence is reached, making <code>fold-left()</code> the
+preferred choice when the direction of evaluation does not alter the
+business logic.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

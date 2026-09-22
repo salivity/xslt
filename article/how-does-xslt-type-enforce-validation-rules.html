@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT Type Enforce Validation Rules? - xslt</title>
+    <meta name="description" content="Schema-aware XSLT uses the type attribute on literal result elements, instructions like xsl:element and xsl:attribute, and document nodes to dynamically validate and annotate newly constructed nodes against an imported W3C XML Schema. By specifying a tar">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-type-enforce-validation-rules">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT Type Enforce Validation Rules? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-type-enforce-validation-rules" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Schema-aware XSLT uses the type attribute on literal result elements, instructions like xsl:element and xsl:attribute, and document nodes to dynamically validate and annotate newly constructed nodes against an imported W3C XML Schema. By specifying a tar" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-does-xslt-type-enforce-validation-rules">How Does XSLT Type
+Enforce Validation Rules?</h1>
+<p>Schema-aware XSLT uses the <code>type</code> attribute on literal
+result elements, instructions like <code>xsl:element</code> and
+<code>xsl:attribute</code>, and document nodes to dynamically validate
+and annotate newly constructed nodes against an imported W3C XML Schema.
+By specifying a target simple or complex type, the transformation engine
+verifies that the node’s content conforms strictly to the schema
+definition during tree construction. If the content fails schema
+constraints, the transformation halts with a dynamic error, ensuring
+that the generated XML output maintains guaranteed type safety and
+structural integrity.</p>
+<h2 id="mechanics-of-type-driven-validation">Mechanics of Type-Driven
+Validation</h2>
+<p>When a stylesheet imports an XML Schema using
+<code>xsl:import-schema</code>, the XSLT processor registers all
+declared simple and complex types. Applying the <code>type</code>
+attribute instructs the processor to validate the node against a
+specific target definition rather than relying on context-based element
+declarations.</p>
+<p>For element validation, the syntax targets a declared type
+directly:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">price</span> <span class="ot">xsl:type=</span><span class="st">&quot;xs:decimal&quot;</span>&gt;19.99&lt;/<span class="kw">price</span>&gt;</span></code></pre></div>
+<p>During execution, the processor evaluates the text content of the
+element. If the value cannot be converted or cast to the target type,
+the engine raises a dynamic validation error (such as
+<code>XTTE1510</code> or <code>XTTE1540</code>, depending on
+context).</p>
+<p>For attribute validation, the <code>type</code> attribute operates on
+<code>xsl:attribute</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:attribute</span> <span class="ot">name=</span><span class="st">&quot;discount&quot;</span> <span class="ot">type=</span><span class="st">&quot;xs:nonNegativeInteger&quot;</span> <span class="ot">select=</span><span class="st">&quot;$discountRate&quot;</span> /&gt;</span></code></pre></div>
+<p>The value of <code>$discountRate</code> must satisfy the facets
+defined on <code>xs:nonNegativeInteger</code> (such as minimum value
+constraints). If validation succeeds, the attribute node receives the
+corresponding type annotation.</p>
+<h2 id="difference-between-type-and-validation-attributes">Difference
+Between <code>type</code> and <code>validation</code> Attributes</h2>
+<p>Schema-aware XSLT provides two distinct mechanisms for validating
+generated output nodes: the <code>validation</code> attribute and the
+<code>type</code> attribute. These attributes are mutually exclusive;
+specifying both on the same instruction causes a static compilation
+error.</p>
+<ul>
+<li><strong>The <code>type</code> attribute</strong> validates a node
+against a specific named simple or complex type regardless of the node's
+local name or parent element context.</li>
+<li><strong>The <code>validation</code> attribute</strong>
+(<code>strict</code>, <code>lax</code>, <code>preserve</code>, or
+<code>strip</code>) validates an element against top-level element
+declarations within the schema, matching the element by its expanded
+QName.</li>
+</ul>
+<p>Using <code>type</code> offers finer control when constructing
+anonymous structures or when applying generic schemas where element
+names vary but data formats remain standardized.</p>
+<h2 id="validation-rules-for-simple-and-complex-types">Validation Rules
+for Simple and Complex Types</h2>
+<p>The type validation mechanism executes different rule sets based on
+whether the target is a simple type or a complex type.</p>
+<h3 id="simple-types">Simple Types</h3>
+<p>When the <code>type</code> attribute names an atomic or list type
+(such as <code>xs:date</code>, <code>xs:integer</code>, or a
+user-defined restriction):</p>
+<ul>
+<li>The element must not contain any child element nodes.</li>
+<li>The combined string value of all child text nodes is evaluated
+against the lexical space and facet restrictions (such as
+<code>pattern</code>, <code>minInclusive</code>, or
+<code>enumeration</code>) of the target type.</li>
+<li>Upon successful validation, the element's typed value becomes
+accessible to subsequent XPath operations as a typed instance (e.g.,
+enabling direct arithmetic on numbers or date comparisons).</li>
+</ul>
+<h3 id="complex-types">Complex Types</h3>
+<p>When validating against a complex type definition:</p>
+<ul>
+<li>The sequence and names of child elements must strictly match the
+content model particles (<code>xs:sequence</code>,
+<code>xs:choice</code>, or <code>xs:all</code>).</li>
+<li>Any defined attributes must conform to their respective attribute
+declarations in the schema.</li>
+<li>Elements with simple content must satisfy the extension or
+restriction rules defined for their base types.</li>
+</ul>
+<h2 id="error-handling-and-transformation-integrity">Error Handling and
+Transformation Integrity</h2>
+<p>Schema-aware processors enforce type constraints at runtime during
+tree construction. If an input value violates a constraint—such as
+providing an invalid date format or an out-of-range integer—the
+processor does not silently degrade to untyped data. Instead, it aborts
+processing with a fatal dynamic error unless caught by explicit
+error-handling constructs.</p>
+<p>This fail-fast mechanism prevents downstream systems from receiving
+malformed data and ensures that downstream template rules matching on
+typed patterns (e.g., <code>match="element(*, xs:decimal)"</code>)
+execute only against verified XML fragments.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

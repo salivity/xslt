@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Dynamically Generate XSLT with XSLT - xslt</title>
+    <meta name="description" content="Dynamic stylesheet generation, or meta-XSLT, is an architectural pattern where a primary XSLT stylesheet transforms an input configuration or schema into a secondary, specialized XSLT stylesheet. This approach automates the creation of complex transforma">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-dynamically-generate-xslt-with-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Dynamically Generate XSLT with XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-dynamically-generate-xslt-with-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Dynamic stylesheet generation, or meta-XSLT, is an architectural pattern where a primary XSLT stylesheet transforms an input configuration or schema into a secondary, specialized XSLT stylesheet. This approach automates the creation of complex transforma" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-dynamically-generate-xslt-with-xslt">How to Dynamically
+Generate XSLT with XSLT</h1>
+<p>Dynamic stylesheet generation, or meta-XSLT, is an architectural
+pattern where a primary XSLT stylesheet transforms an input
+configuration or schema into a secondary, specialized XSLT stylesheet.
+This approach automates the creation of complex transformations,
+enforces business rules dynamically, and reduces repetitive code by
+treating stylesheets as data. This article explains how meta-level XSLT
+functions, how to overcome XML namespace collision using namespace
+aliasing, and how to implement a working dynamic generator.</p>
+<h2 id="the-core-challenge-namespace-collision">The Core Challenge:
+Namespace Collision</h2>
+<p>Because XSLT stylesheets are standard XML documents, an XSLT
+processor natively interprets elements in the
+<code>http://www.w3.org/1999/XSL/Transform</code> namespace as
+instructions to execute.</p>
+<p>When writing a meta-stylesheet that outputs another stylesheet, you
+cannot simply output <code>&lt;xsl:template&gt;</code> directly as
+literal result elements. Doing so causes the processor to evaluate them
+immediately as part of the meta-stylesheet execution rather than
+serializing them into the generated document.</p>
+<h2 id="the-solution-xslnamespace-alias">The Solution:
+<code>&lt;xsl:namespace-alias&gt;</code></h2>
+<p>XSLT solves this problem through namespace aliasing. You assign an
+arbitrary namespace prefix (such as <code>axsl</code> or
+<code>out</code>) to an alternate URI during the meta-transformation.
+You then instruct the processor to substitute this temporary namespace
+with the official XSLT namespace in the final output using the
+<code>&lt;xsl:namespace-alias&gt;</code> element.</p>
+<h3 id="syntax">Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:namespace-alias</span> <span class="ot">stylesheet-prefix=</span><span class="st">&quot;out&quot;</span> <span class="ot">result-prefix=</span><span class="st">&quot;xsl&quot;</span>/&gt;</span></code></pre></div>
+<ul>
+<li><code>stylesheet-prefix</code>: The prefix used inside the
+meta-stylesheet to represent elements of the generated stylesheet.</li>
+<li><code>result-prefix</code>: The prefix mapped to the official XSLT
+URI that will appear in the generated result document.</li>
+</ul>
+<h2 id="implementation-example">Implementation Example</h2>
+<p>Consider a scenario where an input XML configuration defines which
+database fields should be mapped to an output XML structure.</p>
+<h3 id="1-the-configuration-input-mapping-configxml">1. The
+Configuration Input (<code>mapping-config.xml</code>)</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">mapping</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">field</span> <span class="ot">source=</span><span class="st">&quot;USER_ID&quot;</span> <span class="ot">target=</span><span class="st">&quot;id&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">field</span> <span class="ot">source=</span><span class="st">&quot;USER_NAME&quot;</span> <span class="ot">target=</span><span class="st">&quot;fullName&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">field</span> <span class="ot">source=</span><span class="st">&quot;USER_EMAIL&quot;</span> <span class="ot">target=</span><span class="st">&quot;email&quot;</span>/&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">mapping</span>&gt;</span></code></pre></div>
+<h3 id="2-the-meta-level-stylesheet-generate-transformxsl">2. The
+Meta-Level Stylesheet (<code>generate-transform.xsl</code>)</h3>
+<p>The meta-stylesheet reads <code>mapping-config.xml</code> and
+dynamically generates a second stylesheet tailored specifically to that
+configuration.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:out=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform/alias&quot;</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Map the &#39;out&#39; prefix to the real XSLT namespace on serialization --&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:namespace-alias</span> <span class="ot">stylesheet-prefix=</span><span class="st">&quot;out&quot;</span> <span class="ot">result-prefix=</span><span class="st">&quot;xsl&quot;</span>/&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/mapping&quot;</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Generates the root &lt;xsl:stylesheet&gt; of the target stylesheet --&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">out:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">out:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">out:template</span> <span class="ot">match=</span><span class="st">&quot;/record&quot;</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                    <span class="co">&lt;!-- Dynamically generate value-of templates based on input config --&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;field&quot;</span>&gt;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                        &lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;{@target}&quot;</span>&gt;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                            &lt;<span class="kw">out:value-of</span> <span class="ot">select=</span><span class="st">&quot;{@source}&quot;</span>/&gt;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                        &lt;/<span class="kw">xsl:element</span>&gt;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                    &lt;/<span class="kw">xsl:for-each</span>&gt;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">out:template</span>&gt;</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">out:stylesheet</span>&gt;</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="3-the-generated-output-stylesheet">3. The Generated Output
+Stylesheet</h3>
+<p>When the meta-stylesheet processes <code>mapping-config.xml</code>,
+it outputs the following valid XSLT file:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>   &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>   &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/record&quot;</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">user</span>&gt;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>         &lt;<span class="kw">id</span>&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;USER_ID&quot;</span>/&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>         &lt;/<span class="kw">id</span>&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>         &lt;<span class="kw">fullName</span>&gt;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;USER_NAME&quot;</span>/&gt;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>         &lt;/<span class="kw">fullName</span>&gt;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>         &lt;<span class="kw">email</span>&gt;</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;USER_EMAIL&quot;</span>/&gt;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>         &lt;/<span class="kw">email</span>&gt;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">user</span>&gt;</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>   &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="two-stage-processing-pipeline">Two-Stage Processing
+Pipeline</h2>
+<p>Employing meta-level XSLT requires an execution pipeline divided into
+two clear phases:</p>
+<ol type="1">
+<li><strong>Compilation Phase:</strong> The XSLT engine executes the
+meta-stylesheet against an architectural definition, database schema, or
+mapping configuration. This produces a generated stylesheet file or
+in-memory template.</li>
+<li><strong>Execution Phase:</strong> The newly generated stylesheet is
+compiled by the engine and executed against the actual production
+payload data to generate the final result.</li>
+</ol>
+<p>In modern application servers, the generated stylesheet can be cached
+in memory after Phase 1, eliminating the overhead of regenerating and
+recompiling it for repeated transformations.</p>
+<h2 id="key-advantages-of-dynamic-generation">Key Advantages of Dynamic
+Generation</h2>
+<ul>
+<li><strong>Elimination of Boilerplate:</strong> Large enterprise
+mapping tasks often require thousands of near-identical transformation
+lines. Meta-XSLT generates these from succinct metadata.</li>
+<li><strong>Higher Runtime Performance:</strong> A dynamically generated
+stylesheet containing hardcoded, explicit XPath expressions performs
+significantly faster than a single generic stylesheet that relies on
+expensive runtime dynamic XPath evaluations or complex conditional
+branching (<code>xsl:choose</code>).</li>
+<li><strong>Format-Driven Code Generation:</strong> Meta-stylesheets can
+transform W3C XML Schemas (XSD), Schematron validation files, or OpenAPI
+definitions directly into production-ready ingestion filters without
+human intervention.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

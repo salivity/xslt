@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template-Driven vs Pull-Style Processing in XSLT - xslt</title>
+    <meta name="description" content="XSLT offers two distinct architectural patterns for processing XML data: template-driven transformation (often known as the push approach) and pull-style processing through explicit XPath querying. While template-driven transformations rely on declarativ">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/template-driven-vs-pull-style-processing-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Template-Driven vs Pull-Style Processing in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/template-driven-vs-pull-style-processing-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT offers two distinct architectural patterns for processing XML data: template-driven transformation (often known as the push approach) and pull-style processing through explicit XPath querying. While template-driven transformations rely on declarativ" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="template-driven-vs-pull-style-processing-in-xslt">Template-Driven vs
+Pull-Style Processing in XSLT</h1>
+<p>XSLT offers two distinct architectural patterns for processing XML
+data: template-driven transformation (often known as the push approach)
+and pull-style processing through explicit XPath querying. While
+template-driven transformations rely on declarative pattern-matching
+rules via <code>&lt;xsl:apply-templates&gt;</code> to navigate dynamic
+and nested hierarchies, pull-style transformations use targeted XPath
+selectors and constructs like <code>&lt;xsl:for-each&gt;</code> and
+<code>&lt;xsl:value-of&gt;</code> to extract data in a rigidly defined
+sequence. Choosing between them depends heavily on whether the source
+document is narrative and structural or structured and data-centric.</p>
+<h3 id="template-driven-transformation-push-style">Template-Driven
+Transformation (Push Style)</h3>
+<p>In a template-driven approach, the stylesheet author writes modular
+templates with match patterns
+(<code>&lt;xsl:template match="..."&gt;</code>). The XSLT processor
+traverses the XML tree, encounters nodes, and automatically invokes the
+most specific template designed to handle each node type.</p>
+<ul>
+<li><strong>Control Flow:</strong> Delegated to the processor. The
+stylesheet instructions say "process children"
+(<code>&lt;xsl:apply-templates/&gt;</code>), and the processor
+determines which template matches the current context.</li>
+<li><strong>Flexibility:</strong> Highly adaptable to variations in
+element order, depth, and schema evolution. If new elements appear or
+nesting changes, matching templates handle them without breaking
+surrounding code.</li>
+<li><strong>Code Structure:</strong> Decoupled and modular. Individual
+templates function like polymorphic functions in object-oriented
+programming, operating independently of where an element appears in the
+document.</li>
+<li><strong>Best Used For:</strong> Document-centric XML, such as
+DocBook, TEI, HTML, or mixed content containing rich text, inline
+elements, and unpredictable hierarchies.</li>
+</ul>
+<h3 id="pull-style-xpath-querying-pull-style">Pull-Style XPath Querying
+(Pull Style)</h3>
+<p>Pull-style processing resembles traditional procedural programming.
+The stylesheet defines the exact path and sequence of the target output
+using explicit XPath expressions, "pulling" values out of the source
+tree at specific points using
+<code>&lt;xsl:value-of select="..." /&gt;</code> and iterating over
+node-sets via <code>&lt;xsl:for-each select="..." /&gt;</code>.</p>
+<ul>
+<li><strong>Control Flow:</strong> Driven directly by the stylesheet
+author. The execution order is determined by the linear layout of the
+transformation logic rather than the source document's internal
+hierarchy.</li>
+<li><strong>Flexibility:</strong> Rigid. If the source schema changes,
+or if elements appear out of the anticipated order, the queries fail to
+capture the required data unless the explicit paths are updated.</li>
+<li><strong>Code Structure:</strong> Centralized and monolithic. Logic
+often lives inside deeply nested <code>&lt;xsl:for-each&gt;</code>
+blocks with explicit absolute or relative XPath selectors.</li>
+<li><strong>Best Used For:</strong> Data-centric XML, such as database
+dumps, financial transactions, configuration files, and predictable
+tabular records with fixed schemas.</li>
+</ul>
+<h3 id="primary-architectural-differences">Primary Architectural
+Differences</h3>
+<ul>
+<li><strong>Schema Dependency:</strong> Template-driven stylesheets are
+loosely coupled to the document schema, making them resilient to
+structural fluctuations. Pull-style stylesheets are tightly coupled to
+explicit paths, making them brittle if the XML structure changes.</li>
+<li><strong>Handling Mixed Content:</strong> Template-driven transforms
+excel at handling text intermingled with tags (such as formatting tags
+within a paragraph). Pull-style queries struggle with mixed content
+because hardcoded paths cannot easily account for dynamic inline
+tags.</li>
+<li><strong>Maintainability:</strong> While simple pull-style sheets are
+initially easier for programmers familiar with imperative languages to
+understand, they quickly become unwieldy as document complexity grows.
+Template-driven stylesheets scale better across complex schemas by
+isolating transformations to individual node rules.</li>
+<li><strong>Hybrid Implementations:</strong> Real-world XSLT often
+combines both approaches: using pull-style querying at the top level to
+establish a fixed document shell, and switching to template-driven
+processing inside inner containers where content is varied or deeply
+nested.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

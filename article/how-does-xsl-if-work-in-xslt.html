@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does xsl:if Work in XSLT? - xslt</title>
+    <meta name="description" content="Conditional logic in XSLT allows developers to dynamically control the output of an XML transformation based on specific criteria. The <xsl:if> element acts as a straightforward, single-branch conditional test: if the evaluated XPath expression returns t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xsl-if-work-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does xsl:if Work in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xsl-if-work-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Conditional logic in XSLT allows developers to dynamically control the output of an XML transformation based on specific criteria. The <xsl:if> element acts as a straightforward, single-branch conditional test: if the evaluated XPath expression returns t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-does-xslif-work-in-xslt">How Does xsl:if Work in XSLT?</h1>
+<p>Conditional logic in XSLT allows developers to dynamically control
+the output of an XML transformation based on specific criteria. The
+<code>&lt;xsl:if&gt;</code> element acts as a straightforward,
+single-branch conditional test: if the evaluated XPath expression
+returns true, the enclosed template content is processed and rendered;
+if false, the processor ignores the block entirely. Understanding its
+syntax, common test patterns, and key limitations is essential for
+writing clean, efficient XSLT stylesheets.</p>
+<h3 id="basic-syntax-and-structure">Basic Syntax and Structure</h3>
+<p>The <code>&lt;xsl:if&gt;</code> element requires a single mandatory
+attribute: <code>test</code>. The value of this attribute is an XPath
+expression evaluated in the context of the current node.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;expression&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Content to output if condition is true --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>When the XSLT engine encounters this element, it converts the result
+of the <code>test</code> expression to a boolean value. If the boolean
+evaluates to <code>true</code>, the child nodes within the
+<code>&lt;xsl:if&gt;</code> tag are instantiated in the output tree.</p>
+<h3 id="common-testing-patterns">Common Testing Patterns</h3>
+<p>The <code>test</code> attribute supports a wide variety of XPath
+operations, from simple node-existence checks to complex comparative
+statements.</p>
+<ul>
+<li><strong>Node Existence:</strong> Testing whether an element or
+attribute is present.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;discount&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">span</span>&gt;Discount available!&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>Attribute Checks:</strong> Verifying attribute presence or
+values.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;@status = &#39;active&#39;&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span>&gt;User is active.&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>Numerical Comparisons:</strong> Comparing numbers requires
+standard XML entity escapes for angle brackets. Use
+<code>&amp;lt;</code> for less than and <code>&amp;gt;</code> for
+greater than.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;price </span><span class="dv">&amp;gt;</span><span class="st"> 100&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;premium&quot;</span>&gt;Premium Item&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>Logical Operators:</strong> Combining multiple conditions
+using <code>and</code>, <code>or</code>, and <code>not()</code>.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;stock </span><span class="dv">&amp;gt;</span><span class="st"> 0 and not(@discontinued)&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">button</span>&gt;Add to Cart&lt;/<span class="kw">button</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h3 id="boolean-evaluation-rules-in-xpath">Boolean Evaluation Rules in
+XPath</h3>
+<p>Understanding how non-boolean values evaluate inside the
+<code>test</code> attribute prevents common transformation bugs:</p>
+<ul>
+<li><strong>Node-sets:</strong> Evaluates to <code>true</code> if the
+node-set is non-empty; <code>false</code> if empty.</li>
+<li><strong>Strings:</strong> Evaluates to <code>true</code> if the
+string length is greater than 0; <code>false</code> if the string is
+empty (<code>""</code>).</li>
+<li><strong>Numbers:</strong> Evaluates to <code>true</code> if the
+number is non-zero and not <code>NaN</code>; <code>false</code> for
+<code>0</code> or <code>NaN</code>.</li>
+</ul>
+<h3 id="practical-example">Practical Example</h3>
+<p>Given the following XML input:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">catalog</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">book</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">title</span>&gt;Learning XSLT&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">inStock</span>&gt;true&lt;/<span class="kw">inStock</span>&gt;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">price</span>&gt;35.00&lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">book</span> <span class="ot">id=</span><span class="st">&quot;2&quot;</span>&gt;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">title</span>&gt;Advanced XML&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">inStock</span>&gt;false&lt;/<span class="kw">inStock</span>&gt;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">price</span>&gt;50.00&lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">catalog</span>&gt;</span></code></pre></div>
+<p>An XSLT template can selectively render in-stock items with special
+pricing notices:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;book&quot;</span>&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;book-card&quot;</span>&gt;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">h3</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt;&lt;/<span class="kw">h3</span>&gt;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;inStock = &#39;true&#39;&quot;</span>&gt;</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;status in-stock&quot;</span>&gt;Available Now&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;price </span><span class="dv">&amp;gt;</span><span class="st"> 40.00&quot;</span>&gt;</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;notice&quot;</span>&gt;Eligible for Free Shipping&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<h3 id="the-single-branch-limitation">The Single-Branch Limitation</h3>
+<p>The most significant characteristic of <code>&lt;xsl:if&gt;</code> is
+the absence of an <code>else</code> or <code>elseif</code> branch. If a
+transformation requires mutually exclusive conditions or default
+fallback content, <code>&lt;xsl:choose&gt;</code> must be used
+instead.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;inStock = &#39;true&#39;&quot;</span>&gt;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">span</span>&gt;In Stock&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">span</span>&gt;Out of Stock&lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<p>Using <code>&lt;xsl:if&gt;</code> remains the preferred, concise
+approach whenever an output should appear solely upon satisfying a
+single, standalone condition.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

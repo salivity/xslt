@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is omit-xml-declaration in XSLT? - xslt</title>
+    <meta name="description" content="The omit-xml-declaration attribute in XSLT controls whether the XML declaration (such as <?xml version="1.0" encoding="UTF-8"?>) is written to the output document. Configured inside the top-level <xsl:output> element, setting this attribute to yes instru">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-omit-xml-declaration-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is omit-xml-declaration in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-omit-xml-declaration-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The omit-xml-declaration attribute in XSLT controls whether the XML declaration (such as <?xml version="1.0" encoding="UTF-8"?>) is written to the output document. Configured inside the top-level <xsl:output> element, setting this attribute to yes instru" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-omit-xml-declaration-in-xslt">What Is
+omit-xml-declaration in XSLT?</h1>
+<p>The <code>omit-xml-declaration</code> attribute in XSLT controls
+whether the XML declaration (such as
+<code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</code>) is written to
+the output document. Configured inside the top-level
+<code>&lt;xsl:output&gt;</code> element, setting this attribute to
+<code>yes</code> instructs the XSLT processor to suppress the
+declaration line entirely, while setting it to <code>no</code> ensures
+the declaration is prepended to the transformed output. This setting is
+crucial when generating XML fragments, embedding output into parent
+documents, or formatting non-standalone XML files.</p>
+<h2 id="understanding-xsloutput-and-xml-declarations">Understanding
+<code>&lt;xsl:output&gt;</code> and XML Declarations</h2>
+<p>In XSLT transformations, the <code>&lt;xsl:output&gt;</code> element
+defines the serialization parameters of the resulting document. By
+default, when the output method is set to <code>method="xml"</code>,
+most XSLT processors automatically prepend a standard XML declaration to
+ensure the result is a well-formed, standalone XML document.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span> <span class="ot">omit-xml-declaration=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p>The <code>omit-xml-declaration</code> attribute accepts two possible
+values:</p>
+<ul>
+<li><strong><code>yes</code></strong>: Suppresses the output of the XML
+declaration header.</li>
+<li><strong><code>no</code></strong>: Explicitly includes the XML
+declaration header at the start of the output file.</li>
+</ul>
+<h2 id="why-suppress-the-xml-declaration">Why Suppress the XML
+Declaration?</h2>
+<p>While standalone XML files typically benefit from an explicit
+declaration specifying the version and character encoding, several
+common architectural scenarios require omitting it.</p>
+<h3 id="1-generating-xml-fragments-for-injection">1. Generating XML
+Fragments for Injection</h3>
+<p>Many modern data pipelines transform source data into smaller XML
+nodes or fragments intended for insertion into an existing XML DOM or
+database column. If these fragments contain a
+<code>&lt;?xml ...?&gt;</code> header, concatenating or parsing them
+inside an existing XML tree will trigger syntax errors, because XML
+declarations are only valid at the absolute beginning of an entire
+document.</p>
+<h3 id="2-outputting-content-for-web-templates">2. Outputting Content
+for Web Templates</h3>
+<p>When rendering partial XHTML or XML-based templates that will be
+embedded into server-side views or API responses, including a
+declaration header can disrupt parsers, legacy browsers, or client-side
+rendering engines.</p>
+<h3 id="3-integrating-with-message-brokers-and-soap">3. Integrating with
+Message Brokers and SOAP</h3>
+<p>Certain legacy enterprise service buses (ESBs), message queues, or
+SOAP payloads require clean payloads without processing instructions or
+metadata headers to conform to strict schema validators.</p>
+<h2 id="default-processor-behavior">Default Processor Behavior</h2>
+<p>When the <code>omit-xml-declaration</code> attribute is omitted from
+the stylesheet, the default behavior depends on the output
+<code>method</code>:</p>
+<ul>
+<li><strong><code>method="xml"</code></strong>: The default is generally
+<code>no</code>, meaning the processor will generate the declaration
+unless an external document type or specific standalone declaration
+overrides it.</li>
+<li><strong><code>method="html"</code></strong>: The declaration is
+omitted by default because standard HTML serialization does not use XML
+processing instructions.</li>
+<li><strong><code>method="text"</code></strong>: The declaration is
+omitted by default because the target format is raw plain text.</li>
+</ul>
+<p>Explicitly declaring <code>omit-xml-declaration="yes"</code> provides
+guaranteed consistency across different XSLT processors (such as Saxon,
+Xalan, or libxslt), preventing unexpected parsing issues when documents
+are consumed downstream.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

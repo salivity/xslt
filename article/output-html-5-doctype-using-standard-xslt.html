@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Output HTML5 Doctype Using Standard XSLT - xslt</title>
+    <meta name="description" content="Generating a clean, modern <!DOCTYPE html> declaration using standard XSLT serializers can be challenging because earlier XSLT specifications were designed around legacy HTML and XML standards that mandated PUBLIC or SYSTEM identifiers. Depending on whet">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/output-html-5-doctype-using-standard-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Output HTML5 Doctype Using Standard XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/output-html-5-doctype-using-standard-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Generating a clean, modern <!DOCTYPE html> declaration using standard XSLT serializers can be challenging because earlier XSLT specifications were designed around legacy HTML and XML standards that mandated PUBLIC or SYSTEM identifiers. Depending on whet" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="output-html5-doctype-using-standard-xslt">Output HTML5 Doctype
+Using Standard XSLT</h1>
+<p>Generating a clean, modern <code>&lt;!DOCTYPE html&gt;</code>
+declaration using standard XSLT serializers can be challenging because
+earlier XSLT specifications were designed around legacy HTML and XML
+standards that mandated <code>PUBLIC</code> or <code>SYSTEM</code>
+identifiers. Depending on whether your transformation engine runs XSLT
+1.0, 2.0, or 3.0, the approach ranges from native serialization
+parameters to legacy-compatible workarounds and output escaping.</p>
+<h2 id="xslt-30-the-native-solution">XSLT 3.0: The Native Solution</h2>
+<p>The W3C XSLT and XQuery Serialization 3.0 specification natively
+supports HTML5 output. If your processor supports XSLT 3.0 (such as
+Saxon 9.8+), you simply configure the <code>&lt;xsl:output&gt;</code>
+element with the <code>html-version</code> attribute.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;html&quot;</span> <span class="ot">html-version=</span><span class="st">&quot;5.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">html</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">head</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">title</span>&gt;HTML5 Document&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">head</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">body</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">main</span>&gt;Content goes here.&lt;/<span class="kw">main</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">body</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">html</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>This configuration outputs the exact HTML5 doctype declaration:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> HTML<span class="dt">&gt;</span></span></code></pre></div>
+<h2 id="xslt-20-the-legacy-compat-approach">XSLT 2.0: The Legacy-Compat
+Approach</h2>
+<p>XSLT 2.0 serializers strictly adhere to older rules where a doctype
+must include either a <code>doctype-system</code> or
+<code>doctype-public</code> attribute. Consequently, supplying an empty
+string or omitting these attributes results in either an invalid doctype
+or no doctype at all.</p>
+<p>To handle this, the HTML5 specification officially permits an
+alternative doctype known as the "obsolete permitted DOCTYPE"
+specifically for legacy generators:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;html&quot;</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>            <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">doctype-system=</span><span class="st">&quot;about:legacy-compat&quot;</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p>This generates:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> html SYSTEM <span class="st">&quot;about:legacy-compat&quot;</span><span class="dt">&gt;</span></span></code></pre></div>
+<p>Modern web browsers recognize this string as fully valid HTML5 and
+will trigger standard standards mode rendering without quirks.</p>
+<h2 id="xslt-10-workarounds-for-strict-doctype-html">XSLT 1.0:
+Workarounds for Strict <code>&lt;!DOCTYPE html&gt;</code></h2>
+<p>In XSLT 1.0, processors like <code>libxslt</code> or older MSXML
+engines cannot generate a standalone <code>&lt;!DOCTYPE html&gt;</code>
+through standard <code>&lt;xsl:output&gt;</code> attributes. If you
+require the exact string without <code>about:legacy-compat</code>, you
+must bypass standard serialization.</p>
+<h3 id="method-1-disable-output-escaping">Method 1: Disable Output
+Escaping</h3>
+<p>The most common approach in XSLT 1.0 is omitting the doctype
+attributes from <code>&lt;xsl:output&gt;</code> and explicitly emitting
+the string at the root of the output document using
+<code>disable-output-escaping</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;html&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span> <span class="ot">disable-output-escaping=</span><span class="st">&quot;yes&quot;</span>&gt;<span class="dv">&amp;lt;</span>!DOCTYPE html<span class="dv">&amp;gt;&amp;#xA;</span>&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">html</span>&gt;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">head</span>&gt;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">title</span>&gt;HTML5 Document&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">head</span>&gt;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">body</span>&gt;</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">p</span>&gt;Generated via XSLT 1.0&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">body</span>&gt;</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">html</span>&gt;</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p><em>Note: <code>disable-output-escaping</code> may not be supported
+in environments where the XSLT processor outputs directly to a DOM tree
+rather than a serialized text stream.</em></p>
+<h3 id="method-2-processor-specific-extensions">Method 2:
+Processor-Specific Extensions</h3>
+<p>Many common XSLT 1.0 and 2.0 processors offer custom extension
+attributes to omit the system identifier while keeping the doctype
+prefix:</p>
+<ul>
+<li><strong>Saxon (PE/EE):</strong> Allows setting
+<code>saxon:doctype-system=""</code> alongside
+<code>&lt;xsl:output&gt;</code> to suppress the system identifier
+completely.</li>
+<li><strong>Xalan:</strong> Certain distributions support empty string
+values for <code>doctype-system</code> directly on the
+<code>&lt;xsl:output&gt;</code> element to force a minimal doctype.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

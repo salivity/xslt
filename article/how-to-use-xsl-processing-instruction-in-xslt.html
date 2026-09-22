@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use xsl:processing-instruction in XSLT - xslt</title>
+    <meta name="description" content="This article explores the purpose and implementation of the <xsl:processing-instruction> element in XSLT. You will learn how this element enables the creation of processing instructions such as xml-stylesheet declarations and server-side PHP tags, why st">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-use-xsl-processing-instruction-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use xsl:processing-instruction in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-use-xsl-processing-instruction-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the purpose and implementation of the <xsl:processing-instruction> element in XSLT. You will learn how this element enables the creation of processing instructions such as xml-stylesheet declarations and server-side PHP tags, why st" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-use-xslprocessing-instruction-in-xslt">How to Use
+xsl:processing-instruction in XSLT</h1>
+<p>This article explores the purpose and implementation of the
+<code>&lt;xsl:processing-instruction&gt;</code> element in XSLT. You
+will learn how this element enables the creation of processing
+instructions such as <code>xml-stylesheet</code> declarations and
+server-side PHP tags, why standard text-escaping methods fail for this
+purpose, and how to implement it correctly in your transformation
+stylesheets.</p>
+<p>In XSLT, processing instructions (PIs) provide instructions to
+external processors consuming the resulting document. Because XSLT
+parsers enforce strict XML syntax rules, attempting to output characters
+like <code>&lt;?</code> and <code>?&gt;</code> as raw text will result
+in XML parsing errors or unwanted entity escaping (e.g.,
+<code>&amp;lt;?php ... ?&amp;gt;</code>). The
+<code>&lt;xsl:processing-instruction&gt;</code> element solves this
+problem by allowing the XSLT processor to construct native, unescaped
+processing instructions in the result tree.</p>
+<h3 id="syntax-and-attributes">Syntax and Attributes</h3>
+<p>The element relies on a single mandatory attribute:</p>
+<ul>
+<li><strong><code>name</code></strong>: Specifies the target of the
+processing instruction (for example, <code>php</code>,
+<code>xml-stylesheet</code>, or any custom application target).</li>
+</ul>
+<p>The content placed inside the
+<code>&lt;xsl:processing-instruction&gt;</code> element forms the data
+string that immediately follows the instruction's name.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:processing-instruction</span> <span class="ot">name=</span><span class="st">&quot;target&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    instruction-data</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:processing-instruction</span>&gt;</span></code></pre></div>
+<h3 id="generating-stylesheet-directives">Generating Stylesheet
+Directives</h3>
+<p>A common use case is linking a CSS or XSL stylesheet to an XML
+document using the <code>xml-stylesheet</code> processing
+instruction.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:processing-instruction</span> <span class="ot">name=</span><span class="st">&quot;xml-stylesheet&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    href=&quot;styles.css&quot; type=&quot;text/css&quot;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:processing-instruction</span>&gt;</span></code></pre></div>
+<p>When evaluated, the processor generates the following valid XML
+directive:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml-stylesheet</span> href=&quot;styles.css&quot; type=&quot;text/css&quot;<span class="fu">?&gt;</span></span></code></pre></div>
+<p>You can also use XSLT expressions or attributes dynamically within
+the instruction using <code>&lt;xsl:value-of&gt;</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:processing-instruction</span> <span class="ot">name=</span><span class="st">&quot;xml-stylesheet&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;href=&quot;&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;/document/theme&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;.css&quot; type=&quot;text/css&quot;&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:processing-instruction</span>&gt;</span></code></pre></div>
+<h3 id="generating-php-code">Generating PHP Code</h3>
+<p>When using XSLT to generate PHP files or dynamic templates,
+<code>&lt;xsl:processing-instruction&gt;</code> allows you to inject PHP
+code without triggering XML syntax errors.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:processing-instruction</span> <span class="ot">name=</span><span class="st">&quot;php&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    echo &#39;Current Year: &#39; . date(&#39;Y&#39;);</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:processing-instruction</span>&gt;</span></code></pre></div>
+<p>This generates:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">&lt;?php</span> <span class="kw">echo</span> <span class="st">&#39;Current Year: &#39;</span> <span class="op">.</span> <span class="fu">date</span>(<span class="st">&#39;Y&#39;</span>)<span class="ot">;</span><span class="kw">?&gt;</span></span></code></pre></div>
+<h3 id="limitations-and-considerations">Limitations and
+Considerations</h3>
+<ol type="1">
+<li><strong>Forbidden Characters</strong>: According to the W3C XML
+recommendation, a processing instruction's data cannot contain the
+string <code>?&gt;</code>, as this sequence marks the close of the
+processing instruction. Attempting to output <code>?&gt;</code> within
+the element body will cause an XSLT transformation error.</li>
+<li><strong>Target Restrictions</strong>: The <code>name</code>
+attribute must be an NCName (Non-Colonized Name). It cannot be
+<code>xml</code> (case-insensitive) because XML declaration headers
+(<code>&lt;?xml version="1.0"?&gt;</code>) are managed via the
+<code>&lt;xsl:output&gt;</code> element rather than processing
+instructions.</li>
+<li><strong>Spacing</strong>: The processor automatically inserts a
+space between the target name and the instruction body. However, any
+leading or trailing whitespace inside the element body is preserved, so
+formatting should be carefully controlled using
+<code>&lt;xsl:text&gt;</code> if strict spacing is required.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

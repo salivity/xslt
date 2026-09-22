@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using fn:error for Custom Runtime Errors in XSLT - xslt</title>
+    <meta name="description" content="The fn:error() function in XSLT 2.0 and later versions provides a standardized mechanism for intentionally raising dynamic runtime errors during transformation processing. By allowing developers to abort execution or signal controlled failures directly w">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-fn-error-for-custom-runtime-errors-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using fn:error for Custom Runtime Errors in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-fn-error-for-custom-runtime-errors-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The fn:error() function in XSLT 2.0 and later versions provides a standardized mechanism for intentionally raising dynamic runtime errors during transformation processing. By allowing developers to abort execution or signal controlled failures directly w" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-fnerror-for-custom-runtime-errors-in-xslt">Using fn:error
+for Custom Runtime Errors in XSLT</h1>
+<p>The <code>fn:error()</code> function in XSLT 2.0 and later versions
+provides a standardized mechanism for intentionally raising dynamic
+runtime errors during transformation processing. By allowing developers
+to abort execution or signal controlled failures directly within XPath
+expressions, it ensures that invalid data or unmet business rules halt
+the transformation immediately with meaningful, domain-specific
+diagnostic information rather than silent failures or generic system
+exceptions.</p>
+<h3 id="function-signatures-and-overloads">Function Signatures and
+Overloads</h3>
+<p>The <code>fn:error()</code> function belongs to the standard XPath
+and XQuery Functions and Operators namespace
+(<code>http://www.w3.org/2005/xpath-functions</code>) and is available
+in four distinct signatures:</p>
+<ul>
+<li><code>fn:error()</code>: Raises a generic error without an explicit
+code, message, or diagnostic object.</li>
+<li><code>fn:error($code as xs:QName?)</code>: Raises an error
+identified by a specific qualified name (QName).</li>
+<li><code>fn:error($code as xs:QName?, $description as xs:string)</code>:
+Raises an error with an identifiable QName and a human-readable
+descriptive string.</li>
+<li><code>fn:error($code as xs:QName?, $description as xs:string, $error-object as item()*)</code>:
+Raises an error with a QName, a message, and arbitrary context items
+(such as problematic XML nodes or values) to assist with debugging.</li>
+</ul>
+<h3 id="raising-errors-in-xpath-expressions">Raising Errors in XPath
+Expressions</h3>
+<p>Before XSLT 2.0, interrupting a stylesheet based on business logic
+required the <code>&lt;xsl:message terminate="yes"&gt;</code>
+instruction. While <code>&lt;xsl:message&gt;</code> remains useful for
+statement-level interruptions, <code>fn:error()</code> can be invoked
+directly inside any XPath expression, such as variable declarations,
+sequence constructors, and conditional logic:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;customerId&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">select=</span><span class="st">&quot;if (@id) then xs:string(@id) </span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">                      else fn:error(xs:QName(&#39;my:MissingId&#39;), &#39;Customer ID is required.&#39;)&quot;</span> /&gt;</span></code></pre></div>
+<p>Because <code>fn:error()</code> has an effective return type of
+<code>none</code> (it never returns a value), it is type-compatible with
+any expected sequence type in conditional branches.</p>
+<h3 id="structured-error-identification-with-qnames">Structured Error
+Identification with QNames</h3>
+<p>Unlike free-form text strings, identifying errors via
+<code>xs:QName</code> introduces structured, namespace-qualified
+classification. This practice prevents collision between system-level
+processor errors and application-level errors:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:sequence</span> <span class="ot">select=</span><span class="st">&quot;if (number(price) gt 0) </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">                      then price </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">                      else fn:error(QName(&#39;http://example.com/errors&#39;, &#39;err:InvalidPrice&#39;), </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">                                    &#39;Price must be greater than zero.&#39;, </span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">                                    .)&quot;</span> /&gt;</span></code></pre></div>
+<p>Passing the third argument—the error object (in this case,
+<code>.</code>, the current node)—preserves context. Advanced processors
+can output the problematic node within dynamic error traces.</p>
+<h3 id="error-handling-in-xslt-30">Error Handling in XSLT 3.0</h3>
+<p>In XSLT 3.0, the role of <code>fn:error()</code> expands from merely
+terminating execution to working alongside <code>&lt;xsl:try&gt;</code>
+and <code>&lt;xsl:catch&gt;</code>. A custom error thrown by
+<code>fn:error()</code> can be intercepted downstream:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:try</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:sequence</span> <span class="ot">select=</span><span class="st">&quot;fn:error(xs:QName(&#39;app:RecoverableError&#39;), &#39;Attempting fallback.&#39;)&quot;</span> /&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:catch</span> <span class="ot">errors=</span><span class="st">&quot;app:RecoverableError&quot;</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$err:description&quot;</span> /&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:catch</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:try</span>&gt;</span></code></pre></div>
+<p>When caught, the standard error variables—such as
+<code>$err:code</code>, <code>$err:description</code>, and
+<code>$err:value</code>—expose the parameters passed into
+<code>fn:error()</code>, allowing stylesheets to implement structured
+exception handling and recovery logic.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

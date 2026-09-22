@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running XSLT 3.0 in Node.js and Headless Browsers - xslt</title>
+    <meta name="description" content="Native web browsers and the Node.js runtime only support legacy XSLT 1.0 out of the box, leaving modern XSLT 3.0 specifications unsupported by default. However, developers can reliably execute XSLT 3.0 transformations across both Node.js runtimes and hea">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/running-xslt-3-0-in-node-js-and-headless-browsers">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Running XSLT 3.0 in Node.js and Headless Browsers - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/running-xslt-3-0-in-node-js-and-headless-browsers" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Native web browsers and the Node.js runtime only support legacy XSLT 1.0 out of the box, leaving modern XSLT 3.0 specifications unsupported by default. However, developers can reliably execute XSLT 3.0 transformations across both Node.js runtimes and hea" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="running-xslt-30-in-nodejs-and-headless-browsers">Running XSLT
+3.0 in Node.js and Headless Browsers</h1>
+<p>Native web browsers and the Node.js runtime only support legacy XSLT
+1.0 out of the box, leaving modern XSLT 3.0 specifications unsupported
+by default. However, developers can reliably execute XSLT 3.0
+transformations across both Node.js runtimes and headless browser
+automation frameworks—such as Puppeteer and Playwright—by leveraging
+Saxonica's Saxon-JS engine alongside Stylesheet Export Format (SEF)
+precompilation.</p>
+<h2 id="the-challenge-with-native-processors">The Challenge with Native
+Processors</h2>
+<p>Modern web engines (Blink, Gecko, WebKit) have frozen their native
+XML transformation capabilities at the XSLT 1.0 standard via the
+browser-level <code>XSLTProcessor</code> API. Node.js features no
+built-in XSLT processor. To use modern XSLT 3.0 features—such as
+streaming, JSON manipulation, higher-order functions, and packages—you
+must execute an external JavaScript-based processor or interface with an
+external native runtime.</p>
+<h2 id="executing-xslt-30-in-nodejs">Executing XSLT 3.0 in Node.js</h2>
+<p>The standard method for executing XSLT 3.0 within Node.js is using
+<strong>Saxon-JS</strong>, a high-performance XSLT 3.0 processor written
+entirely in JavaScript.</p>
+<h3 id="1-compile-xslt-to-sef">1. Compile XSLT to SEF</h3>
+<p>Saxon-JS does not interpret raw <code>.xsl</code> files directly at
+runtime in JavaScript. Instead, the stylesheet must first be compiled
+into an intermediate JSON-based format called <strong>Stylesheet Export
+File (SEF)</strong>.</p>
+<p>Install the compiler globally or as a project dependency:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">-g</span> xslt3</span></code></pre></div>
+<p>Compile your stylesheet:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">xslt3</span> <span class="at">-xsl:transform.xsl</span> <span class="at">-export:transform.sef.json</span> <span class="at">-t</span> <span class="at">-ns:xml</span><span class="op">=</span>true</span></code></pre></div>
+<h3 id="2-run-the-transformation-in-nodejs">2. Run the Transformation in
+Node.js</h3>
+<p>Install the runtime library:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install saxon-js</span></code></pre></div>
+<p>Use the <code>SaxonJS.transform</code> method to execute the
+transformation asynchronously:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> SaxonJS <span class="op">=</span> <span class="pp">require</span>(<span class="st">&quot;saxon-js&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&quot;fs&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">runTransformation</span>() {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="cf">await</span> SaxonJS<span class="op">.</span><span class="fu">transform</span>({</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">stylesheetFileName</span><span class="op">:</span> <span class="st">&quot;transform.sef.json&quot;</span><span class="op">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sourceFileName</span><span class="op">:</span> <span class="st">&quot;input.xml&quot;</span><span class="op">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">destination</span><span class="op">:</span> <span class="st">&quot;serialized&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> <span class="st">&quot;async&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  fs<span class="op">.</span><span class="fu">writeFileSync</span>(<span class="st">&quot;output.xml&quot;</span><span class="op">,</span> result<span class="op">.</span><span class="at">principalResult</span>)<span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">runTransformation</span>()<span class="op">.</span><span class="fu">catch</span>(err <span class="kw">=&gt;</span> <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(err))<span class="op">;</span></span></code></pre></div>
+<p>The <code>destination</code> property can be set to
+<code>"serialized"</code> for string output, <code>"document"</code> for
+a parsed DOM tree, or <code>"raw"</code> for direct XSLT return items
+(useful when outputting JSON).</p>
+<h2 id="executing-xslt-30-in-headless-browsers">Executing XSLT 3.0 in
+Headless Browsers</h2>
+<p>When running headless browser instances with tools like Puppeteer or
+Playwright, you cannot rely on the window-level
+<code>XSLTProcessor</code> for XSLT 3.0. Instead, you inject the
+browser-compatible build of Saxon-JS into the virtual DOM page
+context.</p>
+<h3 id="implementation-with-playwright-or-puppeteer">Implementation with
+Playwright or Puppeteer</h3>
+<ol type="1">
+<li>Compile the <code>.xsl</code> file to
+<code>transform.sef.json</code>.</li>
+<li>Launch the headless browser instance and navigate to a blank or host
+page.</li>
+<li>Inject the <code>SaxonJS2.js</code> browser bundle into the page
+context.</li>
+<li>Execute <code>SaxonJS.transform()</code> inside the browser's
+execution context using page evaluation.</li>
+</ol>
+<p>Example using Playwright:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { chromium } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&quot;playwright&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&quot;fs&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>(<span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> browser <span class="op">=</span> <span class="cf">await</span> chromium<span class="op">.</span><span class="fu">launch</span>()<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> page <span class="op">=</span> <span class="cf">await</span> browser<span class="op">.</span><span class="fu">newPage</span>()<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Load an empty page</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">goto</span>(<span class="st">&quot;about:blank&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Inject Saxon-JS into the headless browser environment</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> page<span class="op">.</span><span class="fu">addScriptTag</span>({</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">path</span><span class="op">:</span> require<span class="op">.</span><span class="fu">resolve</span>(<span class="st">&quot;saxon-js/SaxonJS2.rt.js&quot;</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> sefContent <span class="op">=</span> fs<span class="op">.</span><span class="fu">readFileSync</span>(<span class="st">&quot;transform.sef.json&quot;</span><span class="op">,</span> <span class="st">&quot;utf8&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> xmlContent <span class="op">=</span> fs<span class="op">.</span><span class="fu">readFileSync</span>(<span class="st">&quot;input.xml&quot;</span><span class="op">,</span> <span class="st">&quot;utf8&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Execute the transformation within the browser context</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> output <span class="op">=</span> <span class="cf">await</span> page<span class="op">.</span><span class="fu">evaluate</span>(<span class="kw">async</span> ({ sef<span class="op">,</span> xml }) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> result <span class="op">=</span> <span class="cf">await</span> <span class="bu">window</span><span class="op">.</span><span class="at">SaxonJS</span><span class="op">.</span><span class="fu">transform</span>({</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">stylesheetText</span><span class="op">:</span> sef<span class="op">,</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">sourceText</span><span class="op">:</span> xml<span class="op">,</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>      <span class="dt">destination</span><span class="op">:</span> <span class="st">&quot;serialized&quot;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> <span class="st">&quot;async&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result<span class="op">.</span><span class="at">principalResult</span><span class="op">;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> { <span class="dt">sef</span><span class="op">:</span> sefContent<span class="op">,</span> <span class="dt">xml</span><span class="op">:</span> xmlContent })<span class="op">;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(output)<span class="op">;</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> browser<span class="op">.</span><span class="fu">close</span>()<span class="op">;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>})()<span class="op">;</span></span></code></pre></div>
+<h2 id="alternative-server-side-execution-via-java-bridge">Alternative:
+Server-Side Execution via Java Bridge</h2>
+<p>If compiling XSLT files into SEF format is not feasible for your
+pipeline, and you only require Node.js execution without browser
+rendering, you can execute <strong>Saxon-HE</strong> via a child
+process:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { execFile } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&quot;child_process&quot;</span>)<span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">execFile</span>(<span class="st">&quot;java&quot;</span><span class="op">,</span> [</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;-jar&quot;</span><span class="op">,</span> <span class="st">&quot;saxon-he-12.x.jar&quot;</span><span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;-s:input.xml&quot;</span><span class="op">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;-xsl:transform.xsl&quot;</span><span class="op">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;-o:output.xml&quot;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>]<span class="op">,</span> (error<span class="op">,</span> stdout<span class="op">,</span> stderr) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (error) {</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Transformation failed:&quot;</span><span class="op">,</span> stderr)<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;Transformation complete.&quot;</span>)<span class="op">;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>This approach bypasses the SEF compilation step and runs the raw XSLT
+3.0 directly, but it introduces a dependency on the Java Runtime
+Environment (JRE). For pure JavaScript and headless browser
+environments, the Saxon-JS and SEF approach remains the standard and
+most performant architecture.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

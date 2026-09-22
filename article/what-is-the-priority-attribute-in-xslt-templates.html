@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Priority Attribute in XSLT Templates? - xslt</title>
+    <meta name="description" content="The priority attribute on an <xsl:template> element in XSLT is used to explicitly resolve conflicts when multiple template rules match the same source XML node. By assigning a numerical value to a template's priority, developers can override the default">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-priority-attribute-in-xslt-templates">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Priority Attribute in XSLT Templates? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-priority-attribute-in-xslt-templates" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The priority attribute on an <xsl:template> element in XSLT is used to explicitly resolve conflicts when multiple template rules match the same source XML node. By assigning a numerical value to a template's priority, developers can override the default" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-the-priority-attribute-in-xslt-templates">What Is the
+Priority Attribute in XSLT Templates?</h1>
+<p>The <code>priority</code> attribute on an
+<code>&lt;xsl:template&gt;</code> element in XSLT is used to explicitly
+resolve conflicts when multiple template rules match the same source XML
+node. By assigning a numerical value to a template's priority,
+developers can override the default XSLT pattern-matching precedence and
+ensure that the correct template executes without ambiguity or processor
+warnings.</p>
+<h2 id="why-conflict-resolution-matters-in-xslt">Why Conflict Resolution
+Matters in XSLT</h2>
+<p>When an XSLT processor encounters an
+<code>&lt;xsl:apply-templates&gt;</code> instruction, it searches the
+stylesheet for a matching template. In non-trivial transformations, a
+single XML node may satisfy the patterns of multiple templates
+simultaneously. For example, a
+<code>&lt;book category="fiction"&gt;</code> element could match both
+<code>match="book"</code> and
+<code>match="book[@category='fiction']"</code>.</p>
+<p>When multiple templates match a node, the processor applies strict
+conflict-resolution rules:</p>
+<ol type="1">
+<li><strong>Import Precedence:</strong> Templates in the main stylesheet
+take precedence over imported stylesheets
+(<code>&lt;xsl:import&gt;</code>).</li>
+<li><strong>Explicit Priority:</strong> The template with the highest
+explicit <code>priority</code> attribute is chosen.</li>
+<li><strong>Default Priority:</strong> If no explicit priority is set,
+the processor calculates a default priority based on pattern
+complexity.</li>
+<li><strong>Document Order:</strong> If two or more matching templates
+share the same highest priority, the processor either reports an error
+or selects the one that occurs last in the stylesheet.</li>
+</ol>
+<h2 id="default-priority-calculation">Default Priority Calculation</h2>
+<p>When you omit the <code>priority</code> attribute, the XSLT
+specification assigns a default priority ranging from <code>-0.5</code>
+to <code>0.5</code> based on pattern specificity:</p>
+<ul>
+<li><strong><code>0.5</code> (Most Specific):</strong> Matches that
+specify an element name with a predicate or child axis (e.g.,
+<code>match="item[@active='true']"</code> or
+<code>match="parent/child"</code>).</li>
+<li><strong><code>0</code> (Specific Name):</strong> Matches that
+specify a single element, attribute, or processing instruction name
+(e.g., <code>match="title"</code> or <code>match="@id"</code>).</li>
+<li><strong><code>-0.25</code> (Wildcard Namespace):</strong> Matches
+with a namespace wildcard (e.g., <code>match="ncname:*"</code>).</li>
+<li><strong><code>-0.5</code> (Least Specific):</strong> Node type tests
+or general wildcards (e.g., <code>match="*"</code> or
+<code>match="node()"</code>).</li>
+</ul>
+<h2 id="how-the-explicit-priority-attribute-works">How the Explicit
+<code>priority</code> Attribute Works</h2>
+<p>The <code>priority</code> attribute accepts any real number
+(positive, negative, integer, or decimal). When present, this value
+supersedes any automatically calculated default priority.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- General fallback template --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;article&quot;</span> <span class="ot">priority=</span><span class="st">&quot;1&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;standard-article&quot;</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> /&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Override template for specific layout requirements --&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;article&quot;</span> <span class="ot">priority=</span><span class="st">&quot;2&quot;</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;featured-article&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> /&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In the example above, both templates match the pattern
+<code>match="article"</code>. Without the <code>priority</code>
+attribute, both would have a default priority of <code>0</code>,
+creating an ambiguity. By providing <code>priority="2"</code>, the
+second template is guaranteed to execute.</p>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<h3 id="1-disambiguating-equal-precedence-rules">1. Disambiguating
+Equal-Precedence Rules</h3>
+<p>When two patterns share the same calculated default priority—such as
+two distinct single-element names or complex predicate
+conditions—setting an explicit priority prevents reliance on stylesheet
+ordering.</p>
+<h3 id="2-overriding-specialized-match-logic">2. Overriding Specialized
+Match Logic</h3>
+<p>You may want a simpler pattern to take precedence over a more complex
+one due to a specific processing condition. Adding a higher priority
+value ensures the broader pattern wins.</p>
+<h3 id="3-maintaining-modular-stylesheets">3. Maintaining Modular
+Stylesheets</h3>
+<p>When building extensible transformation pipelines, explicit
+priorities allow base template definitions and extensions to coexist
+reliably without unexpected match collisions across team-maintained
+files.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

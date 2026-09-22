@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How normalize-space() Affects XSLT String Comparisons - xslt</title>
+    <meta name="description" content="In XSLT templates, string comparisons frequently fail due to hidden whitespace characters such as indentation, line breaks, and trailing spaces commonly present in source XML. The XPath normalize-space() function directly impacts these comparisons by str">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-normalize-space-affects-xslt-string-comparisons">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How normalize-space() Affects XSLT String Comparisons - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-normalize-space-affects-xslt-string-comparisons" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT templates, string comparisons frequently fail due to hidden whitespace characters such as indentation, line breaks, and trailing spaces commonly present in source XML. The XPath normalize-space() function directly impacts these comparisons by str" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-normalize-space-affects-xslt-string-comparisons">How
+normalize-space() Affects XSLT String Comparisons</h1>
+<p>In XSLT templates, string comparisons frequently fail due to hidden
+whitespace characters such as indentation, line breaks, and trailing
+spaces commonly present in source XML. The XPath
+<code>normalize-space()</code> function directly impacts these
+comparisons by stripping leading and trailing whitespace and collapsing
+internal whitespace sequences into a single space. This article explains
+how <code>normalize-space()</code> alters string evaluation in
+conditional logic, prevents false-negative comparisons, and ensures
+consistent template matching across varying XML document structures.</p>
+<h2 id="the-whitespace-problem-in-xml-comparison">The Whitespace Problem
+in XML Comparison</h2>
+<p>XML processors preserve whitespace inside element text nodes unless a
+schema or DTD dictates otherwise. When human-readable formatting or
+pretty-printing is applied to an XML document, it often introduces
+carriage returns, line feeds, and indentation spaces around the text
+content.</p>
+<p>Consider this XML fragment:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">status</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Active</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">status</span>&gt;</span></code></pre></div>
+<p>A direct comparison in an XSLT template:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;status = &#39;Active&#39;&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- This condition evaluates to FALSE --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>This test fails because the string value of
+<code>&lt;status&gt;</code> is not <code>"Active"</code>. Instead, it is
+<code>"\n    Active\n"</code>. Standard equality operators
+(<code>=</code> and <code>!=</code>) perform an exact code-point by
+code-point comparison, causing visually identical text to fail equality
+checks.</p>
+<h2 id="how-normalize-space-transforms-strings">How normalize-space()
+Transforms Strings</h2>
+<p>The <code>normalize-space()</code> function processes an input string
+by performing three distinct operations:</p>
+<ol type="1">
+<li>Strips all leading whitespace (spaces, tabs, newlines, carriage
+returns).</li>
+<li>Strips all trailing whitespace.</li>
+<li>Collapses consecutive internal whitespace characters into a single
+space character (<code>U+0020</code>).</li>
+</ol>
+<p>When applied to the previous example,
+<code>normalize-space(status)</code> converts
+<code>"\n    Active\n"</code> into <code>"Active"</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;normalize-space(status) = &#39;Active&#39;&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- This condition evaluates to TRUE --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h2 id="behavior-with-default-arguments">Behavior with Default
+Arguments</h2>
+<p>The <code>normalize-space()</code> function can be called with or
+without an argument:</p>
+<ul>
+<li><strong>With an argument
+(<code>normalize-space($string)</code>):</strong> Evaluates the
+specified string or the string-value of the first node in the provided
+node-set.</li>
+<li><strong>Without an argument
+(<code>normalize-space()</code>):</strong> Implicitly evaluates the
+context node converted to its string-value.</li>
+</ul>
+<p>In template matching and conditional contexts, omitting the argument
+allows for concise expressions:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;item[normalize-space() = &#39;Target Value&#39;]&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Matches any item whose normalized text equals &#39;Target Value&#39; --&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>If the context node contains mixed content or child nodes,
+<code>normalize-space()</code> concatenates all descendant text nodes
+into a single string before applying the normalization logic.</p>
+<h2 id="key-effects-on-common-xslt-operations">Key Effects on Common
+XSLT Operations</h2>
+<h3 id="1-eliminating-false-negatives-in-conditionals">1. Eliminating
+False Negatives in Conditionals</h3>
+<p>The primary use case is guarding <code>&lt;xsl:if&gt;</code> and
+<code>&lt;xsl:choose&gt;</code> statements against unpredictable source
+XML formatting. Without <code>normalize-space()</code>, templates are
+fragile and susceptible to breaking whenever an upstream parser formats
+the input differently.</p>
+<h3 id="2-detecting-non-empty-elements">2. Detecting Non-Empty
+Elements</h3>
+<p>Checking whether an element contains meaningful text is more reliable
+with <code>normalize-space()</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Avoid this: returns true if the element only contains whitespace --&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;description != &#39;&#39;&quot;</span>&gt; ... &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Use this: ensures visible, non-whitespace content exists --&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;normalize-space(description) != &#39;&#39;&quot;</span>&gt; ... &lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>Alternatively, <code>normalize-space(description)</code> can be
+evaluated directly as a boolean, since a non-empty normalized string
+evaluates to <code>true</code>, while an empty string evaluates to
+<code>false</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;normalize-space(description)&quot;</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;normalize-space(description)&quot;</span>/&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h3 id="3-attribute-value-comparison">3. Attribute Value Comparison</h3>
+<p>While XML parsers automatically normalize attribute values per the
+XML specification (converting tabs and newlines to spaces), they do not
+strip leading or trailing spaces from attributes of type
+<code>CDATA</code>. Using <code>normalize-space(@code)</code> ensures
+that values like <code>code=" ABC "</code> match clean literals like
+<code>'ABC'</code>.</p>
+<h2 id="limitations-and-considerations">Limitations and
+Considerations</h2>
+<ul>
+<li><strong>Case Sensitivity:</strong> <code>normalize-space()</code>
+only modifies whitespace. It does not alter character casing. For
+case-insensitive comparisons, pair it with <code>lower-case()</code> in
+XSLT 2.0+ or the <code>translate()</code> function in XSLT 1.0.</li>
+<li><strong>Node-Set Coercion:</strong> If a node-set containing
+multiple nodes is passed to <code>normalize-space()</code> in XSLT 1.0,
+only the first node is normalized and compared. In XSLT 2.0 and later,
+passing a sequence of more than one item to
+<code>normalize-space()</code> will raise a type error unless explicitly
+iterated over or handled via XPath expressions.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

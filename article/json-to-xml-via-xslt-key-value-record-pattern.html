@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to XML via XSLT: Key-Value Record Pattern - xslt</title>
+    <meta name="description" content="The key-value record pattern in XSLT is a structural design strategy used to transform dynamic, heterogeneous, or deeply nested JSON objects into a predictable and standardized XML format. When converting JSON to XML, mapping arbitrary object keys direct">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/json-to-xml-via-xslt-key-value-record-pattern">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="JSON to XML via XSLT: Key-Value Record Pattern - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/json-to-xml-via-xslt-key-value-record-pattern" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The key-value record pattern in XSLT is a structural design strategy used to transform dynamic, heterogeneous, or deeply nested JSON objects into a predictable and standardized XML format. When converting JSON to XML, mapping arbitrary object keys direct" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="json-to-xml-via-xslt-key-value-record-pattern">JSON to XML via
+XSLT: Key-Value Record Pattern</h1>
+<p>The key-value record pattern in XSLT is a structural design strategy
+used to transform dynamic, heterogeneous, or deeply nested JSON objects
+into a predictable and standardized XML format. When converting JSON to
+XML, mapping arbitrary object keys directly to XML element names often
+introduces schema instability, invalid element names, and complex
+querying requirements. The key-value pattern resolves these issues by
+abstracting variable keys into uniform XML attributes or child elements,
+ensuring that the resulting document adheres to strict XML schemas and
+remains easily queryable via XPath.</p>
+<h3 id="overcoming-xml-element-naming-constraints">Overcoming XML
+Element Naming Constraints</h3>
+<p>JSON allows nearly any valid string to be used as an object key,
+including strings containing whitespace, special characters,
+punctuation, or leading numeric digits (such as <code>"123_id"</code> or
+<code>"first name"</code>). Conversely, the W3C XML specification
+enforces strict rules for element tag names, which cannot start with
+numbers, cannot contain spaces, and restrict most punctuation.</p>
+<p>Attempting to map such JSON keys directly to XML elements causes
+transformation errors or generates non-well-formed XML. The key-value
+record pattern bypasses this limitation by mapping the JSON key to a
+standard XML element's value or attribute:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Avoids invalid tags like &lt;123_id&gt; or &lt;first name&gt; --&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">entry</span> <span class="ot">key=</span><span class="st">&quot;123_id&quot;</span>&gt;Value&lt;/<span class="kw">entry</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">entry</span> <span class="ot">key=</span><span class="st">&quot;first name&quot;</span>&gt;Value&lt;/<span class="kw">entry</span>&gt;</span></code></pre></div>
+<h3 id="enabling-predictable-schema-validation-xsd">Enabling Predictable
+Schema Validation (XSD)</h3>
+<p>In systems requiring strict data contracts, XML Schemas (XSD) define
+the allowed structure, types, and element names. When JSON objects use
+keys dynamically—such as using user IDs, timestamps, or product codes as
+keys—a direct conversion would generate an infinite set of potential
+element names, breaking static schema validation.</p>
+<p>The key-value pattern normalizes open-ended JSON maps into a
+predictable, repeating model:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">record</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">key</span>&gt;dynamic_identifier&lt;/<span class="kw">key</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">value</span>&gt;payload&lt;/<span class="kw">value</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">record</span>&gt;</span></code></pre></div>
+<p>This predictable structure allows developers to write precise XSD
+schemas using simple repeating elements
+(<code>&lt;xs:sequence&gt;</code> with
+<code>maxOccurs="unbounded"</code>) without relying on lax validation,
+wildcards, or <code>xs:any</code> definitions.</p>
+<h3 id="simplifying-downstream-xpath-queries">Simplifying Downstream
+XPath Queries</h3>
+<p>Directly translating variable JSON keys into element names forces
+downstream consumers to use dynamic or complex XPath expressions. If the
+element name itself carries data (e.g., <code>&lt;user_9876&gt;</code>),
+finding all users requires pattern matching against node names using
+functions like <code>name()</code> or <code>local-name()</code>.</p>
+<p>By standardizing the structure into key-value records, downstream
+systems can execute clean, indexable, and performant XPath queries:</p>
+<pre class="xpath"><code>//record[key = &#39;user_9876&#39;]/value</code></pre>
+<p>This decouples the structural schema from the data values, making
+downstream code easier to read, optimize, and maintain.</p>
+<h3 id="aligning-with-w3c-xslt-30-standards">Aligning with W3C XSLT 3.0
+Standards</h3>
+<p>Modern XSLT implementations leverage the standard XPath and XSLT 3.0
+function <code>fn:json-to-xml()</code>. The W3C specification for this
+function natively implements the key-value record concept. Instead of
+generating arbitrary element names, <code>fn:json-to-xml()</code>
+represents JSON maps using standard elements (<code>&lt;map&gt;</code>,
+<code>&lt;string&gt;</code>, <code>&lt;number&gt;</code>,
+<code>&lt;array&gt;</code>) and stores the original JSON property name
+in a <code>@key</code> attribute:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">map</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/2005/0xpath-functions&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">string</span> <span class="ot">key=</span><span class="st">&quot;user_123&quot;</span>&gt;John Doe&lt;/<span class="kw">string</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">map</span>&gt;</span></code></pre></div>
+<p>Using the key-value record pattern in custom XSLT templates ensures
+architectural consistency with the W3C standard processing model, making
+templates portable across various XSLT processors like Saxon or
+BaseX.</p>
+<h3 id="handling-dictionaries-vs-static-objects">Handling Dictionaries
+vs. Static Objects</h3>
+<p>In JSON, objects serve two distinct semantic purposes:</p>
+<ol type="1">
+<li><strong>Fixed entities:</strong> Modeled like classes or structs,
+where keys are known schema properties (e.g., <code>firstName</code>,
+<code>lastName</code>).</li>
+<li><strong>Associative arrays (Dictionaries):</strong> Collections of
+items where keys represent data lookups rather than structural
+categories.</li>
+</ol>
+<p>The key-value record pattern explicitly signals that the JSON object
+is an associative array. Applying this pattern in XSLT ensures that data
+contained within keys is preserved as queryable text rather than
+mistakenly elevated to structural metadata.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

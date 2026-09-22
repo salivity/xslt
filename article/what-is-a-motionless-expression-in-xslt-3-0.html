@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is a Motionless Expression in XSLT 3.0? - xslt</title>
+    <meta name="description" content="In XSLT 3.0 streaming, a motionless expression is an XPath construct that does not advance the reader position or consume tokens from the underlying input document stream during evaluation. Streaming engines evaluate expressions based on static analysis">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-a-motionless-expression-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is a Motionless Expression in XSLT 3.0? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-a-motionless-expression-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0 streaming, a motionless expression is an XPath construct that does not advance the reader position or consume tokens from the underlying input document stream during evaluation. Streaming engines evaluate expressions based on static analysis" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-a-motionless-expression-in-xslt-30">What Is a Motionless
+Expression in XSLT 3.0?</h1>
+<p>In XSLT 3.0 streaming, a motionless expression is an XPath construct
+that does not advance the reader position or consume tokens from the
+underlying input document stream during evaluation. Streaming engines
+evaluate expressions based on static analysis properties called posture
+and sweep; an expression classified with a motionless sweep can inspect
+properties of the current node, read static values, or access
+pre-buffered data without changing the stream's cursor position.
+Understanding what constitutes a motionless expression is essential for
+writing valid, streamable stylesheets that process arbitrarily large XML
+documents in a single pass.</p>
+<h2 id="the-role-of-sweep-in-xslt-30-streamability">The Role of Sweep in
+XSLT 3.0 Streamability</h2>
+<p>XSLT 3.0 enforces rigorous streamability rules to ensure documents
+can be processed without building a complete in-memory Document Object
+Model (DOM) tree. The static analysis categorizes every construct using
+two core metrics:</p>
+<ul>
+<li><strong>Posture:</strong> Describes the type of node reference the
+expression returns relative to the stream (e.g., grounded, striding,
+climbing, or roaming).</li>
+<li><strong>Sweep:</strong> Describes how the evaluation of an
+expression moves the stream pointer. Sweep falls into three main
+categories: motionless, consuming, or free-ranging.</li>
+</ul>
+<p>An expression has a motionless sweep if evaluating it requires zero
+forward movement along the document stream. Because the stream cursor
+remains unchanged, a motionless expression can be executed without
+preventing subsequent sibling expressions or template rules from reading
+the current node or its descendant content.</p>
+<h2 id="key-characteristics-of-motionless-expressions">Key
+Characteristics of Motionless Expressions</h2>
+<p>An expression qualifies as motionless under the W3C XSLT 3.0
+specification when its execution depends solely on data that is already
+available in memory or accessible without advancing the stream:</p>
+<ul>
+<li><strong>No Forward Stream Navigation:</strong> The expression does
+not traverse the <code>child::</code>, <code>descendant::</code>, or
+<code>following-sibling::</code> axes of unparsed nodes in the
+stream.</li>
+<li><strong>Repeated Evaluability:</strong> Because it does not exhaust
+or alter the incoming stream data, a motionless expression can safely be
+evaluated multiple times, such as within loop conditions or multiple
+predicates.</li>
+<li><strong>Instantaneous Context Access:</strong> It can access
+instantaneous properties of the context item, such as its node kind,
+name, type annotation, or attributes, provided the parser has already
+read the opening tag.</li>
+</ul>
+<h2 id="common-examples-of-motionless-constructs">Common Examples of
+Motionless Constructs</h2>
+<p>Several categories of XPath expressions satisfy the criteria for
+being motionless in a streaming context:</p>
+<h3 id="literal-values-and-static-calculations">Literal Values and
+Static Calculations</h3>
+<p>Any atomic value, string literal, boolean constant, or arithmetic
+operation involving only static values is motionless:</p>
+<ul>
+<li><code>'sample text'</code></li>
+<li><code>42 + 10</code></li>
+<li><code>true()</code></li>
+</ul>
+<h3 id="variables-and-grounded-references">Variables and Grounded
+References</h3>
+<p>References to parameters or variables that hold atomic values,
+grounded sequences, or pre-constructed document fragments do not move
+the input stream:</p>
+<ul>
+<li><code>$itemCount</code></li>
+<li><code>$configDoc//setting</code> (where <code>$configDoc</code> is
+loaded as a separate, grounded in-memory tree)</li>
+</ul>
+<h3 id="context-node-inspection-and-attributes">Context Node Inspection
+and Attributes</h3>
+<p>Accessing properties or attributes of the element currently
+positioned under the stream reader is motionless because attribute data
+is read during the opening tag event:</p>
+<ul>
+<li><code>.</code> (the context item itself)</li>
+<li><code>@id</code> or <code>attribute::status</code></li>
+<li><code>name()</code>, <code>local-name()</code>, and
+<code>namespace-uri()</code></li>
+<li><code>self::element(record)</code></li>
+</ul>
+<h3 id="calls-to-functions-with-motionless-arguments">Calls to Functions
+with Motionless Arguments</h3>
+<p>Standard XPath functions that operate strictly on motionless
+arguments or grounded inputs retain a motionless sweep:</p>
+<ul>
+<li><code>string-length(@name)</code></li>
+<li><code>concat('ID-', @id)</code></li>
+<li><code>exists($preloadedSequence)</code></li>
+<li><code>contains(local-name(), 'data')</code></li>
+</ul>
+<h2
+id="why-motionless-expressions-are-critical-for-streamed-stylesheets">Why
+Motionless Expressions Are Critical for Streamed Stylesheets</h2>
+<p>Motionless expressions serve as the backbone for control flow in
+streamed templates. Constructing conditional logic using
+<code>xsl:if</code>, <code>xsl:choose</code>, or XPath
+<code>if (...) then ... else ...</code> expressions requires the test
+condition to be motionless when the conditional branch itself consumes
+the stream.</p>
+<p>If a test expression consumed nodes from the stream, the stream
+position would advance past those nodes, leaving the subsequent
+transformation branch unable to process the child data. By ensuring that
+conditional checks, variable declarations, and sorting keys remain
+motionless, developers can build robust streaming pipelines that
+reliably filter, validate, and route massive XML datasets.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

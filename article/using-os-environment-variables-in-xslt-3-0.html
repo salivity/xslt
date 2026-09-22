@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using OS Environment Variables in XSLT 3.0 - xslt</title>
+    <meta name="description" content="This article provides an overview of how to retrieve and use operating system environment variables in XSLT 3.0 to manage runtime configurations. With the integration of XPath 3.0 and 3.1 functions into XSLT 3.0, developers can now read host system prope">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-os-environment-variables-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using OS Environment Variables in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-os-environment-variables-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how to retrieve and use operating system environment variables in XSLT 3.0 to manage runtime configurations. With the integration of XPath 3.0 and 3.1 functions into XSLT 3.0, developers can now read host system prope" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-os-environment-variables-in-xslt-30">Using OS Environment
+Variables in XSLT 3.0</h1>
+<p>This article provides an overview of how to retrieve and use
+operating system environment variables in XSLT 3.0 to manage runtime
+configurations. With the integration of XPath 3.0 and 3.1 functions into
+XSLT 3.0, developers can now read host system properties
+dynamically—such as deployment targets, paths, and system
+configurations—directly within stylesheets without requiring external
+wrapper scripts or explicit command-line parameter passing.</p>
+<h3 id="native-xpath-30-environment-functions">Native XPath 3.0
+Environment Functions</h3>
+<p>XSLT 3.0 processors implement the XPath 3.0/3.1 F &amp; O (Functions
+and Operators) specification, which introduces two primary functions
+within the standard <code>fn</code> namespace for interacting with the
+operating system environment:</p>
+<ol type="1">
+<li><p><code>fn:environment-variable($name as xs:string) as xs:string?</code><br />
+Returns the value of the specified system environment variable as a
+string. If the variable does not exist, it returns an empty sequence
+(<code>()</code>).</p></li>
+<li><p><code>fn:available-environment-variables() as xs:string*</code><br />
+Returns a sequence of strings containing the names of all environment
+variables accessible to the transformation context.</p></li>
+</ol>
+<h3 id="basic-syntax-and-retrieval">Basic Syntax and Retrieval</h3>
+<p>You can access an environment variable anywhere an XPath expression
+is evaluated. The function can be called directly or with the standard
+<code>Q{http://www.w3.org/2005/0xpath-functions}</code> or
+<code>fn:</code> prefix.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                <span class="ot">xmlns:fn=</span><span class="st">&quot;http://www.w3.org/2005/xpath-functions&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">configuration</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">app-env</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;fn:environment-variable(&#39;ENVIRONMENT_NAME&#39;)&quot;</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">app-env</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">configuration</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="providing-fallback-defaults">Providing Fallback Defaults</h3>
+<p>Because <code>fn:environment-variable</code> returns an empty
+sequence when an environment variable is unset, you should supply
+fallback logic to ensure reliable execution. This can be handled using
+the <code>empty()</code> function or an XPath <code>if-then-else</code>
+expression:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;deployment-mode&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">select=</span><span class="st">&quot;if (fn:environment-variable(&#39;DEPLOY_ENV&#39;)) </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">          then fn:environment-variable(&#39;DEPLOY_ENV&#39;) </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">          else &#39;development&#39;&quot;</span>/&gt;</span></code></pre></div>
+<p>Alternatively, you can use the comma sequence constructor paired with
+a subsequence check:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;base-path&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">select=</span><span class="st">&quot;(fn:environment-variable(&#39;DATA_DIR&#39;), &#39;/default/data/path&#39;)[1]&quot;</span>/&gt;</span></code></pre></div>
+<h3
+id="combining-global-parameters-with-environment-variables">Combining
+Global Parameters with Environment Variables</h3>
+<p>A flexible architecture uses global <code>xsl:param</code>
+declarations that default to operating system variables. This pattern
+allows the host runtime environment to govern behavior by default, while
+still allowing callers to override values explicitly through
+transformation arguments:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;output-directory&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">select=</span><span class="st">&quot;(fn:environment-variable(&#39;OUTPUT_DIR&#39;), &#39;/tmp/output&#39;)[1]&quot;</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;debug-mode&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">select=</span><span class="st">&quot;fn:environment-variable(&#39;APP_DEBUG&#39;) = &#39;true&#39;&quot;</span>/&gt;</span></code></pre></div>
+<h3 id="validating-variable-availability">Validating Variable
+Availability</h3>
+<p>Before consuming dynamic variables, you can inspect whether the host
+environment has exposed them using
+<code>fn:available-environment-variables()</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;&#39;SECRET_KEY&#39; = fn:available-environment-variables()&quot;</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Perform actions dependent on variable existence --&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h3 id="processor-security-considerations">Processor Security
+Considerations</h3>
+<p>Operating system access is subject to processor-level security
+policies. In enterprise processors like Saxon (EE/PE), access to
+external environment variables may be sandboxed or disabled by default
+depending on the execution context.</p>
+<p>To ensure your environment variables are readable:</p>
+<ul>
+<li>Ensure the executing user account has read permissions for the
+targeted environment variables.</li>
+<li>Verify that your XSLT processor does not have security restrictions
+enabled (such as Saxon’s
+<code>FeatureKeys.ALLOW_EXTERNAL_FUNCTIONS</code> set to false) that
+restrict access to system facilities.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

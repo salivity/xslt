@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relative Document Node Order in XSLT 2.0+ - xslt</title>
+    <meta name="description" content="In XSLT 2.0 and later versions (leveraging XPath 2.0+), the << and >> operators are dedicated node comparison operators used to determine the relative document order of two nodes. Rather than comparing the string or typed values of nodes, these operators">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/relative-document-node-order-in-xslt-2-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Relative Document Node Order in XSLT 2.0+ - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/relative-document-node-order-in-xslt-2-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 2.0 and later versions (leveraging XPath 2.0+), the << and >> operators are dedicated node comparison operators used to determine the relative document order of two nodes. Rather than comparing the string or typed values of nodes, these operators" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="relative-document-node-order-in-xslt-20">Relative Document Node
+Order in XSLT 2.0+</h1>
+<p>In XSLT 2.0 and later versions (leveraging XPath 2.0+), the
+<code>&lt;&lt;</code> and <code>&gt;&gt;</code> operators are dedicated
+node comparison operators used to determine the relative document order
+of two nodes. Rather than comparing the string or typed values of nodes,
+these operators evaluate structural positions within an XML hierarchy.
+This article covers the syntax, rules, and underlying mechanics of the
+<code>&lt;&lt;</code> and <code>&gt;&gt;</code> operators, along with
+how edge cases like attributes and different documents are resolved.</p>
+<h2 id="the-node-comparison-operators--and-">The Node Comparison
+Operators: <code>&lt;&lt;</code> and <code>&gt;&gt;</code></h2>
+<p>The <code>&lt;&lt;</code> and <code>&gt;&gt;</code> operators
+evaluate whether one node precedes or follows another in document
+order:</p>
+<ul>
+<li><strong><code>$nodeA &lt;&lt; $nodeB</code></strong>: Returns
+<code>true</code> if <code>$nodeA</code> precedes <code>$nodeB</code> in
+document order; otherwise returns <code>false</code>.</li>
+<li><strong><code>$nodeA &gt;&gt; $nodeB</code></strong>: Returns
+<code>true</code> if <code>$nodeA</code> follows <code>$nodeB</code> in
+document order; otherwise returns <code>false</code>.</li>
+</ul>
+<p>If either operand is an empty sequence (<code>()</code>), the
+expression returns an empty sequence, which evaluates to
+<code>false</code> in an effective boolean value context. If an operand
+evaluates to a sequence of more than one node, a type error
+(<code>XPTY0004</code>) is raised.</p>
+<h2 id="understanding-document-order">Understanding Document Order</h2>
+<p>Document order corresponds to the sequence in which the first
+character of the XML representation of each node occurs, matching a
+depth-first, pre-order traversal of the document tree:</p>
+<ol type="1">
+<li><strong>Root (Document Node)</strong>: Always appears first.</li>
+<li><strong>Element Nodes</strong>: An element occurs before its child
+elements and content.</li>
+<li><strong>Attribute and Namespace Nodes</strong>: Associated with an
+element, they occur after the element node itself but before any child
+element or text nodes. The relative order among sibling attribute nodes
+is stable but implementation-dependent.</li>
+<li><strong>Sibling Nodes</strong>: Sibling elements and text nodes
+follow their structural sequence in the source document.</li>
+<li><strong>Descendants</strong>: All descendants of a node appear
+before the following siblings of that node.</li>
+</ol>
+<h2 id="comparison-rules-and-edge-cases">Comparison Rules and Edge
+Cases</h2>
+<h3 id="1-identity-requirement">1. Identity Requirement</h3>
+<p>The <code>&lt;&lt;</code> and <code>&gt;&gt;</code> operators only
+return <code>true</code> when nodes are distinct. If <code>$nodeA</code>
+and <code>$nodeB</code> refer to the exact same node (where
+<code>$nodeA is $nodeB</code> is <code>true</code>), both
+<code>$nodeA &lt;&lt; $nodeB</code> and
+<code>$nodeA &gt;&gt; $nodeB</code> evaluate to <code>false</code>.</p>
+<h3 id="2-nodes-in-different-documents">2. Nodes in Different
+Documents</h3>
+<p>When comparing two nodes from entirely different XML documents (or
+distinct temporary trees constructed in memory):</p>
+<ul>
+<li>The relative order between the two documents is
+<strong>implementation-dependent</strong>.</li>
+<li>The order is guaranteed to be <strong>stable</strong> throughout the
+execution of the stylesheet. If
+<code>$docA/root &lt;&lt; $docB/root</code> is <code>true</code>, every
+node in <code>$docA</code> will precede every node in <code>$docB</code>
+for that entire transformation run.</li>
+</ul>
+<h3 id="3-attributes-and-children">3. Attributes and Children</h3>
+<p>Because attributes belong to an element but are not considered child
+nodes, they are ordered immediately after their parent element:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">item</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Widget&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">item</span>&gt;</span></code></pre></div>
+<p>In this structure:</p>
+<ul>
+<li><code>item &lt;&lt; item/@id</code> is <code>true</code>.</li>
+<li><code>item/@id &lt;&lt; item/description</code> is
+<code>true</code>.</li>
+<li><code>item/description &gt;&gt; item/@id</code> is
+<code>true</code>.</li>
+</ul>
+<h2 id="practical-example">Practical Example</h2>
+<p>Consider the following XML fragment:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">section</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span> <span class="ot">id=</span><span class="st">&quot;p1&quot;</span>&gt;First paragraph&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span> <span class="ot">id=</span><span class="st">&quot;p2&quot;</span>&gt;Second paragraph&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">section</span>&gt;</span></code></pre></div>
+<p>Using XPath expressions within an XSLT 2.0+ template:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Evaluates to true --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;//p[@id=&#39;p1&#39;] </span><span class="dv">&amp;lt;&amp;lt;</span><span class="st"> //p[@id=&#39;p2&#39;]&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;Paragraph 1 comes before Paragraph 2.&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Evaluates to true --&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;//p[@id=&#39;p2&#39;] </span><span class="dv">&amp;gt;&amp;gt;</span><span class="st"> //p[@id=&#39;p1&#39;]&quot;</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:text</span>&gt;Paragraph 2 comes after Paragraph 1.&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p><em>(Note: In raw XML/XSLT attribute contexts, <code>&lt;&lt;</code>
+and <code>&gt;&gt;</code> must be escaped as
+<code>&amp;lt;&amp;lt;</code> and <code>&amp;gt;&amp;gt;</code> to
+satisfy XML well-formedness rules.)</em></p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

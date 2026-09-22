@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT Handle Whitespace Stripping? - xslt</title>
+    <meta name="description" content="In XSLT processing, whitespace handling directly affects the structure of the input document's tree before templates are applied. The <xsl:strip-space> and <xsl:preserve-space> top-level elements control whether text nodes consisting purely of whitespace">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-handle-whitespace-stripping">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT Handle Whitespace Stripping? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-handle-whitespace-stripping" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT processing, whitespace handling directly affects the structure of the input document's tree before templates are applied. The <xsl:strip-space> and <xsl:preserve-space> top-level elements control whether text nodes consisting purely of whitespace" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-does-xslt-handle-whitespace-stripping">How Does XSLT Handle
+Whitespace Stripping?</h1>
+<p>In XSLT processing, whitespace handling directly affects the
+structure of the input document's tree before templates are applied. The
+<code>&lt;xsl:strip-space&gt;</code> and
+<code>&lt;xsl:preserve-space&gt;</code> top-level elements control
+whether text nodes consisting purely of whitespace characters—such as
+spaces, tabs, line feeds, and carriage returns—are retained or stripped
+from selected elements in the source document. Managing these nodes is
+essential for cleaning up formatting artifacts, ensuring accurate node
+indexing, and preventing unwanted whitespace from leaking into output
+transformations.</p>
+<h2 id="the-default-whitespace-behavior">The Default Whitespace
+Behavior</h2>
+<p>By default, an XSLT processor preserves all whitespace-only text
+nodes present in the source XML document unless explicitly instructed
+otherwise. In standard processing rules:</p>
+<ul>
+<li>All element names effectively default to being preserved,
+functioning as if <code>&lt;xsl:preserve-space elements="*"/&gt;</code>
+is implicitly declared.</li>
+<li>XML parsers construct text nodes for indentation and newlines
+between child tags.</li>
+<li>Mixed-content elements (elements containing both text and child
+elements) retain their inline whitespace regardless of stripping
+rules.</li>
+</ul>
+<p>Because an XSLT processor considers whitespace-only text nodes as
+full child nodes in the XPath data model, leaving them intact affects
+functions like <code>count(*)</code>, <code>position()</code>, and axis
+navigation like <code>following-sibling::node()</code>.</p>
+<h2 id="using-xslstrip-space">Using
+<code>&lt;xsl:strip-space&gt;</code></h2>
+<p>The <code>&lt;xsl:strip-space&gt;</code> element instructs the XSLT
+processor to remove whitespace-only text nodes from the specified
+elements before any template matching occurs.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:strip-space</span> <span class="ot">elements=</span><span class="st">&quot;catalog book author&quot;</span>/&gt;</span></code></pre></div>
+<p>Key aspects of whitespace stripping:</p>
+<ol type="1">
+<li><strong>Targeted Elements:</strong> The <code>elements</code>
+attribute accepts a whitespace-separated list of NameTests, such as
+specific element names, wildcards (<code>*</code>), or qualified names
+with namespaces.</li>
+<li><strong>Whitespace-Only Nodes Only:</strong> It removes text nodes
+that consist entirely of whitespace characters (U+0020, U+0009, U+000D,
+U+000A). If a text node contains even a single non-whitespace character,
+it is entirely preserved.</li>
+<li><strong>Tree Modification:</strong> The removal occurs during tree
+construction. Stripped nodes do not exist in the source tree viewed by
+subsequent XPath expressions and template rules.</li>
+</ol>
+<h2 id="using-xslpreserve-space">Using
+<code>&lt;xsl:preserve-space&gt;</code></h2>
+<p>The <code>&lt;xsl:preserve-space&gt;</code> element explicitly
+specifies which elements must retain their whitespace-only text nodes.
+This is primarily used to override broader stripping rules.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:strip-space</span> <span class="ot">elements=</span><span class="st">&quot;*&quot;</span>/&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:preserve-space</span> <span class="ot">elements=</span><span class="st">&quot;code pre formatted-text&quot;</span>/&gt;</span></code></pre></div>
+<p>In this pattern, all elements across the source document have their
+whitespace-only text nodes stripped, except for
+<code>&lt;code/&gt;</code>, <code>&lt;pre/&gt;</code>, and
+<code>&lt;formatted-text/&gt;</code>, where exact source formatting must
+remain intact.</p>
+<h2 id="conflict-resolution-and-priority">Conflict Resolution and
+Priority</h2>
+<p>When elements match conflicting declarations, XSLT resolves them
+using conflict resolution rules based on import precedence and pattern
+priority:</p>
+<ul>
+<li><strong>Import Precedence:</strong> Declarations in an importing
+stylesheet take precedence over declarations in imported
+stylesheets.</li>
+<li><strong>Pattern Specificity:</strong> A specific QName (e.g.,
+<code>elements="code"</code>) has higher priority than a wildcard match
+(e.g., <code>elements="*"</code> or
+<code>elements="prefix:*"</code>).</li>
+<li><strong>Same Precedence and Specificity:</strong> If both
+<code>&lt;xsl:strip-space&gt;</code> and
+<code>&lt;xsl:preserve-space&gt;</code> target the exact same element
+name at the same import level, the XSLT processor treats it as an error
+or selects the last declaration occurring in the stylesheet.</li>
+</ul>
+<h2 id="impact-on-xpath-operations">Impact on XPath Operations</h2>
+<p>Whitespace manipulation significantly alters XPath evaluations:</p>
+<ul>
+<li><strong>Node Counting:</strong> An element
+<code>&lt;root&gt;\n  &lt;item/&gt;\n&lt;/root&gt;</code> contains three
+child nodes by default (two text nodes and one element node). Applying
+<code>&lt;xsl:strip-space elements="root"/&gt;</code> reduces the child
+node count to one (<code>&lt;item/&gt;</code>).</li>
+<li><strong>Position Filtering:</strong> In unstripped trees,
+<code>node()[1]</code> often matches an empty whitespace text node
+rather than the first element child.</li>
+<li><strong>Output Serialization:</strong> Removing whitespace nodes
+prevents accidental whitespace accumulation when transforming XML into
+compact formats such as JSON, CSV, or minified XML/HTML.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

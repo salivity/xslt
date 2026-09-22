@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 2.0 string-join Function for Delimited Lists - xslt</title>
+    <meta name="description" content="This article explains the purpose and practical application of the string-join() function introduced in XPath and XSLT 2.0. It covers how the function simplifies formatting delimited lists from XML data, eliminates the need for cumbersome conditional log">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-2-0-string-join-function-for-delimited-lists">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 2.0 string-join Function for Delimited Lists - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-2-0-string-join-function-for-delimited-lists" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the purpose and practical application of the string-join() function introduced in XPath and XSLT 2.0. It covers how the function simplifies formatting delimited lists from XML data, eliminates the need for cumbersome conditional log" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-20-string-join-function-for-delimited-lists">XSLT 2.0
+string-join Function for Delimited Lists</h1>
+<p>This article explains the purpose and practical application of the
+<code>string-join()</code> function introduced in XPath and XSLT 2.0. It
+covers how the function simplifies formatting delimited lists from XML
+data, eliminates the need for cumbersome conditional logic, and improves
+stylesheet readability and performance.</p>
+<h3 id="the-purpose-of-string-join">The Purpose of
+<code>string-join()</code></h3>
+<p>In XSLT 2.0, the primary purpose of the <code>string-join()</code>
+function is to concatenate a sequence of strings into a single string,
+inserting a specified delimiter between each item. When transforming XML
+elements or attributes into delimited formats such as Comma-Separated
+Values (CSV), natural language lists, or parameter strings, managing
+delimiters between items is a standard requirement.</p>
+<p>Before XSLT 2.0, creating a delimited list required iterating through
+nodes using <code>&lt;xsl:for-each&gt;</code> and manually checking
+<code>&lt;xsl:if test="position() != last()"&gt;</code> to prevent a
+trailing delimiter after the final element. The
+<code>string-join()</code> function replaces this verbose logic with a
+single, declarative XPath expression.</p>
+<h3 id="syntax-and-behavior">Syntax and Behavior</h3>
+<p>The <code>string-join()</code> function uses the following
+signature:</p>
+<pre class="xpath"><code>fn:string-join($arg1 as xs:anyAtomicType*, $arg2 as xs:string) as xs:string</code></pre>
+<ul>
+<li><code>$arg1</code>: A sequence of atomic values or strings to be
+joined.</li>
+<li><code>$arg2</code>: The separator string inserted between each
+item.</li>
+</ul>
+<p>The function evaluates the sequence and handles edge cases
+automatically:</p>
+<ul>
+<li>If the sequence contains multiple items, the separator is inserted
+only <em>between</em> items. No separator is placed before the first
+item or after the last item.</li>
+<li>If the sequence contains a single item, the function returns that
+item without the separator.</li>
+<li>If the sequence is empty, the function returns an empty string
+(<code>""</code>).</li>
+</ul>
+<h3 id="example-implementation">Example Implementation</h3>
+<p>Given the following XML source:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">authors</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;Alice&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;Bob&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">name</span>&gt;Charlie&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">authors</span>&gt;</span></code></pre></div>
+<p>In XSLT 1.0, joining these names required manual positioning
+logic:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:for-each</span> <span class="ot">select=</span><span class="st">&quot;authors/name&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;position() != last()&quot;</span>&gt;, &lt;/<span class="kw">xsl:if</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:for-each</span>&gt;</span></code></pre></div>
+<p>In XSLT 2.0, the same result is achieved using
+<code>string-join()</code> in a single line:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;string-join(authors/name, &#39;, &#39;)&quot;</span>/&gt;</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<pre class="text"><code>Alice, Bob, Charlie</code></pre>
+<h3 id="key-advantages">Key Advantages</h3>
+<ul>
+<li><strong>Cleaner Stylesheets:</strong> Reduces multi-line procedural
+iteration to a concise, functional XPath call.</li>
+<li><strong>Boundary Handling:</strong> Automatically resolves the
+"fencepost problem" (trailing separators) without requiring index
+calculations like <code>position()</code> and <code>last()</code>.</li>
+<li><strong>Dynamic Sequences:</strong> Works directly on sequences
+generated on the fly (e.g., using XPath expressions or functions like
+<code>tokenize()</code>), not just static nodes in the source XML
+document.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

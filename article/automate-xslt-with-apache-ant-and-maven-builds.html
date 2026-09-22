@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automate XSLT with Apache Ant and Maven Builds - xslt</title>
+    <meta name="description" content="Integrating Extensible Stylesheet Language Transformations (XSLT) into Apache Ant and Apache Maven automates the processing of XML data directly within your continuous integration and deployment pipelines. By embedding transformation tasks into build scr">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/automate-xslt-with-apache-ant-and-maven-builds">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Automate XSLT with Apache Ant and Maven Builds - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/automate-xslt-with-apache-ant-and-maven-builds" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Integrating Extensible Stylesheet Language Transformations (XSLT) into Apache Ant and Apache Maven automates the processing of XML data directly within your continuous integration and deployment pipelines. By embedding transformation tasks into build scr" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="automate-xslt-with-apache-ant-and-maven-builds">Automate XSLT
+with Apache Ant and Maven Builds</h1>
+<p>Integrating Extensible Stylesheet Language Transformations (XSLT)
+into Apache Ant and Apache Maven automates the processing of XML data
+directly within your continuous integration and deployment pipelines. By
+embedding transformation tasks into build scripts, teams can generate
+source code, documentation, reports, and configuration files
+consistently without manual intervention. This article explains how XSLT
+works natively within Apache Ant using the built-in transformation task
+and how it integrates into Apache Maven using dedicated transformation
+plugins.</p>
+<h2 id="integrating-xslt-with-apache-ant">Integrating XSLT with Apache
+Ant</h2>
+<p>Apache Ant provides native support for XSLT processing through its
+built-in <code>&lt;xslt&gt;</code> task (also known historically as
+<code>&lt;style&gt;</code>). This task allows you to apply an XSLT
+stylesheet to a single XML file or batch-process an entire directory of
+documents.</p>
+<h3 id="the-xslt-task-configuration">The <code>&lt;xslt&gt;</code> Task
+Configuration</h3>
+<p>The <code>&lt;xslt&gt;</code> task maps source XML files to
+destination output files using a defined stylesheet:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">project</span> <span class="ot">name=</span><span class="st">&quot;XSLT-Example&quot;</span> <span class="ot">default=</span><span class="st">&quot;transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">target</span> <span class="ot">name=</span><span class="st">&quot;transform&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xslt</span> <span class="ot">basedir=</span><span class="st">&quot;src/xml&quot;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>              <span class="ot">destdir=</span><span class="st">&quot;target/output&quot;</span> </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>              <span class="ot">style=</span><span class="st">&quot;src/xsl/stylesheet.xsl&quot;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>              <span class="ot">extension=</span><span class="st">&quot;.html&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">include</span> <span class="ot">name=</span><span class="st">&quot;**/*.xml&quot;</span>/&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">param</span> <span class="ot">name=</span><span class="st">&quot;environment&quot;</span> <span class="ot">expression=</span><span class="st">&quot;production&quot;</span>/&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xslt</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">target</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">project</span>&gt;</span></code></pre></div>
+<h3 id="key-features-in-ant">Key Features in Ant</h3>
+<ul>
+<li><strong>Batch Processing:</strong> The <code>basedir</code>,
+<code>destdir</code>, and nested <code>&lt;include&gt;</code> or
+<code>&lt;exclude&gt;</code> patterns allow bulk processing of file sets
+while maintaining relative directory structures.</li>
+<li><strong>Parameter Passing:</strong> Dynamic parameters can be passed
+directly to the stylesheet at runtime using the
+<code>&lt;param&gt;</code> element.</li>
+<li><strong>Processor Selection:</strong> By default, Ant utilizes the
+Java runtime's built-in TrAX processor (Xalan). To use modern XSLT 2.0
+or 3.0 features, define an alternative processor such as Saxon by
+specifying the <code>classpath</code> and setting
+<code>processor="trax"</code>.</li>
+</ul>
+<h2 id="integrating-xslt-with-apache-maven">Integrating XSLT with Apache
+Maven</h2>
+<p>Unlike Ant, Maven does not have a native XML transformation task
+built into its core engine. Instead, it relies on ecosystem plugins,
+primarily the <code>xml-maven-plugin</code> hosted by MojoHaus, to hook
+transformations into standard build lifecycle phases.</p>
+<h3 id="configuring-the-xml-maven-plugin">Configuring the
+<code>xml-maven-plugin</code></h3>
+<p>The plugin binds transformation executions to phases like
+<code>generate-resources</code>, <code>generate-sources</code>, or
+<code>process-classes</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">plugin</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">groupId</span>&gt;org.codehaus.mojo&lt;/<span class="kw">groupId</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">artifactId</span>&gt;xml-maven-plugin&lt;/<span class="kw">artifactId</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">version</span>&gt;1.1.0&lt;/<span class="kw">version</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">executions</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">execution</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">phase</span>&gt;generate-resources&lt;/<span class="kw">phase</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">goals</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">goal</span>&gt;transform&lt;/<span class="kw">goal</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">goals</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">execution</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">executions</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">configuration</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">transformationSets</span>&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">transformationSet</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">dir</span>&gt;src/main/xml&lt;/<span class="kw">dir</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">stylesheet</span>&gt;src/main/xsl/transform.xsl&lt;/<span class="kw">stylesheet</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">outputDir</span>&gt;${project.build.directory}/generated-resources&lt;/<span class="kw">outputDir</span>&gt;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">parameters</span>&gt;</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                    &lt;<span class="kw">parameter</span>&gt;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                        &lt;<span class="kw">name</span>&gt;buildVersion&lt;/<span class="kw">name</span>&gt;</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                        &lt;<span class="kw">value</span>&gt;${project.version}&lt;/<span class="kw">value</span>&gt;</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                    &lt;/<span class="kw">parameter</span>&gt;</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                &lt;/<span class="kw">parameters</span>&gt;</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">transformationSet</span>&gt;</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">transformationSets</span>&gt;</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">configuration</span>&gt;</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">dependencies</span>&gt;</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Include Saxon for XSLT 2.0/3.0 support --&gt;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">dependency</span>&gt;</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">groupId</span>&gt;net.sf.saxon&lt;/<span class="kw">groupId</span>&gt;</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">artifactId</span>&gt;Saxon-HE&lt;/<span class="kw">artifactId</span>&gt;</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">version</span>&gt;12.4&lt;/<span class="kw">version</span>&gt;</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">dependency</span>&gt;</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">dependencies</span>&gt;</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">plugin</span>&gt;</span></code></pre></div>
+<h3 id="key-features-in-maven">Key Features in Maven</h3>
+<ul>
+<li><strong>Lifecycle Binding:</strong> Transformations execute
+deterministically during phases such as <code>generate-sources</code>
+(for creating Java code from XML models) or <code>pre-site</code> (for
+documentation).</li>
+<li><strong>Dependency Management:</strong> Upgrading the underlying
+transformation engine requires adding a standard dependency block (e.g.,
+Saxon-HE) directly within the plugin declaration.</li>
+<li><strong>Incremental Builds:</strong> The
+<code>xml-maven-plugin</code> tracks file modification timestamps to
+prevent redundant transformations if the source XML and XSLT templates
+have not changed.</li>
+</ul>
+<h2 id="core-advantages-in-cicd-pipelines">Core Advantages in CI/CD
+Pipelines</h2>
+<p>Integrating transformations directly into Ant or Maven standardizes
+data processing across development environments and CI/CD agents. It
+eliminates reliance on local desktop tools, guarantees that output
+formats always match the latest schema definitions, and enables
+automated validation of structured documents during standard testing
+phases.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

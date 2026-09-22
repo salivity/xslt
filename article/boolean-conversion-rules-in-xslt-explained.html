@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boolean Conversion Rules in XSLT Explained - xslt</title>
+    <meta name="description" content="In XSLT and XPath, conditional elements like <xsl:if> and <xsl:when> rely on boolean evaluation to control execution flow. When an expression does not produce a native boolean value, the processor automatically applies the rules of the boolean() function">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/boolean-conversion-rules-in-xslt-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Boolean Conversion Rules in XSLT Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/boolean-conversion-rules-in-xslt-explained" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, conditional elements like <xsl:if> and <xsl:when> rely on boolean evaluation to control execution flow. When an expression does not produce a native boolean value, the processor automatically applies the rules of the boolean() function" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="boolean-conversion-rules-in-xslt-explained">Boolean Conversion
+Rules in XSLT Explained</h1>
+<p>In XSLT and XPath, conditional elements like
+<code>&lt;xsl:if&gt;</code> and <code>&lt;xsl:when&gt;</code> rely on
+boolean evaluation to control execution flow. When an expression does
+not produce a native boolean value, the processor automatically applies
+the rules of the <code>boolean()</code> function—also known as
+determining the Effective Boolean Value (EBV). Understanding how this
+conversion operates on strings, node-sets, and sequences is essential
+for avoiding common logic errors in transformations.</p>
+<h3 id="string-evaluation">String Evaluation</h3>
+<p>When the <code>boolean()</code> function evaluates a string, the rule
+is strictly based on the character length of the string:</p>
+<ul>
+<li><strong>Empty String (<code>""</code>):</strong> Evaluates to
+<code>false</code>.</li>
+<li><strong>Non-Empty String:</strong> Evaluates to <code>true</code>,
+regardless of the text content.</li>
+</ul>
+<p>A frequent source of bugs occurs when checking string values like
+<code>"false"</code> or <code>"0"</code>. Because the string
+<code>'false'</code> has a length of five characters,
+<code>boolean('false')</code> returns <code>true</code>. To evaluate the
+semantic truth of string contents, you must explicitly compare it
+against a target value (e.g., <code>my-string = 'true'</code>).</p>
+<h3 id="node-and-node-set-evaluation-xpath-10">Node and Node-Set
+Evaluation (XPath 1.0)</h3>
+<p>In XPath 1.0, collections of nodes are treated as node-sets. The
+boolean evaluation of a node-set is determined solely by the presence of
+nodes, not by what those nodes contain:</p>
+<ul>
+<li><strong>Empty Node-Set:</strong> Evaluates to <code>false</code>. If
+a path expression matches no nodes in the source XML, the result is
+<code>false</code>.</li>
+<li><strong>Non-Empty Node-Set:</strong> Evaluates to <code>true</code>
+if it contains at least one node.</li>
+</ul>
+<p>For example, <code>&lt;xsl:if test="status"&gt;</code> evaluates to
+<code>true</code> as long as the <code>&lt;status&gt;</code> element
+exists in the context, even if the element is empty
+(<code>&lt;status/&gt;</code>) or explicitly contains the text
+<code>false</code> (<code>&lt;status&gt;false&lt;/status&gt;</code>). To
+check the content of the node rather than its existence, you must
+evaluate its string value (e.g., <code>status = 'true'</code>) or its
+normalized length.</p>
+<h3 id="sequence-evaluation-xpath-20-30-and-xslt-20">Sequence Evaluation
+(XPath 2.0, 3.0, and XSLT 2.0+)</h3>
+<p>Modern XSLT versions replace node-sets with sequences. The Effective
+Boolean Value (EBV) rule handles sequences using three distinct
+criteria:</p>
+<ol type="1">
+<li><strong>Empty Sequence:</strong> An empty sequence <code>()</code>
+always evaluates to <code>false</code>.</li>
+<li><strong>Sequences Starting with a Node:</strong> If the first item
+in a sequence is a node (element, attribute, text node, document node,
+etc.), the sequence evaluates to <code>true</code>, regardless of how
+many other items exist in the sequence.</li>
+<li><strong>Singleton Sequences of Atomic Values:</strong> If the
+sequence contains exactly one atomic value, standard type-specific rules
+apply:
+<ul>
+<li><strong>Boolean:</strong> Retains its value (<code>true</code> or
+<code>false</code>).</li>
+<li><strong>String or Untyped Atomic:</strong> <code>true</code> if
+string length &gt; 0, otherwise <code>false</code>.</li>
+<li><strong>Numeric:</strong> <code>false</code> if the value is zero
+(<code>0</code>, <code>0.0</code>) or <code>NaN</code>;
+<code>true</code> for all other numbers.</li>
+</ul></li>
+<li><strong>Invalid Sequences:</strong> If a sequence contains more than
+one item and the first item is <em>not</em> a node (such as a sequence
+of multiple integers or strings, e.g., <code>(1, 2)</code>), the
+processor raises a type error (<code>FORG0006</code>) rather than
+converting to a boolean.</li>
+</ol>
+<h3 id="summary-of-common-conversions">Summary of Common
+Conversions</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Expression Type</th>
+<th style="text-align: left;">Evaluates to <code>true</code></th>
+<th style="text-align: left;">Evaluates to <code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>String</strong></td>
+<td style="text-align: left;">Length &gt; 0 (including
+<code>'false'</code>, <code>'0'</code>, <code>' '</code>)</td>
+<td style="text-align: left;">Empty string <code>''</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Node / Node-Set</strong></td>
+<td style="text-align: left;">Contains 1 or more nodes</td>
+<td style="text-align: left;">Contains 0 nodes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Sequence</strong></td>
+<td style="text-align: left;">Starts with a node, non-zero number,
+non-empty string</td>
+<td style="text-align: left;">Empty sequence <code>()</code>,
+<code>0</code>, <code>NaN</code>, <code>''</code></td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

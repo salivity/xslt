@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The hexBinary Datatype in XSLT Binary XML - xslt</title>
+    <meta name="description" content="This article explores the function and significance of the xs:hexBinary datatype when processing and transforming binary data embedded within XML structures using XSLT. It outlines how hexBinary facilitates the representation of raw byte streams, details">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/the-hex-binary-datatype-in-xslt-binary-xml">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The hexBinary Datatype in XSLT Binary XML - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/the-hex-binary-datatype-in-xslt-binary-xml" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the function and significance of the xs:hexBinary datatype when processing and transforming binary data embedded within XML structures using XSLT. It outlines how hexBinary facilitates the representation of raw byte streams, details" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="the-hexbinary-datatype-in-xslt-binary-xml">The hexBinary
+Datatype in XSLT Binary XML</h1>
+<p>This article explores the function and significance of the
+<code>xs:hexBinary</code> datatype when processing and transforming
+binary data embedded within XML structures using XSLT. It outlines how
+<code>hexBinary</code> facilitates the representation of raw byte
+streams, details its advantages in manipulation and inspection compared
+to alternatives like <code>base64Binary</code>, and explains practical
+applications across XSLT versions.</p>
+<h2 id="understanding-xshexbinary">Understanding
+<code>xs:hexBinary</code></h2>
+<p>XML is inherently a text-based format, making the inclusion of
+arbitrary binary content (such as images, compiled code, or encrypted
+payloads) impossible without encoding. The W3C XML Schema definition
+provides the <code>xs:hexBinary</code> datatype to represent binary data
+as a sequence of hexadecimal digits. Each byte of data is represented by
+exactly two hexadecimal characters (0–9, A–F, or a–f).</p>
+<p>In XSLT 2.0 and later versions, XML Schema datatypes are deeply
+integrated through schema-aware processing and the standard XPath type
+system.</p>
+<h2 id="key-roles-in-xslt-processing">Key Roles in XSLT Processing</h2>
+<h3 id="1-predictable-byte-level-inspection">1. Predictable Byte-Level
+Inspection</h3>
+<p>Unlike <code>xs:base64Binary</code>, where three bytes are packed
+into four characters (often obscuring single-byte boundaries),
+<code>xs:hexBinary</code> maintains a strict 1:2 byte-to-character
+ratio. This direct mapping allows XSLT stylesheets to perform byte-level
+analysis using standard string functions (<code>fn:substring</code>,
+<code>fn:string-length</code>):</p>
+<ul>
+<li><strong>Header Inspection:</strong> Checking magic numbers (e.g.,
+verifying a file signature like <code>FF D8 FF</code> for JPEG).</li>
+<li><strong>Offset Calculation:</strong> Extracting a specific slice of
+bytes by multiplying byte indices by two.</li>
+<li><strong>Length Validation:</strong> Verifying that a binary payload
+aligns with expected byte lengths without complex decoding logic.</li>
+</ul>
+<h3 id="2-interoperability-and-type-conversion">2. Interoperability and
+Type Conversion</h3>
+<p>XSLT provides constructor functions and casting operators to
+translate between binary representations. An XSLT processor can cast
+<code>xs:base64Binary</code> to <code>xs:hexBinary</code> and vice
+versa:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;base64Data&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;SGVsbG8=&#39;&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:base64Binary&quot;</span>/&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;hexData&quot;</span> <span class="ot">select=</span><span class="st">&quot;xs:hexBinary($base64Data)&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:hexBinary&quot;</span>/&gt;</span></code></pre></div>
+<p>This capability is essential in workflows where input XML documents
+receive data encoded in Base64 (common in SOAP or REST APIs), but
+downstream systems or cryptographic algorithms require a hexadecimal
+representation.</p>
+<h3 id="3-expath-binary-module-integration">3. EXPath Binary Module
+Integration</h3>
+<p>In advanced XSLT 3.0 processing, the EXPath Binary Module
+(<code>bin:*</code> functions) often relies on <code>xs:hexBinary</code>
+as a bridge type. These functions allow developers to:</p>
+<ul>
+<li>Pack and unpack integers, floating-point numbers, and text into
+binary buffers.</li>
+<li>Apply bitwise operations (AND, OR, XOR, shifts).</li>
+<li>Read and write arbitrary binary structures directly inside XSLT
+transformations.</li>
+</ul>
+<h3 id="4-cryptographic-and-hashing-operations">4. Cryptographic and
+Hashing Operations</h3>
+<p>Modern XSLT implementations (such as Saxon) and XSLT 3.0 functions
+often interact with cryptographic digests (e.g., MD5, SHA-256). Many
+hashing extensions and native functions output hashes as
+<code>xs:hexBinary</code>. This ensures that signatures, checksums, and
+tokens can be validated natively within the transformation pipeline
+without relying on external host scripts.</p>
+<h2 id="summary">Summary</h2>
+<p>The <code>xs:hexBinary</code> datatype serves as a predictable,
+structured medium for handling binary streams in XSLT. By providing
+fixed-width, character-level access to raw bytes, it simplifies
+extraction, validation, conversion, and cryptographic tasks in binary
+XML workflows.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

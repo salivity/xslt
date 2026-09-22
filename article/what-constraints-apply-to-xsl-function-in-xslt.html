@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Constraints Apply to xsl:function in XSLT? - xslt</title>
+    <meta name="description" content="In XSLT development, stylesheets frequently require reusable logic to transform or compute data, which can be implemented using either named templates (<xsl:template name="...">) or stylesheet functions (<xsl:function>). While named templates focus on ge">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-constraints-apply-to-xsl-function-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Constraints Apply to xsl:function in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-constraints-apply-to-xsl-function-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT development, stylesheets frequently require reusable logic to transform or compute data, which can be implemented using either named templates (<xsl:template name="...">) or stylesheet functions (<xsl:function>). While named templates focus on ge" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-constraints-apply-to-xslfunction-in-xslt">What Constraints
+Apply to xsl:function in XSLT?</h1>
+<p>In XSLT development, stylesheets frequently require reusable logic to
+transform or compute data, which can be implemented using either named
+templates (<code>&lt;xsl:template name="..."&gt;</code>) or stylesheet
+functions (<code>&lt;xsl:function&gt;</code>). While named templates
+focus on generating output nodes within the execution flow, stylesheet
+functions—introduced in XSLT 2.0—are designed to compute and return
+typed values directly inside XPath expressions. This architectural
+difference imposes specific constraints on
+<code>&lt;xsl:function&gt;</code> implementations regarding context
+access, namespace scoping, parameter behavior, and tree
+modification.</p>
+<h2 id="undefined-initial-context">Undefined Initial Context</h2>
+<p>The most prominent constraint in <code>&lt;xsl:function&gt;</code> is
+the absence of an implicit context item. When a function is
+evaluated:</p>
+<ul>
+<li>The context item (<code>.</code>), context position
+(<code>position()</code>), and context size (<code>last()</code>) are
+undefined upon entry.</li>
+<li>Relative XPath expressions (such as <code>item/price</code> or
+<code>@id</code>) cannot be resolved directly inside the function body
+unless a node is explicitly passed as an argument.</li>
+<li>Named templates inherit the current context item, position, and size
+from the calling instruction, allowing direct execution of contextual
+path queries.</li>
+</ul>
+<h2 id="mandatory-namespace-prefix">Mandatory Namespace Prefix</h2>
+<p>XSLT requires strict namespace separation to prevent collisions with
+built-in XPath and XSLT functions:</p>
+<ul>
+<li>The <code>name</code> attribute of <code>&lt;xsl:function&gt;</code>
+must be an expanded QName with a non-null namespace prefix (for example,
+<code>my:calculate-total()</code>).</li>
+<li>Defining a function in the default (unprefixed) namespace or the
+standard XSLT namespace
+(<code>[http://www.w3.org/1999/XSL/Transform](http://www.w3.org/1999/XSL/Transform)</code>)
+results in a static compile-time error.</li>
+<li>Standard named templates can use simple, unprefixed NCName
+identifiers (such as <code>name="formatDate"</code>).</li>
+</ul>
+<h2 id="strict-parameter-rules-and-arity">Strict Parameter Rules and
+Arity</h2>
+<p>Parameter handling inside functions is strictly typed and governed by
+function signatures:</p>
+<ul>
+<li><strong>No Default Values:</strong> In standard XSLT 2.0 and 3.0,
+<code>&lt;xsl:param&gt;</code> elements inside
+<code>&lt;xsl:function&gt;</code> cannot specify default values via
+<code>select</code> or content. Every declared parameter must be
+supplied by the caller.</li>
+<li><strong>Exact Arity Matching:</strong> Functions are identified by
+their qualified name and arity (number of arguments). A function
+<code>my:format(arg1)</code> is distinct from
+<code>my:format(arg1, arg2)</code>.</li>
+<li><strong>No Tunnel Parameters:</strong> Functions do not support
+tunnel parameters (<code>tunnel="yes"</code>), which are widely used in
+named and rule-based templates to pass values across deep transformation
+hierarchies.</li>
+</ul>
+<h2 id="determinism-and-side-effect-restrictions">Determinism and
+Side-Effect Restrictions</h2>
+<p>Stylesheet functions are intended to be pure, side-effect-free
+operations:</p>
+<ul>
+<li>Functions cannot execute instructions that write to secondary output
+streams, such as <code>&lt;xsl:result-document&gt;</code>.</li>
+<li>Functions return an explicit sequence or typed value constructed by
+<code>&lt;xsl:sequence&gt;</code> or literal result elements, rather
+than appending directly to the primary result tree of a calling
+template.</li>
+<li>In streaming environments (XSLT 3.0), functions face additional
+static restrictions regarding consuming streamable nodes compared to
+template rules.</li>
+</ul>
+<h2 id="invocation-and-matching">Invocation and Matching</h2>
+<p>The execution model differs fundamentally between the two
+constructs:</p>
+<ul>
+<li>Functions can only be invoked within XPath expressions (e.g.,
+<code>&lt;xsl:value-of select="my:add(1, 2)"/&gt;</code>).</li>
+<li>Functions cannot specify <code>match</code> patterns, execution
+<code>mode</code> attributes, or rule priorities, making them unsuitable
+for polymorphic node dispatching where
+<code>&lt;xsl:apply-templates&gt;</code> is required.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

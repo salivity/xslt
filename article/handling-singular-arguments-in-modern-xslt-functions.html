@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handling Singular Arguments in Modern XSLT Functions - xslt</title>
+    <meta name="description" content="Modern XSLT processors (version 2.0 and later) evaluate function arguments according to strict type and cardinality rules defined by the XPath 2.0+ specifications. When a function expects a singular argument—meaning an item with an occurrence indicator">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/handling-singular-arguments-in-modern-xslt-functions">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Handling Singular Arguments in Modern XSLT Functions - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/handling-singular-arguments-in-modern-xslt-functions" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Modern XSLT processors (version 2.0 and later) evaluate function arguments according to strict type and cardinality rules defined by the XPath 2.0+ specifications. When a function expects a singular argument—meaning an item with an occurrence indicator" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="handling-singular-arguments-in-modern-xslt-functions">Handling
+Singular Arguments in Modern XSLT Functions</h1>
+<p>Modern XSLT processors (version 2.0 and later) evaluate function
+arguments according to strict type and cardinality rules defined by the
+XPath 2.0+ specifications. When a function expects a singular
+argument—meaning an item with an occurrence indicator requiring exactly
+one item—supplying an empty sequence or multiple items triggers Function
+Conversion Rules. Under standard evaluation, any mismatch where zero
+items or more than one item is passed to a singular parameter results in
+a fatal dynamic type error (<code>err:XPTY0004</code>), unless explicit
+occurrence indicators permit it or XPath 1.0 compatibility mode is
+enabled.</p>
+<h3 id="function-signatures-and-occurrence-indicators">Function
+Signatures and Occurrence Indicators</h3>
+<p>In XSLT 2.0, 3.0, and modern XPath, function parameters are declared
+with an item type and an optional occurrence indicator:</p>
+<ul>
+<li><strong>No indicator</strong> (e.g., <code>xs:string</code> or
+<code>item()</code>): Requires exactly one item.</li>
+<li><strong><code>?</code></strong> (e.g., <code>xs:string?</code>):
+Allows zero or one item.</li>
+<li><strong><code>+</code></strong> (e.g., <code>xs:string+</code>):
+Allows one or more items.</li>
+<li><strong><code>*</code></strong> (e.g., <code>xs:string*</code>):
+Allows zero or more items.</li>
+</ul>
+<p>When a parameter omits an occurrence indicator, the required
+cardinality defaults to exactly one.</p>
+<h3 id="the-function-conversion-rules">The Function Conversion
+Rules</h3>
+<p>Before an argument value is bound to a parameter, modern XSLT applies
+Function Conversion Rules in a defined sequence:</p>
+<ol type="1">
+<li><strong>Atomization:</strong> If the required type is atomic (such
+as <code>xs:integer</code> or <code>xs:string</code>), any nodes
+supplied in the argument are atomized to retrieve their typed
+values.</li>
+<li><strong>Type Promotion and Numeric Substitution:</strong> Atomized
+values may be promoted (e.g., <code>xs:decimal</code> to
+<code>xs:double</code>) or cast (such as <code>xs:untypedAtomic</code>
+to the target atomic type).</li>
+<li><strong>Cardinality Checking:</strong> The processor counts the
+number of items in the resulting sequence and verifies that it satisfies
+the required occurrence indicator.</li>
+</ol>
+<h3 id="passing-zero-items-the-empty-sequence">Passing Zero Items (The
+Empty Sequence)</h3>
+<p>If an expression evaluates to an empty sequence <code>()</code> and
+is passed to a singular argument:</p>
+<ul>
+<li><strong>If the signature requires exactly one item
+(<code>item()</code>):</strong> The cardinality check fails immediately.
+The processor raises a dynamic type error with the standard error code
+<code>err:XPTY0004</code>, halting transformation.</li>
+<li><strong>If the signature allows zero or one item
+(<code>item()?</code>):</strong> The empty sequence satisfies the
+cardinality check. The function executes, receiving <code>()</code> as
+the argument value. Built-in functions that accept optional singular
+arguments often return <code>()</code> in response.</li>
+</ul>
+<h3 id="passing-multiple-items">Passing Multiple Items</h3>
+<p>If an expression evaluates to a sequence containing two or more items
+(or if atomization of a supplied node produces multiple atomic
+values):</p>
+<ul>
+<li><strong>Standard XSLT 2.0+ Behavior:</strong> The processor
+evaluates the length of the sequence against the expected single item.
+Because the sequence contains more than one item, the conversion rules
+cannot reduce it. A dynamic type error (<code>err:XPTY0004</code>) is
+raised. Unlike some programming languages, modern XSLT does not
+automatically discard trailing items or iterate over the sequence unless
+explicitly instructed using a mapping expression (such as
+<code>!</code>) or an <code>xsl:for-each</code>.</li>
+</ul>
+<h3 id="the-xpath-10-compatibility-mode-exception">The XPath 1.0
+Compatibility Mode Exception</h3>
+<p>If an XSLT 2.0+ stylesheet specifies <code>version="1.0"</code> on
+the <code>xsl:stylesheet</code> element or an enclosing element, the
+processor runs in XPath 1.0 Compatibility Mode. This changes how
+singular arguments are resolved:</p>
+<ul>
+<li><strong>Multiple Items:</strong> If a sequence of nodes is passed
+where a single atomic value is expected, the processor automatically
+takes the first item in the sequence and ignores the rest, mirroring
+classic XPath 1.0 behavior.</li>
+<li><strong>Zero Items:</strong> If an empty sequence is supplied where
+a single string or number is required, the processor converts the empty
+sequence into an empty string <code>""</code> or <code>NaN</code>,
+respectively, rather than raising an error.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

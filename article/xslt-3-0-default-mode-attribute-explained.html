@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 3.0 default-mode Attribute Explained - xslt</title>
+    <meta name="description" content="The default-mode attribute in XSLT 3.0 simplifies mode assignment by allowing developers to set a stylesheet-wide default processing mode directly on the <xsl:stylesheet> (or <xsl:transform>) element. Prior to XSLT 3.0, using modes required explicitly re">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-3-0-default-mode-attribute-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 3.0 default-mode Attribute Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-3-0-default-mode-attribute-explained" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The default-mode attribute in XSLT 3.0 simplifies mode assignment by allowing developers to set a stylesheet-wide default processing mode directly on the <xsl:stylesheet> (or <xsl:transform>) element. Prior to XSLT 3.0, using modes required explicitly re" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-30-default-mode-attribute-explained">XSLT 3.0 default-mode
+Attribute Explained</h1>
+<p>The <code>default-mode</code> attribute in XSLT 3.0 simplifies mode
+assignment by allowing developers to set a stylesheet-wide default
+processing mode directly on the <code>&lt;xsl:stylesheet&gt;</code> (or
+<code>&lt;xsl:transform&gt;</code>) element. Prior to XSLT 3.0, using
+modes required explicitly repeating the <code>mode</code> attribute on
+every single template rule and invocation instruction. By setting a
+default mode at the root level, XSLT 3.0 reduces code verbosity,
+minimizes accidental fallback to the unnamed mode, and enables clean,
+modular multi-pass transformations.</p>
+<h2 id="the-verbosity-problem-in-earlier-versions">The Verbosity Problem
+in Earlier Versions</h2>
+<p>In XSLT 1.0 and 2.0, any template or instruction meant to operate
+within a specific mode required an explicit declaration:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;chapter&quot;</span> <span class="ot">mode=</span><span class="st">&quot;toc&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- processing --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;section&quot;</span> <span class="ot">mode=</span><span class="st">&quot;toc&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Omitting <code>mode="toc"</code> on an
+<code>&lt;xsl:apply-templates&gt;</code> instruction caused the engine
+to revert to the unnamed default mode. This was a frequent source of
+logic bugs in multi-phase pipelines where processing inadvertently
+dropped out of the intended phase.</p>
+<h2 id="how-default-mode-changes-mode-assignment">How
+<code>default-mode</code> Changes Mode Assignment</h2>
+<p>The <code>default-mode</code> attribute establishes which mode
+applies implicitly to elements inside the stylesheet module that accept
+a mode attribute.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                <span class="ot">default-mode=</span><span class="st">&quot;toc&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Implicitly in &quot;toc&quot; mode --&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;chapter&quot;</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Implicitly applies templates in &quot;toc&quot; mode --&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;section&quot;</span>/&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>When <code>default-mode</code> is declared:</p>
+<ul>
+<li><strong><code>&lt;xsl:template&gt;</code> elements without a
+<code>mode</code> attribute</strong> automatically belong to the
+specified default mode instead of the unnamed <code>#default</code>
+mode.</li>
+<li><strong><code>&lt;xsl:apply-templates&gt;</code> instructions
+without a <code>mode</code> attribute</strong> automatically invoke
+templates in that specified default mode.</li>
+<li><strong><code>&lt;xsl:apply-imports&gt;</code> and
+<code>&lt;xsl:next-match&gt;</code></strong> behave according to the
+context of the default mode if not overridden.</li>
+</ul>
+<h2 id="key-advantages-in-practice">Key Advantages in Practice</h2>
+<h3 id="1-cleaner-multi-pass-architectures">1. Cleaner Multi-Pass
+Architectures</h3>
+<p>Complex transformations often process XML documents in stages (such
+as cleanup, enrichment, and formatting). Developers commonly separate
+these stages into individual stylesheet modules. By assigning a distinct
+<code>default-mode</code> to each file (for example,
+<code>default-mode="cleanup"</code> in <code>clean.xsl</code>), an
+entire module can be scoped to a single pipeline stage without
+repetitive boilerplate.</p>
+<h3 id="2-elimination-of-silent-fallback-bugs">2. Elimination of Silent
+Fallback Bugs</h3>
+<p>In older XSLT versions, forgetting a <code>mode</code> attribute on
+an inner <code>&lt;xsl:apply-templates&gt;</code> meant the processor
+fell back to the root unnamed mode, often producing empty or malformed
+output without throwing a syntax error. With <code>default-mode</code>,
+child instructions automatically stay within the established
+workflow.</p>
+<h3 id="3-granular-overrides-remain-available">3. Granular Overrides
+Remain Available</h3>
+<p>Using <code>default-mode</code> does not lock the entire stylesheet
+into a single mode. Individual templates or calls can still override the
+default by explicitly supplying a <code>mode</code> attribute:</p>
+<ul>
+<li>Specify another named mode: <code>mode="alternate"</code></li>
+<li>Target the standard unnamed mode: <code>mode="#unnamed"</code></li>
+<li>Match across any mode: <code>mode="#all"</code></li>
+</ul>
+<p>This balance allows developers to set the predominant operational
+context for a module while retaining complete control where exceptions
+are necessary.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handling Java XSLT Errors with ErrorListener - xslt</title>
+    <meta name="description" content="In Java XSLT processing, the javax.xml.transform.ErrorListener interface provides a mechanism to intercept, log, and handle warnings and errors that occur during stylesheet compilation and document transformation. By default, the Java Transformation API">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/handling-java-xslt-errors-with-error-listener">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Handling Java XSLT Errors with ErrorListener - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/handling-java-xslt-errors-with-error-listener" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Java XSLT processing, the javax.xml.transform.ErrorListener interface provides a mechanism to intercept, log, and handle warnings and errors that occur during stylesheet compilation and document transformation. By default, the Java Transformation API" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="handling-java-xslt-errors-with-errorlistener">Handling Java XSLT
+Errors with ErrorListener</h1>
+<p>In Java XSLT processing, the
+<code>javax.xml.transform.ErrorListener</code> interface provides a
+mechanism to intercept, log, and handle warnings and errors that occur
+during stylesheet compilation and document transformation. By default,
+the Java Transformation API for XML (TrAX) prints warnings and non-fatal
+errors directly to <code>System.err</code>, which can lead to missed
+issues or unwanted console noise. Implementing a custom
+<code>ErrorListener</code> allows developers to redirect diagnostics to
+logging frameworks, capture runtime <code>&lt;xsl:message&gt;</code>
+notifications, and control whether execution should halt or continue
+when errors arise.</p>
+<h2 id="core-responsibilities-of-errorlistener">Core Responsibilities of
+ErrorListener</h2>
+<p>The primary role of the <code>ErrorListener</code> is to decouple the
+error detection performed by the XSLT processor from the error-handling
+policy defined by your application. It contains three required methods,
+each corresponding to a specific severity level defined by the XSLT
+specification:</p>
+<ol type="1">
+<li><strong><code>warning(TransformerException exception)</code></strong>:
+Handles recoverable conditions or stylistic problems detected by the
+processor, as well as <code>&lt;xsl:message terminate="no"&gt;</code>
+instructions. The transformation continues uninterrupted unless the
+listener explicitly rethrows the exception.</li>
+<li><strong><code>error(TransformerException exception)</code></strong>:
+Handles recoverable transformation errors where the XSLT processor is
+permitted to attempt recovery. If the listener does not throw an
+exception, the processor will attempt to complete the
+transformation.</li>
+<li><strong><code>fatalError(TransformerException exception)</code></strong>:
+Handles non-recoverable syntax errors, malformed XML, or explicit
+stylesheet terminations via
+<code>&lt;xsl:message terminate="yes"&gt;</code>. The processor cannot
+guarantee valid output after a fatal error, and the listener must throw
+an exception to abort processing.</li>
+</ol>
+<h2 id="key-capabilities-and-use-cases">Key Capabilities and Use
+Cases</h2>
+<h3 id="1-integration-with-logging-frameworks">1. Integration with
+Logging Frameworks</h3>
+<p>Default XSLT error handling writes directly to standard error
+streams. Implementing an <code>ErrorListener</code> allows you to route
+messages through logging libraries like SLF4J, Logback, or Log4j:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">ErrorListener</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">TransformerException</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">slf4j</span><span class="op">.</span><span class="im">Logger</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">slf4j</span><span class="op">.</span><span class="im">LoggerFactory</span><span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> CustomErrorListener <span class="kw">implements</span> <span class="bu">ErrorListener</span> <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="bu">Logger</span> logger <span class="op">=</span> LoggerFactory<span class="op">.</span><span class="fu">getLogger</span><span class="op">(</span>CustomErrorListener<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">warning</span><span class="op">(</span><span class="bu">TransformerException</span> e<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        logger<span class="op">.</span><span class="fu">warn</span><span class="op">(</span><span class="st">&quot;XSLT Warning: {}&quot;</span><span class="op">,</span> e<span class="op">.</span><span class="fu">getMessageAndLocation</span><span class="op">());</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">error</span><span class="op">(</span><span class="bu">TransformerException</span> e<span class="op">)</span> <span class="kw">throws</span> <span class="bu">TransformerException</span> <span class="op">{</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        logger<span class="op">.</span><span class="fu">error</span><span class="op">(</span><span class="st">&quot;XSLT Recoverable Error: {}&quot;</span><span class="op">,</span> e<span class="op">.</span><span class="fu">getMessageAndLocation</span><span class="op">());</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Throwing the exception converts a recoverable error into a hard failure</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> e<span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">fatalError</span><span class="op">(</span><span class="bu">TransformerException</span> e<span class="op">)</span> <span class="kw">throws</span> <span class="bu">TransformerException</span> <span class="op">{</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        logger<span class="op">.</span><span class="fu">error</span><span class="op">(</span><span class="st">&quot;XSLT Fatal Error: {}&quot;</span><span class="op">,</span> e<span class="op">.</span><span class="fu">getMessageAndLocation</span><span class="op">());</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> e<span class="op">;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="2-precise-error-localization">2. Precise Error Localization</h3>
+<p>The <code>TransformerException</code> passed to each method contains
+locator information. By calling <code>e.getLocator()</code>, you can
+access a <code>SourceLocator</code> object that provides the public ID,
+system ID (file URL), line number, and column number where the failure
+occurred. This provides accurate diagnostics for debugging large XML or
+XSLT files.</p>
+<h3 id="3-catching-xslmessage-output">3. Catching
+<code>&lt;xsl:message&gt;</code> Output</h3>
+<p>Stylesheets often use <code>&lt;xsl:message&gt;</code> for debugging
+or asserting business rules. The XSLT processor routes these messages
+directly through the registered <code>ErrorListener</code>.
+Non-terminating messages trigger the <code>warning()</code> method,
+while terminating messages invoke <code>fatalError()</code>. This
+enables the Java application to respond programmatically to business
+validation rules evaluated inside the XSLT stylesheet.</p>
+<h2 id="scope-transformerfactory-vs-transformer">Scope:
+TransformerFactory vs. Transformer</h2>
+<p>An <code>ErrorListener</code> can be registered at two different
+stages:</p>
+<ul>
+<li><strong><code>TransformerFactory.setErrorListener()</code></strong>:
+Intercepts errors occurring during the compilation and parsing of the
+XSLT stylesheet into a <code>Templates</code> object.</li>
+<li><strong><code>Transformer.setErrorListener()</code></strong>:
+Intercepts errors and runtime messages during the actual transformation
+of the source XML to the output destination.</li>
+</ul>
+<p>To ensure comprehensive error management, custom listeners should be
+registered on both the factory and individual transformer instances.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

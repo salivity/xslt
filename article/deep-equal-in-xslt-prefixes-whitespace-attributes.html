@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>deep-equal() in XSLT: Prefixes, Whitespace, Attributes - xslt</title>
+    <meta name="description" content="The XPath and XSLT deep-equal() function compares two sequences to determine whether their contents are structurally and value-wise identical. When comparing elements, it abstracts away purely syntactic differences, meaning it ignores attribute ordering">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/deep-equal-in-xslt-prefixes-whitespace-attributes">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="deep-equal() in XSLT: Prefixes, Whitespace, Attributes - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/deep-equal-in-xslt-prefixes-whitespace-attributes" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The XPath and XSLT deep-equal() function compares two sequences to determine whether their contents are structurally and value-wise identical. When comparing elements, it abstracts away purely syntactic differences, meaning it ignores attribute ordering" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="deep-equal-in-xslt-prefixes-whitespace-attributes">deep-equal()
+in XSLT: Prefixes, Whitespace, Attributes</h1>
+<p>The XPath and XSLT <code>deep-equal()</code> function compares two
+sequences to determine whether their contents are structurally and
+value-wise identical. When comparing elements, it abstracts away purely
+syntactic differences, meaning it ignores attribute ordering and
+namespace prefix variations as long as the underlying names and values
+match. However, it treats whitespace strictly by default, comparing text
+nodes character-for-character unless the nodes are stripped or
+normalized prior to comparison.</p>
+<h2 id="attribute-ordering">Attribute Ordering</h2>
+<p>In the XML and XQuery/XSLT Data Model (XDM), attributes belong to an
+unordered set. Consequently, <code>deep-equal()</code> completely
+ignores the order in which attributes appear inside an element.</p>
+<p>Two elements will evaluate to <code>true</code> as long as:</p>
+<ul>
+<li>Both elements contain the exact same number of attributes.</li>
+<li>Every attribute in the first element has a matching attribute in the
+second element with the same expanded QName (namespace URI and local
+name) and identical value.</li>
+</ul>
+<p>For example, <code>&lt;item id="1" status="open"/&gt;</code> and
+<code>&lt;item status="open" id="1"/&gt;</code> return
+<code>true</code>.</p>
+<h2 id="namespace-prefixes">Namespace Prefixes</h2>
+<p>The <code>deep-equal()</code> function compares element and attribute
+names using their expanded QNames, consisting of the namespace URI and
+the local name.</p>
+<p>The prefix used to bind a namespace is considered arbitrary syntax.
+Therefore:</p>
+<ul>
+<li>If two elements or attributes use different prefixes (e.g.,
+<code>a:item</code> vs. <code>b:item</code>), but both prefixes resolve
+to the same namespace URI, <code>deep-equal()</code> returns
+<code>true</code>.</li>
+<li>Default namespaces without prefixes are treated identically to
+prefixed namespaces if the target URIs match.</li>
+<li>In-scope namespace nodes that are not used by any element or
+attribute name are not compared.</li>
+</ul>
+<h2 id="whitespace-handling">Whitespace Handling</h2>
+<p>Whitespace handling in <code>deep-equal()</code> is strict because
+text nodes are distinct items in the data model.</p>
+<ul>
+<li><strong>Significant Text:</strong> Any difference in
+whitespace—including spaces, tabs, and line breaks within text
+nodes—causes <code>deep-equal()</code> to return <code>false</code>. For
+instance, <code>&lt;name&gt;John Doe&lt;/name&gt;</code> and
+<code>&lt;name&gt;John  Doe&lt;/name&gt;</code> are not equal.</li>
+<li><strong>Whitespace-Only Text Nodes:</strong> If formatting
+whitespace (such as indentation or newlines between child elements) is
+preserved as text nodes in the input tree, <code>deep-equal()</code>
+treats those whitespace text nodes as child items. If one document
+contains formatting whitespace and the other does not, the comparison
+returns <code>false</code>.</li>
+</ul>
+<p>To ignore formatting whitespace when using <code>deep-equal()</code>,
+you must remove it beforehand using the <code>xsl:strip-space</code>
+directive in your stylesheet, or normalize string values using functions
+like <code>normalize-space()</code> before comparison.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

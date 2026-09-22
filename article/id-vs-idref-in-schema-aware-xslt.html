@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>id() vs idref() in Schema-Aware XSLT - xslt</title>
+    <meta name="description" content="In schema-aware XSLT and XPath, the primary difference between id() and idref() lies in the direction of navigation: id() retrieves the element that possesses a specific identifier, whereas idref() performs an inverse lookup to find all nodes that refere">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/id-vs-idref-in-schema-aware-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="id() vs idref() in Schema-Aware XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/id-vs-idref-in-schema-aware-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In schema-aware XSLT and XPath, the primary difference between id() and idref() lies in the direction of navigation: id() retrieves the element that possesses a specific identifier, whereas idref() performs an inverse lookup to find all nodes that refere" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="id-vs-idref-in-schema-aware-xslt">id() vs idref() in
+Schema-Aware XSLT</h1>
+<p>In schema-aware XSLT and XPath, the primary difference between
+<code>id()</code> and <code>idref()</code> lies in the direction of
+navigation: <code>id()</code> retrieves the element that possesses a
+specific identifier, whereas <code>idref()</code> performs an inverse
+lookup to find all nodes that reference that identifier. While
+<code>id()</code> operates primarily on <code>xs:ID</code> values to
+locate target elements, <code>idref()</code> requires schema awareness
+or a DTD to identify nodes typed as <code>xs:IDREF</code> or
+<code>xs:IDREFS</code> that point back to an ID.</p>
+<h3 id="the-id-function">The id() Function</h3>
+<p>The <code>id()</code> function resolves a unique identifier to the
+element node that owns it. It takes one or more strings representing ID
+values and searches the document for an element whose ID matches.</p>
+<ul>
+<li><strong>Direction:</strong> Resolves from an ID value to the target
+element.</li>
+<li><strong>Return Type:</strong> Returns the element node (or nodes)
+that have the matching <code>xs:ID</code>, <code>xml:id</code>, or
+DTD-defined ID attribute.</li>
+<li><strong>Typing Requirements:</strong> Works in both basic and
+schema-aware processors using standard attributes like
+<code>xml:id</code> or DTD-defined IDs. In schema-aware mode, it matches
+attributes and elements explicitly typed as <code>xs:ID</code>.</li>
+</ul>
+<p><strong>Example:</strong> If an XML document contains:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">department</span> <span class="ot">xml:id=</span><span class="st">&quot;sales&quot;</span>&gt;Sales <span class="dv">&amp;amp;</span> Marketing&lt;/<span class="kw">department</span>&gt;</span></code></pre></div>
+<p>The expression <code>id('sales')</code> returns the
+<code>&lt;department&gt;</code> element.</p>
+<hr />
+<h3 id="the-idref-function">The idref() Function</h3>
+<p>The <code>idref()</code> function performs the reverse operation of
+<code>id()</code>. Given an ID string, it locates every node in the
+document that references that ID through an <code>xs:IDREF</code> or
+<code>xs:IDREFS</code> type.</p>
+<ul>
+<li><strong>Direction:</strong> Performs a reverse lookup, finding
+references that point to a target ID.</li>
+<li><strong>Return Type:</strong> Returns a sequence of nodes (elements
+or attributes) whose typed value matches the specified ID and whose type
+definition is derived from <code>xs:IDREF</code> or
+<code>xs:IDREFS</code>.</li>
+<li><strong>Typing Requirements:</strong> Strictly requires a typed
+document tree (via XML Schema validation or a DTD). Without schema
+validation, the processor has no way to distinguish a standard string
+from an <code>xs:IDREF</code>, causing <code>idref()</code> to return an
+empty sequence.</li>
+</ul>
+<p><strong>Example:</strong> Assuming <code>managerRef</code> is typed
+as <code>xs:IDREF</code> in the schema:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">project</span> <span class="ot">managerRef=</span><span class="st">&quot;emp-101&quot;</span>&gt;Website Redesign&lt;/<span class="kw">project</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">project</span> <span class="ot">managerRef=</span><span class="st">&quot;emp-101&quot;</span>&gt;Database Migration&lt;/<span class="kw">project</span>&gt;</span></code></pre></div>
+<p>The expression <code>idref('emp-101')</code> returns the two
+<code>managerRef</code> attribute nodes pointing to that identifier.</p>
+<hr />
+<h3 id="key-differences-at-a-glance">Key Differences at a Glance</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>id()</code></th>
+<th style="text-align: left;"><code>idref()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Purpose</strong></td>
+<td style="text-align: left;">Finds the target element with the given
+ID.</td>
+<td style="text-align: left;">Finds referring nodes that reference the
+given ID.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target Type</strong></td>
+<td style="text-align: left;">Looks for nodes typed as
+<code>xs:ID</code> (or <code>xml:id</code>).</td>
+<td style="text-align: left;">Looks for nodes typed as
+<code>xs:IDREF</code> or <code>xs:IDREFS</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Schema Dependency</strong></td>
+<td style="text-align: left;">Can work without a schema using standard
+<code>xml:id</code>.</td>
+<td style="text-align: left;">Requires schema or DTD awareness to detect
+reference types.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Result Multiplicity</strong></td>
+<td style="text-align: left;">Typically 1:1 (IDs are unique within a
+document).</td>
+<td style="text-align: left;">Typically 1:N (multiple nodes can
+reference the same ID).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Node Types Returned</strong></td>
+<td style="text-align: left;">Returns element nodes.</td>
+<td style="text-align: left;">Returns attribute or element nodes
+containing the reference.</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

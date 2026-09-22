@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using XSLT 3.0 in .NET with Saxon and IKVM - xslt</title>
+    <meta name="description" content="The standard .NET runtime provides native support only for XSLT 1.0, leaving modern C# developers without built-in access to modern transformation specifications. To overcome this limitation, third-party libraries bridge the gap by bringing Saxon—the r">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xslt-3-0-in-net-with-saxon-and-ikvm">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using XSLT 3.0 in .NET with Saxon and IKVM - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xslt-3-0-in-net-with-saxon-and-ikvm" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The standard .NET runtime provides native support only for XSLT 1.0, leaving modern C# developers without built-in access to modern transformation specifications. To overcome this limitation, third-party libraries bridge the gap by bringing Saxon—the r" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-xslt-30-in-net-with-saxon-and-ikvm">Using XSLT 3.0 in .NET
+with Saxon and IKVM</h1>
+<p>The standard .NET runtime provides native support only for XSLT 1.0,
+leaving modern C# developers without built-in access to modern
+transformation specifications. To overcome this limitation, third-party
+libraries bridge the gap by bringing Saxon—the reference implementation
+for advanced XSLT specifications—into the .NET ecosystem using byte-code
+translation technologies like IKVM. This article explores how
+cross-compiling Java-based Saxon into .NET assemblies enables XSLT 3.0
+functionality, the architectural mechanisms behind this approach, and
+how developers can integrate it into modern applications.</p>
+<h3 id="the-native-net-xslt-limitation">The Native .NET XSLT
+Limitation</h3>
+<p>Microsoft's native implementation,
+<code>System.Xml.Xsl.XslCompiledTransform</code>, is strictly confined
+to the XSLT 1.0 recommendation from 1999. While fast and deeply
+integrated into the framework, it lacks modern constructs such as:</p>
+<ul>
+<li>Native JSON parsing, querying, and serialization
+(<code>fn:json-to-xml</code>, <code>fn:xml-to-json</code>).</li>
+<li>Streaming transformations for multi-gigabyte files without loading
+the entire document into memory.</li>
+<li>Advanced programming features, including packages, modular
+stylesheets, try/catch exception handling, and higher-order
+functions.</li>
+</ul>
+<p>Because Microsoft has not updated its core XSLT engine to support
+XSLT 2.0 or 3.0, developers must rely on third-party engines to process
+contemporary stylesheets.</p>
+<h3 id="how-ikvm-bridges-java-and-net">How IKVM Bridges Java and
+.NET</h3>
+<p>Saxon, developed by Saxonica, is the primary implementation of XSLT
+3.0 and XPath 3.1. Historically written in Java, bringing its
+open-source edition (Saxon-HE) to .NET requires converting Java bytecode
+into Common Intermediate Language (CIL).</p>
+<p>This is where IKVM comes in. IKVM is an implementation of Java for
+the Microsoft .NET platform that includes:</p>
+<ol type="1">
+<li><strong>A Bytecode Compiler (<code>ikvmc</code>):</strong>
+Translates Java <code>.class</code> and <code>.jar</code> files directly
+into .NET <code>.dll</code> assemblies.</li>
+<li><strong>A Java Class Library Port:</strong> Re-implements the core
+Java runtime environment (JDK classes) natively on top of the .NET
+CLR.</li>
+</ol>
+<p>By compiling Saxon's JAR files through IKVM, developers obtain a set
+of .NET assemblies that execute inside the CLR without requiring an
+external Java Runtime Environment (JRE) installed on the host
+machine.</p>
+<h3 id="integration-and-usage-in-c">Integration and Usage in C#</h3>
+<p>Community-maintained packages deliver IKVM-compiled Saxon-HE directly
+via NuGet. Once referenced, developers can interact with the
+transformation engine using standard C# syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Saxon<span class="op">.</span><span class="fu">Api</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">.</span><span class="fu">IO</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> Xslt3Transformer</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">Transform</span><span class="op">(</span><span class="dt">string</span> xmlPath<span class="op">,</span> <span class="dt">string</span> xsltPath<span class="op">,</span> <span class="dt">string</span> outputPath<span class="op">)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Initialize the Saxon Processor</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> processor <span class="op">=</span> <span class="kw">new</span> <span class="fu">Processor</span><span class="op">();</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> compiler <span class="op">=</span> processor<span class="op">.</span><span class="fu">NewXsltCompiler</span><span class="op">();</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Compile the XSLT 3.0 stylesheet</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> executable <span class="op">=</span> compiler<span class="op">.</span><span class="fu">Compile</span><span class="op">(</span><span class="kw">new</span> <span class="fu">Uri</span><span class="op">(</span>xsltPath<span class="op">));</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> transformer <span class="op">=</span> executable<span class="op">.</span><span class="fu">Load30</span><span class="op">();</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Execute transformation</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="kw">using</span> <span class="dt">var</span> inputStream <span class="op">=</span> File<span class="op">.</span><span class="fu">OpenRead</span><span class="op">(</span>xmlPath<span class="op">);</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="kw">using</span> <span class="dt">var</span> outputStream <span class="op">=</span> File<span class="op">.</span><span class="fu">Create</span><span class="op">(</span>outputPath<span class="op">);</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> serializer <span class="op">=</span> processor<span class="op">.</span><span class="fu">NewSerializer</span><span class="op">(</span>outputStream<span class="op">);</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        transformer<span class="op">.</span><span class="fu">ApplyTemplates</span><span class="op">(</span>inputStream<span class="op">,</span> serializer<span class="op">);</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The <code>Saxon.Api</code> namespace provides strongly typed wrappers
+around the compiled Java classes, exposing idiomatic interfaces for
+compiling stylesheets, managing parameters, handling errors, and
+executing queries.</p>
+<h3 id="advantages-of-the-ikvm-saxon-approach">Advantages of the IKVM
+Saxon Approach</h3>
+<ul>
+<li><strong>Full XSLT 3.0 Compliance:</strong> Unlocks full
+compatibility with modern stylesheets, including dynamic evaluation and
+XPath 3.1 map and array manipulation.</li>
+<li><strong>Open-Source Availability:</strong> Saxon-HE (Home Edition)
+is free and open-source, making it cost-effective for projects that
+require modern XSLT without commercial licensing.</li>
+<li><strong>No Java Dependency:</strong> End users and deployment
+environments do not need a JRE or JDK installed; everything runs as
+native .NET dependencies within the application directory.</li>
+</ul>
+<h3 id="practical-considerations-and-alternatives">Practical
+Considerations and Alternatives</h3>
+<p>While IKVM-compiled Saxon provides full XSLT 3.0 capabilities,
+developers should consider a few trade-offs:</p>
+<ul>
+<li><strong>Assembly Footprint:</strong> Including IKVM and the Java
+runtime compatibility libraries adds several megabytes of dependencies
+to the application.</li>
+<li><strong>Performance:</strong> While execution performance is
+generally high, cross-compiled code can experience slightly longer
+cold-start compilation times compared to pure native CIL
+implementations.</li>
+<li><strong>SaxonCS Alternative:</strong> Saxonica provides a
+commercial, fully native .NET implementation called SaxonCS. Built using
+cross-compilation technology that targets native C# source code rather
+than runtime emulation, SaxonCS offers superior performance and
+commercial support, though it requires a paid license.</li>
+</ul>
+<p>For teams requiring free, open-source compliance with modern
+transformation standards, IKVM-compiled Saxon remains the primary bridge
+connecting .NET applications to the modern XSLT 3.0 ecosystem.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

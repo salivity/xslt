@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using namespace Attribute on xsl:element in XSLT - xslt</title>
+    <meta name="description" content="The namespace attribute on the <xsl:element> instruction provides direct, programmatic control over the XML Namespace URI assigned to dynamically generated elements. This article explores how the namespace attribute explicitly binds an element to a targe">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-namespace-attribute-on-xsl-element-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using namespace Attribute on xsl:element in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-namespace-attribute-on-xsl-element-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The namespace attribute on the <xsl:element> instruction provides direct, programmatic control over the XML Namespace URI assigned to dynamically generated elements. This article explores how the namespace attribute explicitly binds an element to a targe" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-namespace-attribute-on-xslelement-in-xslt">Using namespace
+Attribute on xsl:element in XSLT</h1>
+<p>The <code>namespace</code> attribute on the
+<code>&lt;xsl:element&gt;</code> instruction provides direct,
+programmatic control over the XML Namespace URI assigned to dynamically
+generated elements. This article explores how the <code>namespace</code>
+attribute explicitly binds an element to a target URI, how it interacts
+with the element's prefix, and how it overrides in-scope namespace
+declarations to ensure predictable output in XSLT transformations.</p>
+<h3 id="purpose-of-the-namespace-attribute">Purpose of the
+<code>namespace</code> Attribute</h3>
+<p>In XSLT, elements can be constructed using literal result elements or
+the dynamic <code>&lt;xsl:element&gt;</code> instruction. By default,
+<code>&lt;xsl:element name="prefix:localName"&gt;</code> resolves the
+element's namespace URI by looking up the <code>prefix</code> among the
+in-scope namespace declarations of the stylesheet at that point.</p>
+<p>When you specify the <code>namespace</code> attribute, you bypass
+standard in-scope prefix resolution. The attribute explicitly dictates
+the exact Namespace URI to which the constructed element belongs:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;item&quot;</span> <span class="ot">namespace=</span><span class="st">&quot;http://example.com/ns/catalog&quot;</span>/&gt;</span></code></pre></div>
+<p>In this case, the resulting <code>&lt;item&gt;</code> element is
+bound to <code>http://example.com/ns/catalog</code>, regardless of any
+default namespaces declared in the stylesheet or the source
+document.</p>
+<h3 id="prefix-and-uri-interaction">Prefix and URI Interaction</h3>
+<p>The <code>name</code> attribute dictates the qualified name (QName)
+of the element, while the <code>namespace</code> attribute dictates the
+URI destination. The XSLT processor reconciles them using specific
+rules:</p>
+<ol type="1">
+<li><p><strong>QName with a Prefix:</strong><br />
+If <code>name="ns:item"</code> and
+<code>namespace="http://example.com/ns"</code>, the processor outputs an
+element named <code>item</code> tied to
+<code>http://example.com/ns</code>. It attempts to use the prefix
+<code>ns</code>. If that prefix is already mapped to a different URI in
+that scope, the processor generates an alternative prefix or adjusts the
+declarations to prevent conflicts.</p></li>
+<li><p><strong>Unprefixed QName:</strong><br />
+If <code>name="item"</code> and
+<code>namespace="http://example.com/ns"</code>, the element belongs to
+<code>http://example.com/ns</code>. The processor will either emit
+<code>xmlns="http://example.com/ns"</code> to make it the default
+namespace or assign a generated prefix (e.g.,
+<code>&lt;xp:item xmlns:xp="http://example.com/ns"&gt;</code>).</p></li>
+<li><p><strong>Empty Namespace:</strong><br />
+If <code>namespace=""</code>, the generated element is explicitly placed
+in no namespace, effectively undeclaring any active default namespace
+(<code>xmlns=""</code>).</p></li>
+</ol>
+<h3 id="overriding-in-scope-stylesheet-namespaces">Overriding In-Scope
+Stylesheet Namespaces</h3>
+<p>A common reason to use the <code>namespace</code> attribute is
+preventing unwanted namespace inheritance. If a stylesheet defines
+<code>xmlns:data="http://old-spec.example.com"</code> at the root,
+generating an element using
+<code>&lt;xsl:element name="data:record"&gt;</code> would normally
+inherit that old URI.</p>
+<p>Adding the <code>namespace</code> attribute explicitly overrides this
+behavior:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;data:record&quot;</span> <span class="ot">namespace=</span><span class="st">&quot;http://new-spec.example.com&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@id&quot;</span>/&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<p>The resulting output associates <code>data:record</code> with
+<code>http://new-spec.example.com</code>, generating the appropriate
+<code>xmlns:data="http://new-spec.example.com"</code> declaration in the
+result tree.</p>
+<h3 id="dynamic-uri-assignment-with-attribute-value-templates">Dynamic
+URI Assignment with Attribute Value Templates</h3>
+<p>The <code>namespace</code> attribute accepts Attribute Value
+Templates (AVTs), allowing namespace URIs to be determined dynamically
+at runtime based on source data, parameters, or variables:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;targetNamespace&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;http://dynamic.example.com/v2&#39;&quot;</span>/&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;entry&quot;</span> <span class="ot">namespace=</span><span class="st">&quot;{$targetNamespace}&quot;</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;title&quot;</span>/&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<p>This flexibility allows a single transformation pipeline to route
+elements to different XML schemas or schema versions based on the
+content of the input document.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Do Global and Local Variables Differ in XSLT? - xslt</title>
+    <meta name="description" content="In XSLT, variables declared using the <xsl:variable> element act as immutable bindings whose accessibility and lifespan are determined entirely by where they are placed in the stylesheet. This article breaks down the fundamental differences between globa">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-do-global-and-local-variables-differ-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Do Global and Local Variables Differ in XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-do-global-and-local-variables-differ-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT, variables declared using the <xsl:variable> element act as immutable bindings whose accessibility and lifespan are determined entirely by where they are placed in the stylesheet. This article breaks down the fundamental differences between globa" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-do-global-and-local-variables-differ-in-xslt">How Do Global
+and Local Variables Differ in XSLT?</h1>
+<p>In XSLT, variables declared using the
+<code>&lt;xsl:variable&gt;</code> element act as immutable bindings
+whose accessibility and lifespan are determined entirely by where they
+are placed in the stylesheet. This article breaks down the fundamental
+differences between global and local XSLT variables, focusing on their
+declaration placement, scope and visibility, evaluation timing, and
+shadowing rules across templates.</p>
+<h2 id="declaration-and-placement">Declaration and Placement</h2>
+<p>The primary syntactic difference between global and local variables
+lies in where the <code>&lt;xsl:variable&gt;</code> element is
+positioned relative to other elements in the stylesheet document:</p>
+<ul>
+<li><strong>Global Variables:</strong> Declared as top-level elements
+directly under the root <code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code> element, outside of any
+<code>&lt;xsl:template&gt;</code> or function definition.</li>
+<li><strong>Local Variables:</strong> Declared inside an instructional
+block, such as an <code>&lt;xsl:template&gt;</code>,
+<code>&lt;xsl:for-each&gt;</code>, <code>&lt;xsl:if&gt;</code>, or
+<code>&lt;xsl:choose&gt;</code> element.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;2.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Global Variable --&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;globalTaxRate&quot;</span> <span class="ot">select=</span><span class="st">&quot;0.08&quot;</span> /&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;order&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Local Variable --&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;itemTotal&quot;</span> <span class="ot">select=</span><span class="st">&quot;price * quantity&quot;</span> /&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">total</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$itemTotal + ($itemTotal * $globalTaxRate)&quot;</span> /&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">total</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h2 id="scope-and-visibility">Scope and Visibility</h2>
+<p>Scope dictates which parts of the stylesheet can reference a variable
+using the <code>$variableName</code> syntax.</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Global Variables</th>
+<th>Local Variables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Visibility</strong></td>
+<td>Visible throughout the entire stylesheet, across all templates and
+included/imported modules.</td>
+<td>Visible only to following sibling elements and their descendants
+within the enclosing container.</td>
+</tr>
+<tr>
+<td><strong>Order Dependency</strong></td>
+<td>Can be referenced before or after their physical line of declaration
+in the stylesheet.</td>
+<td>Can only be referenced after their point of declaration; preceding
+elements cannot access them.</td>
+</tr>
+<tr>
+<td><strong>Parent Access</strong></td>
+<td>Readily accessible from inside any child instruction block.</td>
+<td>Inaccessible outside the parent element in which they are
+defined.</td>
+</tr>
+</tbody>
+</table>
+<p>In local scoping, placing an <code>&lt;xsl:variable&gt;</code> inside
+an <code>&lt;xsl:for-each&gt;</code> loop means the variable is re-bound
+for every iteration and cannot be read after the closing
+<code>&lt;/xsl:for-each&gt;</code> tag.</p>
+<h2 id="evaluation-timing-and-context">Evaluation Timing and
+Context</h2>
+<p>While both global and local variables are strictly immutable once
+evaluated, their evaluation context differs:</p>
+<ul>
+<li><strong>Global Evaluation:</strong> Evaluated using the initial
+context of the transformation, typically using the root document node as
+the context node. They are evaluated lazily (on demand) in most
+processors and cached for the duration of the transformation.</li>
+<li><strong>Local Evaluation:</strong> Evaluated within the current
+dynamic context of the executing template or loop. The value of
+<code>select="."</code> inside a local variable will bind to the
+specific node currently being processed by that template.</li>
+</ul>
+<h2 id="variable-shadowing-rules">Variable Shadowing Rules</h2>
+<p>XSLT defines strict rules regarding duplicate variable names:</p>
+<ul>
+<li>A local variable is allowed to share the same name as a global
+variable. When this occurs within a template, the local variable
+<strong>shadows</strong> (overrides) the global one within that local
+scope.</li>
+<li>You cannot declare two global variables with the exact same name and
+import precedence in the same stylesheet module.</li>
+<li>You cannot declare two local variables with the exact same name
+within the same lexical scope or overlapping child scope.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

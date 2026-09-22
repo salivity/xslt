@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using xsl:merge-source and xsl:merge-key in XSLT 3.0 - xslt</title>
+    <meta name="description" content="XSLT 3.0 introduced the <xsl:merge> instruction to efficiently combine two or more pre-sorted input streams without requiring the entire datasets to be held in memory. Within this framework, <xsl:merge-source> defines the individual input sequences and t">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xsl-merge-source-and-xsl-merge-key-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using xsl:merge-source and xsl:merge-key in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xsl-merge-source-and-xsl-merge-key-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0 introduced the <xsl:merge> instruction to efficiently combine two or more pre-sorted input streams without requiring the entire datasets to be held in memory. Within this framework, <xsl:merge-source> defines the individual input sequences and t" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-xslmerge-source-and-xslmerge-key-in-xslt-30">Using
+xsl:merge-source and xsl:merge-key in XSLT 3.0</h1>
+<p>XSLT 3.0 introduced the <code>&lt;xsl:merge&gt;</code> instruction to
+efficiently combine two or more pre-sorted input streams without
+requiring the entire datasets to be held in memory. Within this
+framework, <code>&lt;xsl:merge-source&gt;</code> defines the individual
+input sequences and their properties, while
+<code>&lt;xsl:merge-key&gt;</code> specifies the criteria used to align
+and match records across those sources. Together, these elements allow
+stylesheets to perform high-performance, streamable merge and join
+operations on large XML documents.</p>
+<h3 id="the-role-of-xslmerge-source">The Role of
+<code>&lt;xsl:merge-source&gt;</code></h3>
+<p>The <code>&lt;xsl:merge-source&gt;</code> element defines an input
+stream that contributes items to the merge operation. You can declare
+multiple <code>&lt;xsl:merge-source&gt;</code> elements within a single
+<code>&lt;xsl:merge&gt;</code> block to merge data from different
+documents or sequences.</p>
+<p>Key functions and attributes include:</p>
+<ul>
+<li><strong>Defining the Input Sequence:</strong> The
+<code>select</code> attribute provides an XPath expression indicating
+the sequence of items to process from this source. When streaming, the
+<code>for-each-stream</code> or <code>for-each-source</code> attributes
+can be used to read external documents progressively.</li>
+<li><strong>Source Identification:</strong> The <code>name</code>
+attribute assigns an identifier to the merge source. This identifier is
+used later within <code>&lt;xsl:merge-action&gt;</code> via the
+<code>xsl:merge-source-identifier()</code> function to determine which
+source a given item originated from.</li>
+<li><strong>Sort Order Enforcement:</strong> The
+<code>sort-satisfied</code> attribute (defaulting to <code>no</code>)
+indicates whether the input sequence is already guaranteed to be in the
+order defined by the merge keys. If set to <code>no</code>, the XSLT
+processor will ensure the data is sorted before merging.</li>
+</ul>
+<h3 id="the-role-of-xslmerge-key">The Role of
+<code>&lt;xsl:merge-key&gt;</code></h3>
+<p>The <code>&lt;xsl:merge-key&gt;</code> element declares the
+comparison key used to sequence and correlate items across the different
+merge sources. It is placed inside an
+<code>&lt;xsl:merge-source&gt;</code> element to define source-specific
+keys, or placed directly within <code>&lt;xsl:merge&gt;</code> to define
+a common key for all sources.</p>
+<p>Key functions and attributes include:</p>
+<ul>
+<li><strong>Key Extraction:</strong> The <code>select</code> attribute
+defines the expression evaluated against each context item to extract
+the key value used for ordering and matching.</li>
+<li><strong>Comparison Control:</strong> Similar to
+<code>&lt;xsl:sort&gt;</code>, it provides attributes such as
+<code>data-type</code> (e.g., <code>text</code> or <code>number</code>),
+<code>order</code> (<code>ascending</code> or <code>descending</code>),
+<code>case-order</code>, and <code>collation</code> to strictly define
+how key values are compared.</li>
+<li><strong>Multiple Keys:</strong> Multiple
+<code>&lt;xsl:merge-key&gt;</code> elements can be defined sequentially
+to handle composite keys (for example, merging first by
+<code>last-name</code>, then by <code>first-name</code>).</li>
+</ul>
+<h3 id="how-they-work-together">How They Work Together</h3>
+<p>During execution, the XSLT processor evaluates the
+<code>&lt;xsl:merge-key&gt;</code> values for the current items of each
+<code>&lt;xsl:merge-source&gt;</code>. The processor identifies the
+lowest key value according to the specified sort rules, groups all items
+from all sources sharing that key value, and makes them available within
+the <code>&lt;xsl:merge-action&gt;</code> child element.</p>
+<p>Within <code>&lt;xsl:merge-action&gt;</code>, functions such as
+<code>current-merge-group()</code> and <code>current-merge-key()</code>
+allow developers to access the correlated records and generate merged
+output. Once the action block completes, the processor advances only the
+sources that contributed to the processed key, repeating the cycle until
+all inputs are exhausted.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

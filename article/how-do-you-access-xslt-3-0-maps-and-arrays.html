@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Do You Access XSLT 3.0 Maps and Arrays? - xslt</title>
+    <meta name="description" content="XPath 3.1 and XSLT 3.0 introduce native support for structured data items, specifically maps and arrays, alongside specialized operators like square brackets and the question mark (lookup operator) to access their contents. While square brackets serve as">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-do-you-access-xslt-3-0-maps-and-arrays">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Do You Access XSLT 3.0 Maps and Arrays? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-do-you-access-xslt-3-0-maps-and-arrays" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XPath 3.1 and XSLT 3.0 introduce native support for structured data items, specifically maps and arrays, alongside specialized operators like square brackets and the question mark (lookup operator) to access their contents. While square brackets serve as" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-do-you-access-xslt-30-maps-and-arrays">How Do You Access
+XSLT 3.0 Maps and Arrays?</h1>
+<p>XPath 3.1 and XSLT 3.0 introduce native support for structured data
+items, specifically maps and arrays, alongside specialized operators
+like square brackets and the question mark (lookup operator) to access
+their contents. While square brackets serve as general-purpose dynamic
+indexers and function call shorthands, the question-mark lookup operator
+provides a concise, path-friendly way to drill down into composite
+key-value pairs and ordered sequences.</p>
+<h2 id="understanding-the-question-mark-lookup-operator">Understanding
+the Question-Mark Lookup Operator</h2>
+<p>The question mark (<code>?</code>) functions as the unary or binary
+lookup operator in XPath 3.1. When placed after an expression evaluating
+to a map or array, it navigates into the structure without requiring
+standard function calls like <code>map:get()</code> or
+<code>array:get()</code>.</p>
+<h3 id="using--with-maps">Using <code>?</code> with Maps</h3>
+<p>For maps (key-value pairs), the question-mark operator retrieves
+values using string keys, named specifiers, or wildcards:</p>
+<ul>
+<li><strong>Named key lookup:</strong> <code>$map?name</code> extracts
+the entry associated with the string key <code>'name'</code>.</li>
+<li><strong>String literal lookup:</strong>
+<code>$map?'first-name'</code> retrieves keys containing hyphens or
+special characters.</li>
+<li><strong>Variable/dynamic key lookup:</strong>
+<code>$map?($keyVariable)</code> evaluates the expression in parentheses
+to resolve the key dynamically.</li>
+<li><strong>Wildcard lookup:</strong> <code>$map?*</code> returns a
+sequence of all values stored in the map.</li>
+</ul>
+<h3 id="using--with-arrays">Using <code>?</code> with Arrays</h3>
+<p>For arrays (ordered sequences of members), the question-mark operator
+accesses items by 1-based integer positions or extracts all members:</p>
+<ul>
+<li><strong>Positional lookup:</strong> <code>$array?1</code> extracts
+the first member of the array.</li>
+<li><strong>Wildcard flattening:</strong> <code>$array?*</code> unboxes
+the array, returning all its members as a flat XPath sequence.</li>
+</ul>
+<h2 id="understanding-the-square-bracket-syntax">Understanding the
+Square-Bracket Syntax</h2>
+<p>Square brackets <code>[...]</code> serve two distinct roles when
+working with XSLT 3.0 maps and arrays: as predicate filters and as
+function invocation arguments.</p>
+<h3 id="function-invocation-and-array-indexing">Function Invocation and
+Array Indexing</h3>
+<p>In XPath 3.1, maps and arrays are instances of functions. Maps act as
+functions from keys to values, and arrays act as functions from integer
+positions to values. Because of this, square brackets can be used
+directly for dynamic lookups:</p>
+<ul>
+<li><strong>Dynamic map lookup:</strong> <code>$map($dynamicKey)</code>
+invokes the map as a function, returning the corresponding value.</li>
+<li><strong>Dynamic array indexing:</strong> <code>$array($index)</code>
+invokes the array as a function, returning the member at that integer
+index.</li>
+<li><strong>Combined with sequence predicates:</strong>
+<code>$map?items[1]</code> uses the question mark to access the
+<code>items</code> sequence and square brackets <code>[1]</code> as a
+standard XPath predicate filter to select the first sequence item.</li>
+</ul>
+<h2 id="key-differences-between--and-square-brackets">Key Differences
+Between <code>?</code> and Square Brackets</h2>
+<p>While both syntaxes access nested data, they differ significantly in
+handling sequences and unboxing:</p>
+<ul>
+<li><strong>Sequence iteration:</strong> The lookup operator
+automatically maps over sequences on its left-hand side. If
+<code>$listOfMaps</code> is a sequence of five maps,
+<code>$listOfMaps?title</code> returns a sequence of the
+<code>title</code> values from all five maps.</li>
+<li><strong>Member flattening:</strong> The <code>$array?*</code> syntax
+unpacks an array into a regular XPath sequence, whereas standard square
+bracket predicates <code>[ ... ]</code> filter sequences without
+unboxing underlying array wrappers.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

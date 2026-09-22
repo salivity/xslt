@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Avoid Invalid Double Hyphens in XSLT Comments - xslt</title>
+    <meta name="description" content="Generating comments in XSLT using the <xsl:comment> instruction requires strict adherence to XML syntax standards, which strictly prohibit consecutive hyphens (--) and trailing hyphens immediately before the closing delimiter. This article explains the u">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-avoid-invalid-double-hyphens-in-xslt-comments">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Avoid Invalid Double Hyphens in XSLT Comments - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-avoid-invalid-double-hyphens-in-xslt-comments" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Generating comments in XSLT using the <xsl:comment> instruction requires strict adherence to XML syntax standards, which strictly prohibit consecutive hyphens (--) and trailing hyphens immediately before the closing delimiter. This article explains the u" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-avoid-invalid-double-hyphens-in-xslt-comments">How to
+Avoid Invalid Double Hyphens in XSLT Comments</h1>
+<p>Generating comments in XSLT using the
+<code>&lt;xsl:comment&gt;</code> instruction requires strict adherence
+to XML syntax standards, which strictly prohibit consecutive hyphens
+(<code>--</code>) and trailing hyphens immediately before the closing
+delimiter. This article explains the underlying XML and XSLT rules
+regarding comment content, how different processor versions handle
+violations, and methods for sanitizing dynamic text to ensure valid
+output.</p>
+<h2 id="the-core-xml-comment-grammar">The Core XML Comment Grammar</h2>
+<p>According to the W3C XML 1.0 Recommendation, the grammar for an XML
+comment is defined as:</p>
+<pre class="text"><code>Comment ::= &#39;&lt;!--&#39; ((Char - &#39;-&#39;) | (&#39;-&#39; (Char - &#39;-&#39;)))* &#39;--&gt;&#39;</code></pre>
+<p>This production rule imposes two absolute constraints on comment
+text:</p>
+<ol type="1">
+<li><strong>No double hyphens:</strong> The string <code>--</code> must
+not occur anywhere inside the comment.</li>
+<li><strong>No trailing hyphen:</strong> The comment cannot end with a
+hyphen (e.g., <code>&lt;!-- comment- --&gt;</code> would yield
+<code>&lt;!-- comment---&gt;</code>, which contains three consecutive
+hyphens and violates closing syntax).</li>
+</ol>
+<p>Because XML parsers recognize <code>--&gt;</code> as the definitive
+end of a comment, allowing <code>--</code> inside the comment text could
+cause ambiguity or parser desynchronization.</p>
+<h2 id="xslt-processor-behavior-and-constraints">XSLT Processor Behavior
+and Constraints</h2>
+<p>When using <code>&lt;xsl:comment&gt;</code> to dynamically construct
+comments, XSLT processors enforce these limitations during tree
+construction and serialization.</p>
+<h3 id="xslt-10-behavior">XSLT 1.0 Behavior</h3>
+<p>In XSLT 1.0, generating a comment containing <code>--</code> or
+ending with a hyphen is an error. The specification allows the processor
+to choose one of two behaviors:</p>
+<ul>
+<li><strong>Signal an error:</strong> The transformation aborts
+immediately.</li>
+<li><strong>Recover automatically:</strong> The processor modifies the
+text to produce well-formed XML, typically by inserting a space between
+consecutive hyphens (converting <code>--</code> to <code>- -</code>) or
+appending a space before the closing <code>--&gt;</code>.</li>
+</ul>
+<p>Because recovery is optional, stylesheets that rely on a processor to
+fix invalid hyphens are not portable.</p>
+<h3 id="xslt-20-and-30-serialization-rules">XSLT 2.0 and 3.0
+Serialization Rules</h3>
+<p>In XSLT 2.0 and later, creating a comment node containing
+<code>--</code> in the data model may be permitted temporarily in
+memory, but a serialization error occurs when writing the node to an XML
+output stream.</p>
+<p>Under the W3C XSLT and XQuery Serialization specification,
+encountering <code>--</code> or a trailing <code>-</code> during
+serialization triggers serialization error <code>[err:SEPM0009]</code>.
+An XSLT 2.0+ processor will fail the transformation unless serialization
+parameters or processor extensions explicitly handle character
+replacement.</p>
+<h2 id="common-causes-of-invalid-comment-content">Common Causes of
+Invalid Comment Content</h2>
+<ul>
+<li><strong>Decorative dividers:</strong> Developers often attempt to
+create visual separation inside comments using patterns like
+<code>&lt;!-- ==================== --&gt;</code> or
+<code>&lt;!-- -------------------- --&gt;</code>. The latter immediately
+violates the syntax rule.</li>
+<li><strong>Dynamic data injection:</strong> Passing unescaped text from
+source XML nodes (such as user-submitted text or system logs) directly
+into <code>&lt;xsl:comment&gt;</code> often introduces <code>--</code>
+(such as em-dash approximations or command-line flags like
+<code>--verbose</code>).</li>
+<li><strong>Trailing punctuation:</strong> Text that legitimately ends
+with a hyphen (such as a hyphenated word or minus sign) creates an
+invalid comment if placed immediately before the closing tag.</li>
+</ul>
+<h2 id="strategies-to-prevent-malformed-comments">Strategies to Prevent
+Malformed Comments</h2>
+<p>To prevent transformation failures and ensure cross-processor
+compatibility, any dynamic or generated text targeted for an
+<code>&lt;xsl:comment&gt;</code> must be sanitized.</p>
+<h3 id="1-in-xslt-20-and-30-using-xpath-20-functions">1. In XSLT 2.0 and
+3.0 (Using XPath 2.0 Functions)</h3>
+<p>You can use standard XPath string manipulation functions to break up
+consecutive hyphens and trim trailing hyphens before emitting the
+comment:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;cleanText&quot;</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>              <span class="ot">select=</span><span class="st">&quot;replace(replace($rawText, &#39;--+&#39;, &#39;- -&#39;), &#39;-$&#39;, &#39;- &#39;)&quot;</span> /&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:comment</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$cleanText&quot;</span> /&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:comment</span>&gt;</span></code></pre></div>
+<p>This pattern replaces sequences of multiple hyphens with spaced
+hyphens and ensures that any hyphen at the end of the string is followed
+by a space.</p>
+<h3 id="2-in-xslt-10-using-recursive-templates">2. In XSLT 1.0 (Using
+Recursive Templates)</h3>
+<p>Because XSLT 1.0 lacks regular expressions, you must use a recursive
+named template to find and replace instances of <code>--</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;sanitize-comment&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;text&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;contains($text, &#39;--&#39;)&quot;</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;substring-before($text, &#39;--&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:text</span>&gt;- -&lt;/<span class="kw">xsl:text</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;sanitize-comment&quot;</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;text&quot;</span> <span class="ot">select=</span><span class="st">&quot;substring-after($text, &#39;--&#39;)&quot;</span>/&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;substring($text, string-length($text)) = &#39;-&#39;&quot;</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;concat($text, &#39; &#39;)&quot;</span>/&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$text&quot;</span>/&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Applying this template ensures that the resulting string satisfies
+XML grammar requirements across all compliant XSLT engines.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

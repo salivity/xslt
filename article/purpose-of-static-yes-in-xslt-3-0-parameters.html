@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purpose of static="yes" in XSLT 3.0 Parameters - xslt</title>
+    <meta name="description" content="In XSLT 3.0, declaring a stylesheet parameter with the static="yes" attribute designates it as a static parameter evaluated at compile time rather than during runtime execution. This article explains the technical purpose of static parameters, detailing">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/purpose-of-static-yes-in-xslt-3-0-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Purpose of static="yes" in XSLT 3.0 Parameters - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/purpose-of-static-yes-in-xslt-3-0-parameters" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, declaring a stylesheet parameter with the static="yes" attribute designates it as a static parameter evaluated at compile time rather than during runtime execution. This article explains the technical purpose of static parameters, detailing" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="purpose-of-staticyes-in-xslt-30-parameters">Purpose of
+static="yes" in XSLT 3.0 Parameters</h1>
+<p>In XSLT 3.0, declaring a stylesheet parameter with the
+<code>static="yes"</code> attribute designates it as a static parameter
+evaluated at compile time rather than during runtime execution. This
+article explains the technical purpose of static parameters, detailing
+how they enable conditional compilation, power compile-time
+configuration through the <code>use-when</code> attribute, and allow
+XSLT processors to optimize stylesheet execution.</p>
+<h2 id="compile-time-evaluation">Compile-Time Evaluation</h2>
+<p>Standard XSLT parameters (<code>static="no"</code>, which is the
+default) are dynamic. They are evaluated at runtime and can depend on
+the source XML document or runtime context.</p>
+<p>When you specify <code>static="yes"</code> on an
+<code>&lt;xsl:param&gt;</code> element, the XSLT processor evaluates the
+parameter during stylesheet compilation. The value is fixed before the
+transformation begins, allowing the stylesheet to behave as if the
+parameter value were hard-coded into the code.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;debug-mode&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span> <span class="ot">select=</span><span class="st">&quot;false()&quot;</span> <span class="ot">static=</span><span class="st">&quot;yes&quot;</span>/&gt;</span></code></pre></div>
+<p>Because these parameters are resolved at compile time, their values
+must be supplied prior to compilation by the invoking application or
+processor API, or they will fall back to their default
+<code>select</code> expressions.</p>
+<h2 id="enabling-conditional-compilation-via-use-when">Enabling
+Conditional Compilation via <code>use-when</code></h2>
+<p>The primary purpose of static parameters is to support conditional
+compilation. XSLT 3.0 provides the <code>use-when</code> attribute,
+which can be placed on virtually any XSLT element to conditionally
+include or exclude that element from the compiled stylesheet.</p>
+<p>The expression inside a <code>use-when</code> attribute can only
+access:</p>
+<ul>
+<li>System properties</li>
+<li>Static functions</li>
+<li>Other static variables and static parameters</li>
+</ul>
+<p>Dynamic parameters cannot be referenced within <code>use-when</code>
+because the compiler cannot evaluate dynamic values while constructing
+the execution tree.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;target-environment&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;production&#39;&quot;</span> <span class="ot">static=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Included only when compiling for development --&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;order&quot;</span> <span class="ot">use-when=</span><span class="st">&quot;$target-environment = &#39;development&#39;&quot;</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:message</span>&gt;Processing order: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@id&quot;</span>/&gt;&lt;/<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:next-match</span>/&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Standard template used in production --&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;order&quot;</span> <span class="ot">use-when=</span><span class="st">&quot;$target-environment = &#39;production&#39;&quot;</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Production transformation logic --&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>In this scenario, templates or instructions excluded by
+<code>use-when</code> are completely discarded by the compiler, leaving
+zero runtime overhead.</p>
+<h2 id="performance-optimization-and-dead-code-elimination">Performance
+Optimization and Dead-Code Elimination</h2>
+<p>By resolving parameter values statically, XSLT processors can perform
+advanced optimizations, including:</p>
+<ul>
+<li><strong>Dead-Code Elimination:</strong> Entire branches of code
+guarded by static parameters (such as logging routines, feature flags,
+or schema validations) are omitted from the executable package.</li>
+<li><strong>Constant Folding:</strong> Expressions relying on static
+parameters can be pre-computed at compile time rather than evaluated
+repeatedly across millions of nodes during execution.</li>
+<li><strong>Processor Independence:</strong> Features requiring specific
+processor extensions or newer versions can be conditionally compiled so
+the stylesheet remains backward-compatible without causing compilation
+errors on older processors.</li>
+</ul>
+<h2 id="restrictions-on-static-parameters">Restrictions on Static
+Parameters</h2>
+<p>To ensure proper compile-time resolution, static parameters must
+adhere to strict rules:</p>
+<ul>
+<li>They must be declared as top-level elements (direct children of
+<code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:package&gt;</code>).</li>
+<li>Their <code>select</code> expressions cannot access the dynamic
+context, meaning they cannot reference source documents, nodes, or
+dynamic variables.</li>
+<li>A static parameter can reference other static parameters, provided
+there are no circular dependencies.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

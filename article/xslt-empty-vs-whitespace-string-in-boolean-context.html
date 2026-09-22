@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT Empty vs Whitespace String in Boolean Context - xslt</title>
+    <meta name="description" content="In XSLT and XPath, evaluating strings within a boolean context often causes unexpected logic errors because the engine evaluates strings based entirely on character length rather than whether the content is meaningful. While an empty string evaluates to">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-empty-vs-whitespace-string-in-boolean-context">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT Empty vs Whitespace String in Boolean Context - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-empty-vs-whitespace-string-in-boolean-context" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, evaluating strings within a boolean context often causes unexpected logic errors because the engine evaluates strings based entirely on character length rather than whether the content is meaningful. While an empty string evaluates to" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-empty-vs-whitespace-string-in-boolean-context">XSLT Empty
+vs Whitespace String in Boolean Context</h1>
+<p>In XSLT and XPath, evaluating strings within a boolean context often
+causes unexpected logic errors because the engine evaluates strings
+based entirely on character length rather than whether the content is
+meaningful. While an empty string evaluates to <code>false</code>, a
+string containing only whitespace characters evaluates to
+<code>true</code>. This article explains the core XPath casting rules
+behind this behavior, the common pitfalls it creates in conditional
+statements, and how to correctly handle whitespace strings using
+built-in functions.</p>
+<h3 id="the-boolean-conversion-rule-for-strings">The Boolean Conversion
+Rule for Strings</h3>
+<p>According to the W3C XPath specification (applicable to XSLT 1.0,
+2.0, and 3.0), the rule for converting any string to a boolean value is
+strictly defined by its length:</p>
+<ul>
+<li>A string is converted to <code>true</code> if and only if its length
+is greater than zero.</li>
+<li>A string is converted to <code>false</code> if and only if its
+length is exactly zero.</li>
+</ul>
+<p>The semantic content of the string is completely ignored during this
+automatic type conversion.</p>
+<h3 id="empty-string-vs-whitespace-string">Empty String vs. Whitespace
+String</h3>
+<p>Because the conversion relies solely on string length, empty strings
+and whitespace strings produce opposite boolean results:</p>
+<ul>
+<li><strong>Empty String (<code>""</code>):</strong> The string has a
+length of <code>0</code>. When evaluated in an
+<code>&lt;xsl:if test="..."&gt;</code> or
+<code>&lt;xsl:when test="..."&gt;</code> construct, it evaluates to
+<code>false()</code>.</li>
+<li><strong>Whitespace String (<code>" "</code>, <code>"\t"</code>,
+<code>"\n"</code>):</strong> A string composed only of spaces, tabs, or
+line breaks has a length greater than <code>0</code>. Therefore, it
+evaluates to <code>true()</code>.</li>
+</ul>
+<h4 id="example-scenario">Example Scenario</h4>
+<p>Consider the following XML element:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">description</span>&gt;   &lt;/<span class="kw">description</span>&gt;</span></code></pre></div>
+<p>If evaluated using a direct boolean test:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;description&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- This block WILL execute --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>In the example above, the text node contains spaces. Because the
+string length is non-zero, the test condition evaluates to
+<code>true()</code>, even though the element visually appears blank.</p>
+<h3 id="the-solution-using-normalize-space">The Solution: Using
+<code>normalize-space()</code></h3>
+<p>To treat whitespace-only strings as <code>false</code>, you must
+strip the whitespace before evaluating the boolean condition. The
+standard approach in XSLT is to use the <code>normalize-space()</code>
+function.</p>
+<p>The <code>normalize-space()</code> function removes leading and
+trailing whitespace and replaces internal sequences of whitespace
+characters with a single space. If a string contains only whitespace,
+<code>normalize-space()</code> reduces it to an empty string
+(<code>""</code>), which subsequently evaluates to
+<code>false</code>.</p>
+<h4 id="corrected-test-pattern">Corrected Test Pattern</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;normalize-space(description)&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- This block will NOT execute if description is empty or whitespace-only --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">p</span>&gt;&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;description&quot;</span>/&gt;&lt;/<span class="kw">p</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<p>When working with variables, the same pattern applies:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;myVar&quot;</span> <span class="ot">select=</span><span class="st">&quot;&#39;   &#39;&quot;</span> /&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Evaluates to false --&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;normalize-space($myVar)&quot;</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h3 id="summary-of-differences">Summary of Differences</h3>
+<ul>
+<li><code>boolean('')</code> results in <code>false</code>.</li>
+<li><code>boolean('   ')</code> results in <code>true</code>.</li>
+<li><code>boolean(normalize-space('   '))</code> results in
+<code>false</code>.</li>
+</ul>
+<p>To avoid false positives when checking for the presence of text data
+in XSLT templates, always apply <code>normalize-space()</code> unless
+the physical preservation of whitespace-only nodes as valid data is
+explicitly required by your transformation logic.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

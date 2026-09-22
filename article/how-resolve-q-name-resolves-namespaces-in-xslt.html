@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How resolve-QName Resolves Namespaces in XSLT - xslt</title>
+    <meta name="description" content="In XSLT and XPath 2.0 and later, the resolve-QName() function converts a lexical string into an expanded xs:QName by dynamically evaluating it against the in-scope namespaces of a specified element node. This article explores how resolve-QName() operates">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-resolve-q-name-resolves-namespaces-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How resolve-QName Resolves Namespaces in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-resolve-q-name-resolves-namespaces-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath 2.0 and later, the resolve-QName() function converts a lexical string into an expanded xs:QName by dynamically evaluating it against the in-scope namespaces of a specified element node. This article explores how resolve-QName() operates" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-resolve-qname-resolves-namespaces-in-xslt">How resolve-QName
+Resolves Namespaces in XSLT</h1>
+<p>In XSLT and XPath 2.0 and later, the <code>resolve-QName()</code>
+function converts a lexical string into an expanded
+<code>xs:QName</code> by dynamically evaluating it against the in-scope
+namespaces of a specified element node. This article explores how
+<code>resolve-QName()</code> operates, its syntax, its role in handling
+dynamic XML content, and how it manages namespace prefixes and
+defaults.</p>
+<h3 id="syntax-and-parameters">Syntax and Parameters</h3>
+<p>The function signature in standard XPath and XSLT is:</p>
+<pre class="xpath"><code>fn:resolve-QName($qname as xs:string?, $element as element()) as xs:QName?</code></pre>
+<ul>
+<li><strong><code>$qname</code></strong>: A string representing a
+lexical QName (e.g., <code>"ns:item"</code> or <code>"item"</code>). If
+this argument is an empty sequence, the function returns an empty
+sequence.</li>
+<li><strong><code>$element</code></strong>: An element node that
+provides the context for in-scope namespace declarations.</li>
+</ul>
+<h3 id="mechanism-of-namespace-resolution">Mechanism of Namespace
+Resolution</h3>
+<p>XML documents define namespace bindings using <code>xmlns</code> and
+<code>xmlns:prefix</code> declarations, which are inherited
+hierarchically down the element tree. When an XML document contains
+qualified names inside attribute values or text content (such as
+<code>&lt;field type="custom:text"/&gt;</code>), the XSLT processor
+initially reads those values simply as raw strings, not as semantic XML
+identifiers.</p>
+<p>The <code>resolve-QName()</code> function bridges this gap using the
+following resolution steps:</p>
+<ol type="1">
+<li><strong>Prefix Extraction</strong>: It inspects the
+<code>$qname</code> string to determine if a colon (<code>:</code>)
+separates a prefix from the local part.</li>
+<li><strong>Prefix Lookup</strong>: If a prefix is present, the function
+searches the in-scope namespaces of the provided <code>$element</code>
+node for a matching prefix binding.
+<ul>
+<li>If a match is found, the function assigns the associated URI to the
+resulting <code>xs:QName</code>.</li>
+<li>If the prefix has no declaration in scope on <code>$element</code>,
+dynamic error <code>FONS0004</code> is raised.</li>
+</ul></li>
+<li><strong>Default Namespace Handling</strong>: If the
+<code>$qname</code> string has no prefix, the function assigns the
+default element namespace (the namespace declared with
+<code>xmlns="..."</code> on or above <code>$element</code>). If no
+default namespace is in scope, the resulting <code>xs:QName</code> has
+no namespace URI.</li>
+</ol>
+<h3 id="practical-application">Practical Application</h3>
+<p>Consider an XML document where data types are referenced
+dynamically:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">root</span> <span class="ot">xmlns:app=</span><span class="st">&quot;http://example.com/app&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">data</span> <span class="ot">target=</span><span class="st">&quot;app:record&quot;</span> /&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">root</span>&gt;</span></code></pre></div>
+<p>When processing the <code>target</code> attribute, the value
+<code>"app:record"</code> is a string. In XSLT, you can extract the true
+namespace URI and local name by resolving it against its parent
+element:</p>
+<pre class="xpath"><code>let $q := resolve-QName(@target, .)
+return (
+    prefix-from-QName($q),       (: Returns: &quot;app&quot; :)
+    local-name-from-QName($q),   (: Returns: &quot;record&quot; :)
+    namespace-uri-from-QName($q) (: Returns: &quot;http://example.com/app&quot; :)
+)</code></pre>
+<h3 id="error-conditions">Error Conditions</h3>
+<ul>
+<li><strong>Invalid Lexical Format (<code>FORG0001</code>)</strong>: If
+<code>$qname</code> is not a syntactically valid <code>xs:NCName</code>
+or <code>xs:QName</code> (e.g., containing invalid characters or
+multiple colons), an error occurs.</li>
+<li><strong>Undeclared Prefix (<code>FONS0004</code>)</strong>: If the
+prefix parsed from <code>$qname</code> does not exist in the in-scope
+namespace map of <code>$element</code>, the processor halts with an
+undeclared namespace error.</li>
+</ul>
+<p>By tying string representations directly to an element's in-scope
+namespace dictionary, <code>resolve-QName()</code> ensures that dynamic
+element, attribute, and type references retain their accurate semantic
+meaning across transformations.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

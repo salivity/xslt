@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the Difference Between xsl:include and xsl:import? - xslt</title>
+    <meta name="description" content="Modularizing XSLT code into reusable files is essential for maintainable stylesheets, and XSLT provides two top-level elements for this purpose: <xsl:include> and <xsl:import>. While both elements bring external templates and definitions into a primary s">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/what-is-the-difference-between-xsl-include-and-xsl-import">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the Difference Between xsl:include and xsl:import? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/what-is-the-difference-between-xsl-include-and-xsl-import" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Modularizing XSLT code into reusable files is essential for maintainable stylesheets, and XSLT provides two top-level elements for this purpose: <xsl:include> and <xsl:import>. While both elements bring external templates and definitions into a primary s" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="what-is-the-difference-between-xslinclude-and-xslimport">What Is
+the Difference Between xsl:include and xsl:import?</h1>
+<p>Modularizing XSLT code into reusable files is essential for
+maintainable stylesheets, and XSLT provides two top-level elements for
+this purpose: <code>&lt;xsl:include&gt;</code> and
+<code>&lt;xsl:import&gt;</code>. While both elements bring external
+templates and definitions into a primary stylesheet, they handle rule
+precedence and template overriding in fundamentally different ways.
+<code>&lt;xsl:include&gt;</code> treats external code as if it were
+pasted directly in place with equal precedence, whereas
+<code>&lt;xsl:import&gt;</code> assigns lower precedence to the external
+code, enabling precise stylesheet customization and overriding
+mechanisms.</p>
+<h2 id="understanding-xslinclude">Understanding
+<code>&lt;xsl:include&gt;</code></h2>
+<p>The <code>&lt;xsl:include&gt;</code> element is used to merge
+stylesheet modules at the same precedence level. When an XSLT processor
+encounters <code>&lt;xsl:include href="..."/&gt;</code>, it incorporates
+all the templates, variables, and definitions from the referenced file
+as though they were written directly inside the including stylesheet at
+that location.</p>
+<p>Because included templates carry the same import precedence as the
+main stylesheet, standard template conflict resolution rules apply. If
+the main stylesheet and the included stylesheet define matching
+templates with the exact same <code>match</code> pattern and
+<code>priority</code> attribute, the XSLT processor will either raise an
+error or select the last declared template in document order.</p>
+<p>Key characteristics of <code>&lt;xsl:include&gt;</code>:</p>
+<ul>
+<li><strong>Equal Precedence:</strong> Included rules share the same
+import precedence as the including document.</li>
+<li><strong>Placement Flexibility:</strong> Can appear anywhere among
+the top-level elements of the stylesheet.</li>
+<li><strong>Conflict Behavior:</strong> Duplicate templates with
+identical match patterns and priorities cause ambiguity errors or
+default to the last template defined.</li>
+</ul>
+<h2 id="understanding-xslimport">Understanding
+<code>&lt;xsl:import&gt;</code></h2>
+<p>The <code>&lt;xsl:import&gt;</code> element is designed specifically
+for stylesheet inheritance and specialization. Stylesheets brought in
+via <code>&lt;xsl:import&gt;</code> are explicitly assigned a lower
+import precedence than the importing stylesheet.</p>
+<p>This lower precedence allows the main stylesheet to selectively
+redefine or override templates from the imported module without
+generating conflicts. Furthermore, the importing stylesheet can invoke
+the overridden template logic using the
+<code>&lt;xsl:apply-imports&gt;</code> instruction, similar to calling
+<code>super()</code> in object-oriented programming.</p>
+<p>Key characteristics of <code>&lt;xsl:import&gt;</code>:</p>
+<ul>
+<li><strong>Lower Precedence:</strong> Imported templates always have
+lower import precedence than the importing stylesheet.</li>
+<li><strong>Strict Placement:</strong> <code>&lt;xsl:import&gt;</code>
+elements must appear before all other top-level elements (including
+<code>&lt;xsl:include&gt;</code>) in the stylesheet.</li>
+<li><strong>Overriding Capability:</strong> Overridden templates can
+still be executed using <code>&lt;xsl:apply-imports&gt;</code> or
+<code>&lt;xsl:next-match&gt;</code> (in XSLT 2.0+).</li>
+</ul>
+<h2 id="key-differences-at-a-glance">Key Differences at a Glance</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>&lt;xsl:include&gt;</code></th>
+<th><code>&lt;xsl:import&gt;</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Import Precedence</strong></td>
+<td>Same precedence as the parent stylesheet</td>
+<td>Lower precedence than the parent stylesheet</td>
+</tr>
+<tr>
+<td><strong>Placement Rules</strong></td>
+<td>Anywhere as a top-level child of
+<code>&lt;xsl:stylesheet&gt;</code></td>
+<td>Must precede all other top-level elements</td>
+</tr>
+<tr>
+<td><strong>Template Overriding</strong></td>
+<td>Leads to conflict errors if priority and match are identical</td>
+<td>Seamlessly overrides lower-precedence templates</td>
+</tr>
+<tr>
+<td><strong>Calling Overridden Code</strong></td>
+<td>Not supported</td>
+<td>Supported via <code>&lt;xsl:apply-imports&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Primary Use Case</strong></td>
+<td>Splitting large stylesheets into manageable utility files</td>
+<td>Creating specialized customizations of a base stylesheet</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-use-each-element">When to Use Each Element</h2>
+<p>Use <code>&lt;xsl:include&gt;</code> when building a shared library
+of independent utility templates, named templates, or global constants
+where no overriding is intended. It acts as a straightforward structural
+breakdown of a monolithic stylesheet.</p>
+<p>Use <code>&lt;xsl:import&gt;</code> when designing a base stylesheet
+meant to be extended, customized, or skinned for specific output formats
+or clients. This approach keeps the core logic intact while allowing
+individual implementations to override only the specific rules that
+require modification.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

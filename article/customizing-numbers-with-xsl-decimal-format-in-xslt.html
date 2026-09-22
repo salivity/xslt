@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizing Numbers with xsl:decimal-format in XSLT - xslt</title>
+    <meta name="description" content="This article explains how the <xsl:decimal-format> element controls numeric and currency representations during an XSLT transformation. By defining custom separators, symbols, and formatting characters, this element works in conjunction with the XPath fo">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/customizing-numbers-with-xsl-decimal-format-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Customizing Numbers with xsl:decimal-format in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/customizing-numbers-with-xsl-decimal-format-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the <xsl:decimal-format> element controls numeric and currency representations during an XSLT transformation. By defining custom separators, symbols, and formatting characters, this element works in conjunction with the XPath fo" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="customizing-numbers-with-xsldecimal-format-in-xslt">Customizing
+Numbers with xsl:decimal-format in XSLT</h1>
+<p>This article explains how the <code>&lt;xsl:decimal-format&gt;</code>
+element controls numeric and currency representations during an XSLT
+transformation. By defining custom separators, symbols, and formatting
+characters, this element works in conjunction with the XPath
+<code>format-number()</code> function to format raw numeric data into
+localized strings, such as European currency notations or non-standard
+number patterns.</p>
+<h3 id="how-xsldecimal-format-works">How
+<code>&lt;xsl:decimal-format&gt;</code> Works</h3>
+<p>The <code>&lt;xsl:decimal-format&gt;</code> element is a top-level
+element placed directly inside <code>&lt;xsl:stylesheet&gt;</code> or
+<code>&lt;xsl:transform&gt;</code>. It establishes the rules for parsing
+pattern characters supplied to the <code>format-number()</code>
+function.</p>
+<p>By default, <code>format-number()</code> follows Western conventions:
+a period (<code>.</code>) denotes the decimal point, and a comma
+(<code>,</code>) denotes the grouping (thousands) separator. The
+<code>&lt;xsl:decimal-format&gt;</code> element overrides these defaults
+globally or provides named rules for specific formatting needs.</p>
+<h3 id="key-attributes-of-xsldecimal-format">Key Attributes of
+<code>&lt;xsl:decimal-format&gt;</code></h3>
+<ul>
+<li><strong><code>name</code></strong>: An optional identifier. If
+specified, the format must be referenced by name in
+<code>format-number()</code>. If omitted, the definition overrides the
+default format.</li>
+<li><strong><code>decimal-separator</code></strong>: Specifies the
+character separating integer and fractional parts (default is
+<code>.</code>).</li>
+<li><strong><code>grouping-separator</code></strong>: Specifies the
+character separating digit groups (default is <code>,</code>).</li>
+<li><strong><code>minus-sign</code></strong>: The character indicating
+negative values (default is <code>-</code>).</li>
+<li><strong><code>percent</code></strong>: The character indicating a
+percentage (default is <code>%</code>).</li>
+<li><strong><code>per-mille</code></strong>: The character indicating a
+per-mille rate (default is <code>‰</code>).</li>
+<li><strong><code>zero-digit</code></strong>: The character representing
+the digit zero (default is <code>0</code>).</li>
+<li><strong><code>digit</code></strong>: The character used in the
+picture string to represent an optional digit (default is
+<code>#</code>).</li>
+<li><strong><code>pattern-separator</code></strong>: The character that
+separates positive and negative sub-patterns within a format pattern
+(default is <code>;</code>).</li>
+<li><strong><code>NaN</code></strong>: The string displayed when the
+input is not a valid number (default is <code>NaN</code>).</li>
+</ul>
+<h3 id="customizing-currency-formats">Customizing Currency Formats</h3>
+<p>While <code>&lt;xsl:decimal-format&gt;</code> dictates characters
+like the decimal separator and grouping marker, actual currency symbols
+(such as <code>$</code>, <code>€</code>, or <code>£</code>) are placed
+directly within the pattern string parameter of the
+<code>format-number()</code> function.</p>
+<p>For example, European currencies commonly use a comma as the decimal
+separator and a period or space as the thousands separator. You can
+configure a custom format to support this layout:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Define European numeric notation --&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:decimal-format</span> <span class="ot">name=</span><span class="st">&quot;european&quot;</span> </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">decimal-separator=</span><span class="st">&quot;,&quot;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                      <span class="ot">grouping-separator=</span><span class="st">&quot;.&quot;</span> /&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;product&quot;</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Format: 1234567.89 becomes € 1.234.567,89 --&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;format-number(price, &#39;€ #.##0,00&#39;, &#39;european&#39;)&quot;</span> /&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="positive-and-negative-formatting">Positive and Negative
+Formatting</h3>
+<p>You can define separate representations for positive and negative
+numbers by using the <code>pattern-separator</code> (defaulting to
+<code>;</code>) inside the pattern string:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;format-number(balance, &#39;$#,##0.00;($#,##0.00)&#39;)&quot;</span> /&gt;</span></code></pre></div>
+<p>In this case, a positive value displays as <code>$1,500.00</code>,
+while a negative value automatically formats as
+<code>($1,500.00)</code>.</p>
+<h3 id="best-practices">Best Practices</h3>
+<ul>
+<li><strong>Use Named Formats for Multi-Currency Outputs</strong>: When
+an XSLT transformation handles multiple locales or currencies
+simultaneously, define distinct, named formats (e.g.,
+<code>name="de"</code> and <code>name="us"</code>) instead of relying
+solely on the default format.</li>
+<li><strong>Match Input Numbers to Standard Formats</strong>: The raw
+XML values passed into <code>format-number()</code> must be valid
+numbers (using standard periods for decimals) before the formatting
+pattern can be applied.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

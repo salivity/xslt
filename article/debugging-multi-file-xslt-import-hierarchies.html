@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debugging Multi-File XSLT Import Hierarchies - xslt</title>
+    <meta name="description" content="Debugging complex, multi-file XSLT stylesheets requires structured approaches to isolate templates, trace execution across nested modules, and resolve template precedence conflicts. When an XSLT codebase relies heavily on <xsl:import> and <xsl:include>,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/debugging-multi-file-xslt-import-hierarchies">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Debugging Multi-File XSLT Import Hierarchies - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/debugging-multi-file-xslt-import-hierarchies" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Debugging complex, multi-file XSLT stylesheets requires structured approaches to isolate templates, trace execution across nested modules, and resolve template precedence conflicts. When an XSLT codebase relies heavily on <xsl:import> and <xsl:include>," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="debugging-multi-file-xslt-import-hierarchies">Debugging
+Multi-File XSLT Import Hierarchies</h1>
+<p>Debugging complex, multi-file XSLT stylesheets requires structured
+approaches to isolate templates, trace execution across nested modules,
+and resolve template precedence conflicts. When an XSLT codebase relies
+heavily on <code>&lt;xsl:import&gt;</code> and
+<code>&lt;xsl:include&gt;</code>, identifying where a transformation
+fails or produces unexpected output can become notoriously difficult.
+This guide outlines modular strategies to dissect multi-file
+hierarchies, trace template selection, isolate sub-modules using test
+harnesses, and leverage processor features to regain control over
+execution flow.</p>
+<h3 id="1-map-and-understand-import-precedence">1. Map and Understand
+Import Precedence</h3>
+<p>The root cause of many multi-file bugs is a misunderstanding of
+import precedence. While <code>&lt;xsl:include&gt;</code> treats
+imported rules as if they were written directly in the including
+document, <code>&lt;xsl:import&gt;</code> establishes an import tree
+where the importing stylesheet always has higher precedence than the
+imported stylesheet.</p>
+<p>When tracking down unexpected template matches:</p>
+<ul>
+<li><strong>Flatten the tree conceptually:</strong> In an import chain
+(e.g., A imports B, B imports C), templates in A take precedence over B,
+which takes precedence over C.</li>
+<li><strong>Review post-order traversal:</strong> If stylesheet A
+imports both B and C in that order, C has higher precedence than B.</li>
+<li><strong>Inspect the <code>priority</code> attribute:</strong> An
+explicit <code>@priority</code> on a lower-precedence template can
+override the natural import precedence. Temporarily remove or normalize
+priority attributes to determine if explicit priorities are masking
+import order issues.</li>
+</ul>
+<h3 id="2-isolate-modules-with-dedicated-test-harnesses">2. Isolate
+Modules with Dedicated Test Harnesses</h3>
+<p>Instead of running full-scale transformations across the entire
+stylesheet network, debug individual modules in isolation.</p>
+<ul>
+<li><strong>Create stub driver stylesheets:</strong> Write a minimal
+driver stylesheet that imports only the specific module under test and
+its immediate dependencies.</li>
+<li><strong>Use atomic XML snippets:</strong> Provide small, targeted
+source XML fragments that match only the templates within the isolated
+module.</li>
+<li><strong>Mock external dependencies:</strong> If a module depends on
+global variables or parameters declared in the main stylesheet, declare
+mock values directly in the test driver to verify the template logic
+independently.</li>
+</ul>
+<h3 id="3-implement-mode-based-namespacing">3. Implement Mode-Based
+Namespacing</h3>
+<p>Collisions frequently occur when multiple imported stylesheets define
+match templates for common nodes (e.g., <code>match="item"</code> or
+<code>match="para"</code>).</p>
+<ul>
+<li>Assign distinct modes
+(<code>&lt;xsl:template match="..." mode="module-name"&gt;</code>) to
+imported transformations rather than relying on the default mode.</li>
+<li>Modes segregate template pools, preventing an unintended match in an
+imported file from silently taking over standard element
+processing.</li>
+<li>For targeted debugging, switch a problematic match to a temporary
+debugging mode to verify if the template itself is flawed or if it is
+being bypassed by a higher-precedence rule.</li>
+</ul>
+<h3 id="4-utilize-runtime-tracing-and-diagnostic-messaging">4. Utilize
+Runtime Tracing and Diagnostic Messaging</h3>
+<p>Strategic logging helps trace the exact path the processor takes
+through the file hierarchy.</p>
+<ul>
+<li><strong>Standard Output Tracing (<code>xsl:message</code>):</strong>
+Insert <code>&lt;xsl:message terminate="no"&gt;</code> inside suspected
+templates. Include the current file's identifier, template match
+pattern, and current node path:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:message</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  [Module: common-formatting.xsl] Matched element: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;name()&quot;</span>/&gt; (ID: &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;@id&quot;</span>/&gt;)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:message</span>&gt;</span></code></pre></div></li>
+<li><strong>Processor-Level Trace Flags:</strong> Most modern XSLT
+processors offer built-in execution tracing. For example, Saxon provides
+the <code>-t</code> (timing and basic file resolution) and
+<code>-trace</code> flags, which output every template evaluation and
+rule choice to the console, revealing precisely which file won the match
+resolution.</li>
+</ul>
+<h3 id="5-leverage-xslnext-match-and-xslapply-imports">5. Leverage
+<code>xsl:next-match</code> and <code>xsl:apply-imports</code></h3>
+<p>When a template is overriding an imported rule unexpectedly, use
+fallback instructions to inspect behavior:</p>
+<ul>
+<li>Replace custom override logic with
+<code>&lt;xsl:apply-imports/&gt;</code> (XSLT 1.0+) or
+<code>&lt;xsl:next-match/&gt;</code> (XSLT 2.0+).</li>
+<li>This allows execution to pass down to the next-highest precedence
+rule in the import tree, verifying whether the underlying base template
+functions correctly before custom overrides are applied.</li>
+</ul>
+<h3 id="6-interactive-step-debugging-with-xml-ides">6. Interactive
+Step-Debugging with XML IDEs</h3>
+<p>When static analysis fails, use advanced XML editors (such as Oxygen
+XML Editor or specialized plugins for VS Code) configured with
+step-debugging capabilities:</p>
+<ul>
+<li>Place breakpoints at the <code>&lt;xsl:apply-templates&gt;</code>
+call sites and inside the target imported files.</li>
+<li>Monitor the Call Stack window to observe transitions across file
+boundaries.</li>
+<li>Inspect variable scopes to determine if imported templates are
+reading unexpected values from globally scoped variables defined in the
+master file.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Xalan XSLT 1.0 in Java and C++ - xslt</title>
+    <meta name="description" content="This article provides an overview of how Apache Xalan implements the W3C XSLT 1.0 and XPath 1.0 specifications within both Java and C++ runtime environments. It covers the underlying architectural design of Xalan-Java and Xalan-C++, their parsing models,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/apache-xalan-xslt-1-0-in-java-and-c">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apache Xalan XSLT 1.0 in Java and C++ - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/apache-xalan-xslt-1-0-in-java-and-c" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how Apache Xalan implements the W3C XSLT 1.0 and XPath 1.0 specifications within both Java and C++ runtime environments. It covers the underlying architectural design of Xalan-Java and Xalan-C++, their parsing models," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="apache-xalan-xslt-10-in-java-and-c">Apache Xalan XSLT 1.0 in
+Java and C++</h1>
+<p>This article provides an overview of how Apache Xalan implements the
+W3C XSLT 1.0 and XPath 1.0 specifications within both Java and C++
+runtime environments. It covers the underlying architectural design of
+Xalan-Java and Xalan-C++, their parsing models, stylesheet execution
+strategies, and how each environment achieves specification compliance
+while optimizing for system performance.</p>
+<h3 id="core-processing-model">Core Processing Model</h3>
+<p>Apache Xalan transforms an XML source tree into a result tree based
+on instructions contained within an XSLT 1.0 stylesheet. In both Java
+and C++, Xalan follows the declarative processing model defined by the
+W3C:</p>
+<ol type="1">
+<li><strong>Parsing and Tree Construction:</strong> The source document
+and the stylesheet are parsed into memory-efficient tree
+representations.</li>
+<li><strong>Pattern Matching and Template Selection:</strong> The engine
+traverses the source document, evaluates XPath 1.0 expressions, and
+matches nodes against template rules defined in the stylesheet.</li>
+<li><strong>Instantiation and Output Generation:</strong> Matched
+templates instantiate result tree fragments, resolving variables,
+conditional logic, and loops before serializing the result tree into
+text, HTML, or XML.</li>
+</ol>
+<h3 id="xalan-java-implementation">Xalan-Java Implementation</h3>
+<p>Xalan-Java provides a fully compliant implementation of the Java API
+for XML Processing (JAXP) <code>javax.xml.transform</code> interface. It
+contains two distinct processing engines:</p>
+<ul>
+<li><strong>Interpretive Processor:</strong> The traditional Xalan-Java
+processor parses the stylesheet into an internal execution tree. It
+utilizes the Document Table Model (DTM), an array-based document
+representation that minimizes memory overhead by avoiding the creation
+of standard Java DOM <code>Node</code> objects. DTM uses integer handles
+to reference nodes, which reduces garbage collection pressure and
+accelerates tree traversals.</li>
+<li><strong>Compiling Processor (XSLTC):</strong> To maximize
+throughput, Xalan-Java includes XSLTC, a compiler that converts an XSLT
+stylesheet directly into Java bytecode, known as a "translet." Translets
+can be loaded dynamically, cached, and executed repeatedly without the
+overhead of re-parsing or interpreting the stylesheet on subsequent
+transformations.</li>
+<li><strong>Extensions:</strong> Xalan-Java enables integration with
+external code through standard XSLT extension mechanisms, allowing
+stylesheets to invoke native Java methods using namespace mappings.</li>
+</ul>
+<h3 id="xalan-c-implementation">Xalan-C++ Implementation</h3>
+<p>Xalan-C++ implements the XSLT 1.0 specification using standard C++
+design patterns and integrates tightly with the Apache Xerces-C++
+parser.</p>
+<ul>
+<li><strong>Architecture:</strong> Unlike the Java version, Xalan-C++ is
+strictly an interpretive processor. It parses the stylesheet into
+compiled transformation instruction objects rather than native binary
+code.</li>
+<li><strong>XalanSourceTree Model:</strong> Similar to Java's DTM,
+Xalan-C++ addresses standard DOM memory overhead via its proprietary
+<code>XalanSourceTree</code>. This model stores node data in contiguous
+blocks of memory, minimizing dynamic allocations and reducing memory
+fragmentation.</li>
+<li><strong>Execution Interface:</strong> The primary access point is
+the <code>XalanTransformer</code> class, which manages the lifecycle of
+parsed stylesheets, input documents, and execution contexts.</li>
+<li><strong>Extensions and Platform Specifics:</strong> Xalan-C++
+supports custom extension functions defined via C++ classes that inherit
+from <code>Function</code>. Because it runs directly on host hardware
+without a virtual machine, memory management relies on RAII and
+dedicated memory managers provided by Xerces-C++.</li>
+</ul>
+<h3 id="architectural-comparison">Architectural Comparison</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Xalan-Java</th>
+<th style="text-align: left;">Xalan-C++</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Primary Standard API</strong></td>
+<td style="text-align: left;">JAXP (<code>TrAX</code>)</td>
+<td style="text-align: left;">Native C++
+(<code>XalanTransformer</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Underlying Parser</strong></td>
+<td style="text-align: left;">Xerces-Java or built-in JAXP parser</td>
+<td style="text-align: left;">Xerces-C++</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Execution Engines</strong></td>
+<td style="text-align: left;">Interpretive Engine &amp; Bytecode
+Compiler (XSLTC)</td>
+<td style="text-align: left;">Interpretive Engine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tree Optimization</strong></td>
+<td style="text-align: left;">Document Table Model (DTM)</td>
+<td style="text-align: left;"><code>XalanSourceTree</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Extension Language</strong></td>
+<td style="text-align: left;">Java / JavaScript (via BSF)</td>
+<td style="text-align: left;">C / C++ functions</td>
+</tr>
+</tbody>
+</table>
+<p>Both implementations achieve full conformance to the XSLT 1.0 and
+XPath 1.0 recommendations, ensuring that valid stylesheets yield
+identical output across both language environments.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

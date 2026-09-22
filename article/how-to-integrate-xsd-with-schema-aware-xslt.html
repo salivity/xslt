@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Integrate XSD with Schema-Aware XSLT? - xslt</title>
+    <meta name="description" content="Schema-aware XSLT processors enhance document transformation by incorporating XML Schema Definitions (XSD) directly into the XSLT execution environment. Integrating an XSD allows the transformation engine to validate input and output documents, apply str">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-to-integrate-xsd-with-schema-aware-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Integrate XSD with Schema-Aware XSLT? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-to-integrate-xsd-with-schema-aware-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Schema-aware XSLT processors enhance document transformation by incorporating XML Schema Definitions (XSD) directly into the XSLT execution environment. Integrating an XSD allows the transformation engine to validate input and output documents, apply str" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-integrate-xsd-with-schema-aware-xslt">How to Integrate
+XSD with Schema-Aware XSLT?</h1>
+<p>Schema-aware XSLT processors enhance document transformation by
+incorporating XML Schema Definitions (XSD) directly into the XSLT
+execution environment. Integrating an XSD allows the transformation
+engine to validate input and output documents, apply strict data typing,
+match templates based on schema types rather than just node names, and
+catch structural errors at compile time. This article explains how to
+import schemas into stylesheets, enforce input and output validation,
+and leverage schema types within XPath expressions and template
+rules.</p>
+<h2 id="importing-xml-schemas-using-xslimport-schema">Importing XML
+Schemas Using <code>xsl:import-schema</code></h2>
+<p>The primary mechanism for introducing an XSD into an XSLT 2.0 or 3.0
+schema-aware stylesheet is the <code>xsl:import-schema</code>
+declaration. This element is placed at the top level of the stylesheet
+as a child of <code>xsl:stylesheet</code> or
+<code>xsl:transform</code>.</p>
+<p>You can import a schema by declaring its target namespace and
+specifying the schema location:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:app=</span><span class="st">&quot;http://example.com/ns/application&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:import-schema</span> </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="ot">namespace=</span><span class="st">&quot;http://example.com/ns/application&quot;</span> </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="ot">schema-location=</span><span class="st">&quot;schemas/application.xsd&quot;</span> /&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<p>For schemas without a target namespace, omit the
+<code>namespace</code> attribute or specify <code>namespace=""</code>.
+Once imported, all named simple types, complex types, element
+declarations, and attribute declarations from the XSD become accessible
+throughout the stylesheet.</p>
+<h2 id="validating-input-and-output-documents">Validating Input and
+Output Documents</h2>
+<p>Schema-aware XSLT allows explicit validation instructions during
+document loading, node creation, and result-tree serialization.</p>
+<h3 id="validating-source-documents">Validating Source Documents</h3>
+<p>When loading source documents via functions such as
+<code>doc()</code> or <code>collection()</code>, or processing the
+primary input document, you can request validation using
+processor-specific flags or standard XSLT instructions. When an input
+document is validated against an imported schema, every element and
+attribute is annotated with its corresponding schema type instead of
+defaulting to untyped data (<code>xs:untyped</code> or
+<code>xs:untypedAtomic</code>).</p>
+<h3 id="validating-result-documents-and-elements">Validating Result
+Documents and Elements</h3>
+<p>You can validate constructed output trees by adding the
+<code>validation</code> or <code>type</code> attribute to result
+elements, literal result elements, <code>xsl:element</code>,
+<code>xsl:document</code>, or <code>xsl:result-document</code>.</p>
+<ul>
+<li><strong>Strict Validation:</strong> Checks the element and all
+descendants strictly against declarations in the schema.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:result-document</span> <span class="ot">href=</span><span class="st">&quot;output.xml&quot;</span> <span class="ot">validation=</span><span class="st">&quot;strict&quot;</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">app:order</span> <span class="ot">id=</span><span class="st">&quot;1042&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">app:total</span>&gt;249.99&lt;/<span class="kw">app:total</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">app:order</span>&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:result-document</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>Lax Validation:</strong> Validates elements if a declaration
+exists in the schema; otherwise, skips validation without throwing an
+error.</li>
+<li><strong>Type-Based Validation:</strong> Validates a constructed
+element directly against a specific schema type.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:element</span> <span class="ot">name=</span><span class="st">&quot;app:discountPrice&quot;</span> <span class="ot">type=</span><span class="st">&quot;app:MonetaryAmountType&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;$calculatedDiscount&quot;</span> /&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:element</span>&gt;</span></code></pre></div>
+<h2 id="pattern-matching-on-schema-types">Pattern Matching on Schema
+Types</h2>
+<p>In standard XSLT, template matching relies on node names and
+positions. Schema-aware XSLT introduces type-based pattern matching
+using the <code>schema-element()</code> and <code>type()</code> sequence
+type tests.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Match any element declared as an &#39;order&#39; in the imported schema --&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;schema-element(app:order)&quot;</span>&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> /&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Match any node whose type is or derives from MonetaryAmountType --&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;element(*, app:MonetaryAmountType)&quot;</span>&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">span</span> <span class="ot">class=</span><span class="st">&quot;currency&quot;</span>&gt;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;format-number(., &#39;$#,##0.00&#39;)&quot;</span> /&gt;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">span</span>&gt;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>This capability decouples transformation rules from specific element
+tag names, enabling rules that automatically handle any element derived
+from a common base type.</p>
+<h2 id="type-safety-in-xpath-expressions-and-variables">Type Safety in
+XPath Expressions and Variables</h2>
+<p>Integrating XSD allows XPath operations to work with native primitive
+types (such as <code>xs:date</code>, <code>xs:decimal</code>, and
+<code>xs:boolean</code>) directly from validated source trees without
+requiring explicit cast operations like
+<code>xs:decimal(price)</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;taxRate&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:decimal&quot;</span> <span class="ot">select=</span><span class="st">&quot;0.08&quot;</span> /&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Direct arithmetic on typed node values --&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;schema-element(app:item)&quot;</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">totalWithTax</span>&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;app:price * (1 + $taxRate)&quot;</span> /&gt;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">totalWithTax</span>&gt;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>Functions and named templates can also enforce strict parameter and
+return types:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:function</span> <span class="ot">name=</span><span class="st">&quot;app:is-expired&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:boolean&quot;</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;expiryDate&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:date&quot;</span> /&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:sequence</span> <span class="ot">select=</span><span class="st">&quot;$expiryDate </span><span class="dv">&amp;lt;</span><span class="st"> current-date()&quot;</span> /&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:function</span>&gt;</span></code></pre></div>
+<h2 id="practical-benefits-of-schema-integration">Practical Benefits of
+Schema Integration</h2>
+<ul>
+<li><strong>Early Detection of Errors:</strong> Type mismatches and
+invalid node access are detected during transformation compilation or
+early execution rather than slipping into downstream systems.</li>
+<li><strong>Simplified XPath Logic:</strong> Eliminates redundant data
+type casting and manual structural checks.</li>
+<li><strong>Processor Optimization:</strong> Schema-aware processors can
+optimize query paths, indexing, and internal memory layouts based on
+cardinality and type constraints declared in the schema.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

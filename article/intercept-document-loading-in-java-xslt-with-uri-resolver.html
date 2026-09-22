@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intercept Document Loading in Java XSLT with URIResolver - xslt</title>
+    <meta name="description" content="In Java XSLT processing via the Java API for XML Processing (JAXP), the javax.xml.transform.URIResolver interface provides a mechanism to intercept and customize how external resources are loaded. When an XSLT stylesheet uses constructs like xsl:include,">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/intercept-document-loading-in-java-xslt-with-uri-resolver">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Intercept Document Loading in Java XSLT with URIResolver - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/intercept-document-loading-in-java-xslt-with-uri-resolver" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Java XSLT processing via the Java API for XML Processing (JAXP), the javax.xml.transform.URIResolver interface provides a mechanism to intercept and customize how external resources are loaded. When an XSLT stylesheet uses constructs like xsl:include," />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="intercept-document-loading-in-java-xslt-with-uriresolver">Intercept
+Document Loading in Java XSLT with URIResolver</h1>
+<p>In Java XSLT processing via the Java API for XML Processing (JAXP),
+the <code>javax.xml.transform.URIResolver</code> interface provides a
+mechanism to intercept and customize how external resources are loaded.
+When an XSLT stylesheet uses constructs like <code>xsl:include</code>,
+<code>xsl:import</code>, or the XPath <code>document()</code> function,
+the processor queries a registered <code>URIResolver</code> to obtain
+the resource. By implementing this interface, developers can redirect
+URIs, serve documents directly from the Java classpath or memory, apply
+security boundaries, and implement custom caching strategies.</p>
+<h3 id="the-role-of-uriresolver">The Role of URIResolver</h3>
+<p>By default, an XSLT processor relies on standard networking and
+filesystem protocols to locate external files referenced in stylesheets.
+This default behavior fails when resources reside inside packaged JAR
+files, behind authenticated APIs, or in databases. It also introduces
+security vulnerabilities, such as Server-Side Request Forgery (SSRF) and
+XML External Entity (XXE) attacks, if user-supplied stylesheets attempt
+to read sensitive system files.</p>
+<p>A custom <code>URIResolver</code> intercepts these requests before
+any default network or disk I/O occurs.</p>
+<h3 id="the-uriresolver-interface">The URIResolver Interface</h3>
+<p>The interface consists of a single method:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">interface</span> <span class="bu">URIResolver</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Source</span> <span class="fu">resolve</span><span class="op">(</span><span class="bu">String</span> href<span class="op">,</span> <span class="bu">String</span> base<span class="op">)</span> <span class="kw">throws</span> <span class="bu">TransformerException</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<ul>
+<li><strong><code>href</code></strong>: The target URI string specified
+in the stylesheet (e.g.,
+<code>&lt;xsl:include href="common.xsl"/&gt;</code> or
+<code>document('data.xml')</code>).</li>
+<li><strong><code>base</code></strong>: The base URI against which
+relative <code>href</code> values are resolved, typically representing
+the system ID of the stylesheet or source document that made the
+call.</li>
+<li><strong>Return Value</strong>: A
+<code>javax.xml.transform.Source</code> object (such as
+<code>StreamSource</code>, <code>DOMSource</code>, or
+<code>SAXSource</code>) containing the resolved resource, or
+<code>null</code> to instruct the processor to fall back to its default
+resolution mechanism.</li>
+</ul>
+<h3 id="implementing-a-custom-uriresolver">Implementing a Custom
+URIResolver</h3>
+<p>To load documents from the application classpath or redirect specific
+URI schemes, implement the interface and return a
+<code>StreamSource</code> wrapping the target input stream:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">Source</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">TransformerException</span><span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">URIResolver</span><span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">xml</span><span class="op">.</span><span class="im">transform</span><span class="op">.</span><span class="im">stream</span><span class="op">.</span><span class="im">StreamSource</span><span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">io</span><span class="op">.</span><span class="im">InputStream</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> ClasspathURIResolver <span class="kw">implements</span> <span class="bu">URIResolver</span> <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">Source</span> <span class="fu">resolve</span><span class="op">(</span><span class="bu">String</span> href<span class="op">,</span> <span class="bu">String</span> base<span class="op">)</span> <span class="kw">throws</span> <span class="bu">TransformerException</span> <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Intercept custom URI schemes or specific relative paths</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>href<span class="op">.</span><span class="fu">startsWith</span><span class="op">(</span><span class="st">&quot;classpath:&quot;</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="bu">String</span> path <span class="op">=</span> href<span class="op">.</span><span class="fu">substring</span><span class="op">(</span><span class="st">&quot;classpath:&quot;</span><span class="op">.</span><span class="fu">length</span><span class="op">());</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            <span class="bu">InputStream</span> stream <span class="op">=</span> <span class="fu">getClass</span><span class="op">().</span><span class="fu">getClassLoader</span><span class="op">().</span><span class="fu">getResourceAsStream</span><span class="op">(</span>path<span class="op">);</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>stream <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">TransformerException</span><span class="op">(</span><span class="st">&quot;Resource not found on classpath: &quot;</span> <span class="op">+</span> href<span class="op">);</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">new</span> <span class="bu">StreamSource</span><span class="op">(</span>stream<span class="op">);</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Return null to let the default processor resolve other URIs</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="registering-the-resolver">Registering the Resolver</h3>
+<p>A custom resolver can be attached at the factory level (affecting
+compilation of stylesheets) or at the individual transformer level
+(affecting runtime document resolution).</p>
+<h4 id="1-at-the-transformerfactory-level">1. At the TransformerFactory
+Level</h4>
+<p>Setting the resolver on the <code>TransformerFactory</code>
+intercepts <code>xsl:import</code> and <code>xsl:include</code> elements
+during stylesheet compilation:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">TransformerFactory</span> factory <span class="op">=</span> <span class="bu">TransformerFactory</span><span class="op">.</span><span class="fu">newInstance</span><span class="op">();</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>factory<span class="op">.</span><span class="fu">setURIResolver</span><span class="op">(</span><span class="kw">new</span> <span class="fu">ClasspathURIResolver</span><span class="op">());</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">Source</span> xsltSource <span class="op">=</span> <span class="kw">new</span> <span class="bu">StreamSource</span><span class="op">(</span><span class="kw">new</span> <span class="bu">File</span><span class="op">(</span><span class="st">&quot;main-transform.xsl&quot;</span><span class="op">));</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">Templates</span> templates <span class="op">=</span> factory<span class="op">.</span><span class="fu">newTemplates</span><span class="op">(</span>xsltSource<span class="op">);</span></span></code></pre></div>
+<h4 id="2-at-the-transformer-level">2. At the Transformer Level</h4>
+<p>Setting the resolver on the <code>Transformer</code> instance
+intercepts runtime calls, such as calls to the <code>document()</code>
+function during transformation execution:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Transformer</span> transformer <span class="op">=</span> templates<span class="op">.</span><span class="fu">newTransformer</span><span class="op">();</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>transformer<span class="op">.</span><span class="fu">setURIResolver</span><span class="op">(</span><span class="kw">new</span> <span class="fu">ClasspathURIResolver</span><span class="op">());</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>transformer<span class="op">.</span><span class="fu">transform</span><span class="op">(</span><span class="kw">new</span> <span class="bu">StreamSource</span><span class="op">(</span>xmlFile<span class="op">),</span> <span class="kw">new</span> <span class="bu">StreamResult</span><span class="op">(</span>outputFile<span class="op">));</span></span></code></pre></div>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><strong>Classpath Loading</strong>: Allows modular XSLT templates
+packaged within JAR files to reference one another without requiring
+absolute filesystem paths.</li>
+<li><strong>Security Sandboxing</strong>: Blocks access to the
+filesystem (<code>file://</code>) or internal networks
+(<code>http://</code>) by rejecting unauthorized schemes or unverified
+hostnames with a <code>TransformerException</code>.</li>
+<li><strong>Dynamic Generation</strong>: Generates XML data dynamically
+in memory (e.g., using a <code>DOMSource</code>) when requested by the
+<code>document()</code> function, avoiding intermediary disk
+writes.</li>
+<li><strong>Offline Caching</strong>: Replaces remote HTTP references
+with locally cached copies to prevent transformation failures caused by
+network latency or downtime.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

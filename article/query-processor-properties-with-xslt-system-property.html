@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Processor Properties with XSLT system-property() - xslt</title>
+    <meta name="description" content="The system-property() function in XSLT allows developers to query the execution environment and retrieve information regarding the XSLT processor being used. This guide explains the syntax of the system-property() function, lists the standard properties">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/query-processor-properties-with-xslt-system-property">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Query Processor Properties with XSLT system-property() - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/query-processor-properties-with-xslt-system-property" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The system-property() function in XSLT allows developers to query the execution environment and retrieve information regarding the XSLT processor being used. This guide explains the syntax of the system-property() function, lists the standard properties" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="query-processor-properties-with-xslt-system-property">Query
+Processor Properties with XSLT system-property()</h1>
+<p>The <code>system-property()</code> function in XSLT allows developers
+to query the execution environment and retrieve information regarding
+the XSLT processor being used. This guide explains the syntax of the
+<code>system-property()</code> function, lists the standard properties
+defined by the W3C specification, provides concrete XSLT code examples,
+and demonstrates how to utilize these values for debugging and
+conditional processing.</p>
+<h3 id="syntax-and-namespace-requirement">Syntax and Namespace
+Requirement</h3>
+<p>The <code>system-property()</code> function accepts a single
+argument: a string representing a Qualified Name (QName) of the property
+you want to retrieve.</p>
+<pre class="xpath"><code>system-property(propertyName)</code></pre>
+<p>For standard XSLT properties, the prefix used in the argument
+(typically <code>xsl:</code>) must be bound to the official XSLT
+namespace: <code>http://www.w3.org/1999/XSL/Transform</code>. If the
+property name is not recognized or the prefix is unbound, the function
+returns an empty string.</p>
+<h3 id="standard-xslt-system-properties">Standard XSLT System
+Properties</h3>
+<p>The XSLT specification mandates three standard system properties that
+every conforming processor must provide:</p>
+<ul>
+<li><strong><code>xsl:version</code></strong>: Returns a number
+representing the XSLT specification version implemented by the processor
+(for example, <code>1.0</code>, <code>2.0</code>, or
+<code>3.0</code>).</li>
+<li><strong><code>xsl:vendor</code></strong>: Returns a string
+identifying the vendor or creator of the XSLT processor (such as
+"Saxonica" or "Apache Software Foundation").</li>
+<li><strong><code>xsl:vendor-url</code></strong>: Returns a string
+containing a URL identifying the vendor.</li>
+</ul>
+<h3 id="basic-implementation-example">Basic Implementation Example</h3>
+<p>The following stylesheet queries all three standard properties and
+outputs them as text elements:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:output</span> <span class="ot">method=</span><span class="st">&quot;xml&quot;</span> <span class="ot">indent=</span><span class="st">&quot;yes&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;/&quot;</span>&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">processor-info</span>&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">version</span>&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;system-property(&#39;xsl:version&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">version</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">vendor</span>&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;system-property(&#39;xsl:vendor&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">vendor</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">vendor-url</span>&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;system-property(&#39;xsl:vendor-url&#39;)&quot;</span>/&gt;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            &lt;/<span class="kw">vendor-url</span>&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">processor-info</span>&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="conditional-processing-based-on-the-processor">Conditional
+Processing Based on the Processor</h3>
+<p><code>system-property()</code> is commonly used to implement
+conditional logic when a stylesheet must run across different
+environments or versions of an engine.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:choose</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:when</span> <span class="ot">test=</span><span class="st">&quot;number(system-property(&#39;xsl:version&#39;)) &gt;= 2.0&quot;</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Execute advanced logic supported in XSLT 2.0+ --&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;&#39;Modern XSLT Engine&#39;&quot;</span>/&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:when</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Fallback logic for XSLT 1.0 processors --&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;&#39;Legacy XSLT 1.0 Engine&#39;&quot;</span>/&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:otherwise</span>&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:choose</span>&gt;</span></code></pre></div>
+<h3 id="vendor-specific-and-environment-properties">Vendor-Specific and
+Environment Properties</h3>
+<p>Some XSLT processors extend <code>system-property()</code> to query
+underlying platform details.</p>
+<ul>
+<li><strong>Java-based processors (e.g., Saxon, Xalan):</strong> Can
+often read Java system properties such as
+<code>system-property('java.version')</code>,
+<code>system-property('os.name')</code>, or
+<code>system-property('file.separator')</code>.</li>
+<li><strong>Processor-specific metadata:</strong> Some vendors define
+their own namespace to expose product editions or build numbers (e.g.,
+Saxon's product edition properties).</li>
+</ul>
+<p>When querying platform-specific properties, ensure your stylesheet
+accounts for potential empty string returns if it is ever executed on a
+different processor or operating system.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

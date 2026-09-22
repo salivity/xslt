@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using xsl:original in XSLT 3.0 Package Refinement - xslt</title>
+    <meta name="description" content="This article explains the role and mechanics of the xsl:original instruction in XSLT 3.0, focusing specifically on how it enables template refinement within modular stylesheet architectures. By reading this guide, you will learn how xsl:original acts as">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-xsl-original-in-xslt-3-0-package-refinement">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using xsl:original in XSLT 3.0 Package Refinement - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-xsl-original-in-xslt-3-0-package-refinement" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the role and mechanics of the xsl:original instruction in XSLT 3.0, focusing specifically on how it enables template refinement within modular stylesheet architectures. By reading this guide, you will learn how xsl:original acts as" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-xsloriginal-in-xslt-30-package-refinement">Using
+xsl:original in XSLT 3.0 Package Refinement</h1>
+<p>This article explains the role and mechanics of the
+<code>xsl:original</code> instruction in XSLT 3.0, focusing specifically
+on how it enables template refinement within modular stylesheet
+architectures. By reading this guide, you will learn how
+<code>xsl:original</code> acts as a delegation mechanism—similar to the
+<code>super</code> keyword in object-oriented programming—allowing an
+overriding package to invoke the original implementation of a named
+template, pass parameters, and extend base functionality without code
+duplication.</p>
+<h2 id="understanding-package-refinement-in-xslt-30">Understanding
+Package Refinement in XSLT 3.0</h2>
+<p>XSLT 3.0 introduced packages as a mechanism for modular development,
+independent compilation, and explicit encapsulation. When a stylesheet
+imports a library using the <code>xsl:use-package</code> element, it can
+alter or extend the behavior of the used package using the child element
+<code>xsl:override</code>.</p>
+<p>When overriding components such as functions, attribute sets,
+template rules, or named templates, you frequently need to supplement
+existing logic rather than rewrite it from scratch. This process of
+customizing a component while retaining its core functionality is known
+as package refinement.</p>
+<h2 id="the-role-of-xsloriginal">The Role of xsl:original</h2>
+<p>The <code>xsl:original</code> named template provides the callback
+mechanism required to execute the version of the component that is being
+overridden. When placed inside an overriding definition within an
+<code>xsl:override</code> block, invoking <code>xsl:original</code>
+executes the original definition provided by the base package.</p>
+<p>Key characteristics of <code>xsl:original</code> include:</p>
+<ul>
+<li><strong>Context Preservation:</strong> It allows the overriding
+template to perform pre-processing on the input or parameters, delegate
+the core task to the underlying package template, and perform
+post-processing on the resulting output.</li>
+<li><strong>Super-Call Analogy:</strong> It functions identically to a
+<code>super()</code> method call in class-based inheritance, giving the
+derived package access to the hidden parent implementation.</li>
+<li><strong>Scope Restriction:</strong> The name
+<code>xsl:original</code> is reserved by the XSLT 3.0 specification. It
+can only be called inside the body of an overriding component within an
+<code>xsl:override</code> element.</li>
+</ul>
+<h2 id="using-xsloriginal-with-named-templates">Using xsl:original with
+Named Templates</h2>
+<p>When refining a named template, you invoke the original version using
+the standard <code>&lt;xsl:call-template&gt;</code> instruction with
+<code>name="xsl:original"</code>.</p>
+<h3 id="invocation-syntax">Invocation Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:package</span> <span class="ot">name=</span><span class="st">&quot;http://example.com/extended-pack&quot;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>             <span class="ot">package-version=</span><span class="st">&quot;1.0.0&quot;</span> </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>             <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>             <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">xsl:use-package</span> <span class="ot">name=</span><span class="st">&quot;http://example.com/base-pack&quot;</span> <span class="ot">package-version=</span><span class="st">&quot;1.0.0&quot;</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:override</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- Overriding the named template &#39;format-header&#39; --&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">xsl:template</span> <span class="ot">name=</span><span class="st">&quot;format-header&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:param</span> <span class="ot">name=</span><span class="st">&quot;title&quot;</span> <span class="ot">as=</span><span class="st">&quot;xs:string&quot;</span>/&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- Pre-processing --&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;custom-wrapper&quot;</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>          <span class="co">&lt;!-- Delegate execution to the original template in base-pack --&gt;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>          &lt;<span class="kw">xsl:call-template</span> <span class="ot">name=</span><span class="st">&quot;xsl:original&quot;</span>&gt;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:with-param</span> <span class="ot">name=</span><span class="st">&quot;title&quot;</span> <span class="ot">select=</span><span class="st">&quot;upper-case($title)&quot;</span>/&gt;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>          &lt;/<span class="kw">xsl:call-template</span>&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:override</span>&gt;</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">xsl:use-package</span>&gt;</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:package</span>&gt;</span></code></pre></div>
+<h3 id="parameter-handling">Parameter Handling</h3>
+<p>When calling <code>xsl:original</code> within a named template:</p>
+<ul>
+<li><strong>Explicit Parameters:</strong> You can supply new or modified
+values using <code>&lt;xsl:with-param&gt;</code>. This allows the
+refining template to intercept, sanitize, or alter arguments before the
+original template processes them.</li>
+<li><strong>Default Values:</strong> If the overriding template does not
+supply a parameter expected by the original template, the original
+template's default value expression is evaluated unless tunneled
+parameters satisfy the requirement.</li>
+<li><strong>Tunnel Parameters:</strong> Tunneled parameters pass through
+<code>xsl:original</code> following standard XSLT rules, making them
+available to any internal calls made by the base implementation.</li>
+</ul>
+<h2 id="operational-rules-and-constraints">Operational Rules and
+Constraints</h2>
+<p>To correctly use <code>xsl:original</code> in your stylesheets,
+adhere to the following constraints enforced by XSLT 3.0 processors:</p>
+<ol type="1">
+<li><strong>Exact Component Binding:</strong> Inside an overriding named
+template, <code>&lt;xsl:call-template name="xsl:original"/&gt;</code>
+strictly refers to the named template with the identical QName in the
+package being overridden. It cannot be used to target a different named
+template.</li>
+<li><strong>Static Error on Missing Target:</strong> If the base package
+does not expose an overridable component matching the name and type of
+the overriding component, the processor raises a static error
+(<code>XTSE3050</code>).</li>
+<li><strong>No Circular References:</strong> An overriding template
+cannot call itself recursively under the alias
+<code>xsl:original</code>; it only ever resolves outward to the base
+package's definition.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

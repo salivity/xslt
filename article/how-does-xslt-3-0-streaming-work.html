@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Does XSLT 3.0 Streaming Work? - xslt</title>
+    <meta name="description" content="The XSLT 3.0 specification introduced native stream processing capabilities to allow developers to transform XML documents that exceed available memory limits. By parsing and processing XML data in a single sequential pass rather than loading the entire">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-does-xslt-3-0-streaming-work">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Does XSLT 3.0 Streaming Work? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-does-xslt-3-0-streaming-work" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The XSLT 3.0 specification introduced native stream processing capabilities to allow developers to transform XML documents that exceed available memory limits. By parsing and processing XML data in a single sequential pass rather than loading the entire" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-does-xslt-30-streaming-work">How Does XSLT 3.0 Streaming
+Work?</h1>
+<p>The XSLT 3.0 specification introduced native stream processing
+capabilities to allow developers to transform XML documents that exceed
+available memory limits. By parsing and processing XML data in a single
+sequential pass rather than loading the entire XML Document Model (XDM)
+tree into memory, XSLT 3.0 streaming enables high-throughput, low-memory
+transformations of multi-gigabyte datasets. This article examines the
+core architecture, syntax constructs, static analysis rules, and state
+management tools that make streaming possible in XSLT 3.0.</p>
+<h2
+id="the-shift-from-tree-based-processing-to-sequential-streaming">The
+Shift from Tree-Based Processing to Sequential Streaming</h2>
+<p>Traditional XSLT 1.0 and 2.0 processors build a complete tree
+representation of the input document in memory before initiating
+transformations. While this model supports arbitrary axis
+navigation—such as accessing ancestors, preceding siblings, or
+evaluating global XPath expressions—it creates a memory footprint often
+several times larger than the source file size.</p>
+<p>XSLT 3.0 solves this scalability barrier by introducing a streaming
+execution model where nodes are consumed sequentially as a stream of
+parser events. Once a node and its descendants are processed, they can
+be immediately discarded from memory, maintaining a flat memory profile
+regardless of the total file size.</p>
+<h2 id="core-directives-xslmode-and-xslstream">Core Directives: xsl:mode
+and xsl:stream</h2>
+<p>Streamed transformations in XSLT 3.0 are explicitly declared using
+dedicated language constructs:</p>
+<ul>
+<li><strong>Streamable Modes (<code>xsl:mode</code>):</strong> A
+stylesheet declares streaming behavior by configuring a processing mode
+with <code>streamable="yes"</code>. Templates within this mode must
+adhere to streamability constraints to guarantee single-pass
+execution.</li>
+<li><strong>The <code>xsl:stream</code> Instruction:</strong> The
+<code>xsl:stream</code> instruction defines an explicit streaming
+context for an external document via the <code>href</code> attribute.
+The processor opens the stream, applies the relevant templates or child
+instructions, and closes the resource without holding the parsed
+document in memory.</li>
+</ul>
+<h2 id="streamability-analysis-posture-and-sweep">Streamability
+Analysis: Posture and Sweep</h2>
+<p>To ensure a stylesheet can execute in a single pass without buffering
+the entire input, XSLT 3.0 defines a formal static analysis system based
+on two properties: <strong>posture</strong> and
+<strong>sweep</strong>.</p>
+<h3 id="posture">Posture</h3>
+<p>Posture categorizes the relationship between an expression and the
+context node in the stream:</p>
+<ul>
+<li><strong>Grounded:</strong> The value is entirely in memory (such as
+atomic values, strings, or disconnected nodes) and has no dependency on
+the stream's progression.</li>
+<li><strong>Striding:</strong> The expression selects a sequence of
+element nodes at a specific depth relative to the context node (for
+example, selecting immediate child elements).</li>
+<li><strong>Crawling:</strong> The expression navigates arbitrary or
+descending depths (such as using the descendant-or-self axis).</li>
+<li><strong>Roaming:</strong> The expression navigates across
+unconstrained paths (such as parent or ancestor axes), which generally
+violates streamability unless snapshot mechanisms are used.</li>
+</ul>
+<h3 id="sweep">Sweep</h3>
+<p>Sweep indicates how an expression moves through the input
+document:</p>
+<ul>
+<li><strong>Motionless:</strong> The expression inspects the current
+node (such as evaluating an attribute value or local name) without
+consuming subsequent stream tokens.</li>
+<li><strong>Consuming:</strong> The expression advances the input stream
+to process child nodes or element content.</li>
+</ul>
+<p>The processor statically validates that consuming operations are not
+executed multiple times over the same streamed sequence, catching
+non-streamable logic at compile time.</p>
+<h2 id="stream-aware-processing-instructions">Stream-Aware Processing
+Instructions</h2>
+<p>XSLT 3.0 introduces several new instructions designed specifically to
+work within the constraints of streamable input:</p>
+<ul>
+<li><strong><code>xsl:iterate</code>:</strong> Provides a loop-like
+iteration construct over streamed nodes. Unlike
+<code>xsl:for-each</code>, <code>xsl:iterate</code> supports early exit
+(<code>xsl:break</code>) and state carrying between iterations
+(<code>xsl:next-iteration</code>), allowing sequential computation
+without holding past items in memory.</li>
+<li><strong><code>xsl:fork</code>:</strong> Enables multiple independent
+transformations or output branches from a single pass over a streamed
+document. Each child instruction inside an <code>xsl:fork</code> block
+consumes parts of the stream concurrently or in parallel buffers,
+avoiding multiple document reads.</li>
+<li><strong><code>xsl:merge</code>:</strong> Coordinates the processing
+of two or more pre-sorted input streams by comparing key values,
+producing a unified output without sorting the datasets in memory.</li>
+</ul>
+<h2 id="managing-state-with-stream-accumulators">Managing State with
+Stream Accumulators</h2>
+<p>Because streamed processing prevents backward navigation to read
+previously parsed elements, XSLT 3.0 introduces
+<strong>accumulators</strong> (<code>xsl:accumulator</code> and
+<code>xsl:accumulator-rule</code>).</p>
+<p>Accumulators act as functional state trackers that update values
+incrementally as the processor encounters the opening and closing tags
+of elements. Developers can use accumulators to maintain running counts,
+track hierarchical context, or calculate running totals. Expressions can
+then retrieve the current accumulator state using the
+<code>accumulator-before()</code> and <code>accumulator-after()</code>
+functions without rewinding the stream.</p>
+<h2 id="working-with-subtrees-copy-of-and-snapshot">Working with
+Subtrees: copy-of() and snapshot()</h2>
+<p>When specific operations require random access to a portion of the
+document, XSLT 3.0 provides bridge functions to transition from streamed
+sequences to in-memory trees:</p>
+<ul>
+<li><strong><code>copy-of()</code>:</strong> Reads a subtree from the
+stream and builds an independent, fully navigable in-memory XDM tree of
+that element and all its descendants.</li>
+<li><strong><code>snapshot()</code>:</strong> Builds an in-memory copy
+of a selected node including its attributes and ancestor skeleton,
+allowing upward navigation to ancestors and preceding sibling attributes
+while keeping memory bounded.</li>
+</ul>
+<p>These streaming capabilities collectively allow XSLT 3.0 to process
+enterprise-scale XML feeds, logs, and database exports with predictable
+memory footprints and high processing speeds.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

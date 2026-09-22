@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variable Functions in XSLT 3.0 - xslt</title>
+    <meta name="description" content="XSLT 3.0 introduced native support for reading the execution environment through the environment-variable() and available-environment-variables() functions. These functions allow stylesheet authors to access operating system settings, server configuratio">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/environment-variable-functions-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Environment Variable Functions in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/environment-variable-functions-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="XSLT 3.0 introduced native support for reading the execution environment through the environment-variable() and available-environment-variables() functions. These functions allow stylesheet authors to access operating system settings, server configuratio" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="environment-variable-functions-in-xslt-30">Environment Variable
+Functions in XSLT 3.0</h1>
+<p>XSLT 3.0 introduced native support for reading the execution
+environment through the <code>environment-variable()</code> and
+<code>available-environment-variables()</code> functions. These
+functions allow stylesheet authors to access operating system settings,
+server configurations, and system-level parameters directly within
+transformation code. By providing a standardized interface to host
+environment properties, XSLT 3.0 simplifies deployment across varied
+environments and reduces the need for external parameter-injection
+scripts.</p>
+<h3 id="the-environment-variable-function">The
+<code>environment-variable()</code> Function</h3>
+<p>The <code>environment-variable()</code> function takes a single
+string argument representing the name of an environment variable and
+returns its value as an optional string (<code>xs:string?</code>).</p>
+<pre class="xpath"><code>environment-variable($name as xs:string) as xs:string?</code></pre>
+<p>Its primary purpose is to retrieve external configuration data at
+runtime. If the specified environment variable exists and the XSLT
+processor has permission to access it, the function returns its value.
+If the variable is not defined or the processor restricts access for
+security reasons, the function returns an empty sequence
+(<code>()</code>).</p>
+<p>Common uses for <code>environment-variable()</code> include:</p>
+<ul>
+<li>Reading file paths, temporary directories, or deployment paths
+(e.g., <code>HOME</code> or <code>TMPDIR</code>).</li>
+<li>Checking the active environment, such as <code>NODE_ENV</code> or
+<code>STAGE</code> (e.g., differentiating between
+<code>development</code>, <code>testing</code>, and
+<code>production</code>).</li>
+<li>Fetching system-level configurations without needing to pass them
+explicitly as stylesheet parameters
+(<code>&lt;xsl:param&gt;</code>).</li>
+</ul>
+<h3 id="the-available-environment-variables-function">The
+<code>available-environment-variables()</code> Function</h3>
+<p>The <code>available-environment-variables()</code> function takes no
+arguments and returns a sequence of strings (<code>xs:string*</code>)
+containing the names of all accessible environment variables.</p>
+<pre class="xpath"><code>available-environment-variables() as xs:string*</code></pre>
+<p>Its primary purpose is introspection and safe retrieval. Because
+access to environment variables may vary based on user permissions or
+XSLT processor settings, this function enables developers to:</p>
+<ul>
+<li>Verify if a specific variable is exposed before attempting to
+evaluate it.</li>
+<li>Enumerate all accessible variables for debugging or dynamic logging
+during transformations.</li>
+<li>Implement fallback logic if a critical variable is absent from the
+host system.</li>
+</ul>
+<h3 id="security-and-portability-considerations">Security and
+Portability Considerations</h3>
+<p>Because environment variables can expose sensitive host system
+information—such as database credentials or API keys—XSLT 3.0
+implementations are not required to expose all environment variables.
+Processors frequently provide configuration flags to disable these
+functions entirely or restrict access to a curated whitelist.</p>
+<p>Additionally, variable name case-sensitivity depends on the
+underlying operating system and the processor implementation. While
+names are case-sensitive in Unix-like environments, Windows systems
+typically treat them as case-insensitive. Relying on
+<code>available-environment-variables()</code> helps ensure that
+stylesheets handle these platform-specific variations reliably.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

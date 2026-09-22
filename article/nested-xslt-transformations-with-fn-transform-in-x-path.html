@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nested XSLT Transformations with fn:transform in XPath - xslt</title>
+    <meta name="description" content="The fn:transform() function, introduced in XPath and XQuery 3.1 and supported natively in XSLT 3.0, enables developers to invoke secondary, nested XSLT transformations dynamically from directly within an XPath expression. By accepting a map of configurat">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/nested-xslt-transformations-with-fn-transform-in-x-path">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nested XSLT Transformations with fn:transform in XPath - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/nested-xslt-transformations-with-fn-transform-in-x-path" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The fn:transform() function, introduced in XPath and XQuery 3.1 and supported natively in XSLT 3.0, enables developers to invoke secondary, nested XSLT transformations dynamically from directly within an XPath expression. By accepting a map of configurat" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="nested-xslt-transformations-with-fntransform-in-xpath">Nested
+XSLT Transformations with fn:transform in XPath</h1>
+<p>The <code>fn:transform()</code> function, introduced in XPath and
+XQuery 3.1 and supported natively in XSLT 3.0, enables developers to
+invoke secondary, nested XSLT transformations dynamically from directly
+within an XPath expression. By accepting a map of configuration
+parameters, the function executes an isolated transformation process on
+specified XML nodes or external resources and returns the results
+directly to the calling expression as an XDM (XPath Data Model) map.
+This article explains how <code>fn:transform()</code> operates, how it
+passes data to nested stylesheets, and how developers can handle the
+resulting output without relying on external orchestration tools.</p>
+<h3 id="mechanics-of-the-fntransform-function">Mechanics of the
+<code>fn:transform()</code> Function</h3>
+<p>At its core, <code>fn:transform()</code> acts as a self-contained
+transformation engine embedded inside the host environment. Instead of
+requiring external tools or build scripts to manage multi-pass
+transformations, an XSLT stylesheet can invoke another transformation
+inline.</p>
+<p>The function takes a single parameter: an XPath map containing the
+invocation options. Key entries in this map define the input, the
+stylesheet to run, and the required runtime parameters:</p>
+<ul>
+<li><strong><code>stylesheet-location</code> or
+<code>stylesheet-node</code>:</strong> Specifies the nested stylesheet
+either by a URI reference or as an in-memory document node (which allows
+running dynamically generated or embedded stylesheets).</li>
+<li><strong><code>source-node</code> or
+<code>source-text</code>:</strong> Supplies the input XML, either as an
+existing node/tree from the primary transformation context or as
+serialized XML text.</li>
+<li><strong><code>stylesheet-params</code>:</strong> A nested map
+supplying global parameters to the secondary stylesheet.</li>
+<li><strong><code>delivery-format</code>:</strong> Specifies whether the
+output should be parsed as raw nodes, serialized text, or saved
+directly.</li>
+</ul>
+<h3 id="executing-a-nested-transformation">Executing a Nested
+Transformation</h3>
+<p>When XPath encounters <code>fn:transform()</code>, it suspends the
+current transformation context to instantiate a new, isolated XSLT
+processor environment.</p>
+<p>A standard invocation looks like this within an XPath expression:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;result&quot;</span> <span class="ot">select=</span><span class="st">&quot;fn:transform(map{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">    &#39;stylesheet-location&#39;: &#39;secondary-transform.xsl&#39;,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">    &#39;source-node&#39;: .,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">    &#39;stylesheet-params&#39;: map{ xs:QName(&#39;mode&#39;): &#39;strict&#39; }</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">})&quot;</span>/&gt;</span></code></pre></div>
+<p>In this pattern:</p>
+<ol type="1">
+<li>The current context node (<code>.</code>) is passed cleanly into the
+nested transformation pipeline via <code>source-node</code>.</li>
+<li>The nested processor executes <code>secondary-transform.xsl</code>
+independently.</li>
+<li>The host stylesheet receives an XPath map containing the execution
+results.</li>
+</ol>
+<h3 id="handling-transformed-output-in-xpath">Handling Transformed
+Output in XPath</h3>
+<p>Because <code>fn:transform()</code> returns an XPath map, nested
+transformations integrate seamlessly with standard XPath operations. By
+default, the output document is stored under the map key
+<code>output</code>.</p>
+<p>Developers can immediately query the transformed nodes using the map
+lookup operator (<code>?</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;filtered-items&quot;</span> <span class="ot">select=</span><span class="st">&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">    fn:transform(map{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;stylesheet-location&#39;: &#39;cleanse.xsl&#39;,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">        &#39;source-node&#39;: $raw-data</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">    })?output//item</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span>/&gt;</span></code></pre></div>
+<p>In this example, the nested stylesheet runs, and the subsequent XPath
+expression (<code>?output//item</code>) immediately navigates the
+resulting node tree, discarding the rest of the execution metadata.</p>
+<h3 id="advantages-of-in-xpath-nested-transformations">Advantages of
+In-XPath Nested Transformations</h3>
+<ul>
+<li><strong>Pipelining without Disk I/O:</strong> Intermediate states do
+not need to be written to the file system or passed through external
+build scripts; intermediate trees reside completely in memory.</li>
+<li><strong>Dynamic Stylesheet Generation:</strong> A host stylesheet
+can generate XSLT code on the fly as an XML tree and immediately execute
+it using the <code>'stylesheet-node'</code> option.</li>
+<li><strong>Encapsulation:</strong> Complex multi-step document
+normalizations can be hidden inside specific templates or functions
+without cluttering the global transformation logic.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

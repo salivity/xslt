@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using deep-equal in XSLT to Compare XML Subtrees - xslt</title>
+    <meta name="description" content="In XSLT, the fn:deep-equal() function provides a mechanism to determine whether two XML nodes, subtrees, or sequences are structurally and semantically identical. Unlike shallow comparison operators that inspect only string representations or memory refe">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-deep-equal-in-xslt-to-compare-xml-subtrees">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using deep-equal in XSLT to Compare XML Subtrees - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-deep-equal-in-xslt-to-compare-xml-subtrees" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT, the fn:deep-equal() function provides a mechanism to determine whether two XML nodes, subtrees, or sequences are structurally and semantically identical. Unlike shallow comparison operators that inspect only string representations or memory refe" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-deep-equal-in-xslt-to-compare-xml-subtrees">Using
+deep-equal in XSLT to Compare XML Subtrees</h1>
+<p>In XSLT, the <code>fn:deep-equal()</code> function provides a
+mechanism to determine whether two XML nodes, subtrees, or sequences are
+structurally and semantically identical. Unlike shallow comparison
+operators that inspect only string representations or memory references,
+<code>deep-equal()</code> recursively evaluates every component of two
+XML hierarchies, including element names, namespaces, attributes, and
+text contents. This article explains the exact purpose of
+<code>deep-equal()</code>, how it evaluates XML subtrees, and why it is
+indispensable for reliable XML data comparison.</p>
+<h3 id="the-purpose-of-deep-equal">The Purpose of
+<code>deep-equal()</code></h3>
+<p>The primary purpose of <code>deep-equal()</code> (introduced in XPath
+2.0 and XSLT 2.0) is to test whether two XML fragments are equivalent in
+structure, names, and content. When comparing complex XML subtrees,
+developers typically need to verify that both branches match
+completely.</p>
+<p>Standard operators fall short of this requirement:</p>
+<ul>
+<li><strong>The Equality Operator (<code>=</code>):</strong> Compares
+only the string values of the elements. In XML, an element's string
+value is the concatenation of all its descendant text nodes. As a
+result,
+<code>&lt;item&gt;&lt;id&gt;1&lt;/id&gt;&lt;qty&gt;2&lt;/qty&gt;&lt;/item&gt;</code>
+and <code>&lt;item&gt;&lt;id&gt;12&lt;/id&gt;&lt;/item&gt;</code> would
+be evaluated as equal by the <code>=</code> operator, despite having
+entirely different element structures.</li>
+<li><strong>The Node Identity Operator (<code>is</code>):</strong>
+Evaluates whether two nodes are the exact same node instance in the
+document tree. Two identical subtrees residing in different parts of a
+document or in different documents will return <code>false</code> when
+evaluated with <code>is</code>.</li>
+</ul>
+<p><code>deep-equal()</code> solves these limitations by performing a
+thorough, recursive comparison of the underlying data structures.</p>
+<h3 id="what-deep-equal-compares">What <code>deep-equal()</code>
+Compares</h3>
+<p>When comparing two element nodes,
+<code>deep-equal($tree1, $tree2)</code> returns <code>true</code> only
+if all of the following conditions are satisfied:</p>
+<ol type="1">
+<li><strong>Node Kind:</strong> Both nodes must be of the same kind
+(e.g., both elements, both documents).</li>
+<li><strong>Node Names and Namespaces:</strong> The expanded QNames
+(namespace URI and local name) of the elements must match. Prefix
+differences are ignored as long as they resolve to the same namespace
+URI.</li>
+<li><strong>Attributes:</strong> Both elements must have the same number
+of attributes, and each attribute on one element must match the name,
+namespace, and value of an attribute on the other. Attribute order is
+ignored.</li>
+<li><strong>Child Nodes:</strong> The children of both elements must
+match in kind, value, and sequence order.</li>
+<li><strong>Text Nodes and Comments:</strong> Contained text nodes must
+match in string value. (In standard XPath 2.0/3.0, comment and
+processing instruction nodes are ignored by default unless
+specified).</li>
+<li><strong>Recursion:</strong> Every child element is evaluated using
+these same rules down to the leaf nodes of both subtrees.</li>
+</ol>
+<h3 id="typical-implementation">Typical Implementation</h3>
+<p>The function takes two sequences (or single nodes) and an optional
+collation argument:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:if</span> <span class="ot">test=</span><span class="st">&quot;deep-equal($sourceSubtree, $targetSubtree)&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Logic executed when both XML trees match completely --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:if</span>&gt;</span></code></pre></div>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><strong>XML Diffing and Patching:</strong> Detecting whether an
+incoming record has changed compared to a previously stored XML
+record.</li>
+<li><strong>Deduplication:</strong> Filtering out duplicate nested
+structures across large datasets.</li>
+<li><strong>Automated Testing:</strong> Validating that an XSLT
+transformation generated the expected XML document structure by
+comparing the output against a baseline document.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

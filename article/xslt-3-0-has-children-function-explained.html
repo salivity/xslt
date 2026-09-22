@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSLT 3.0 has-children Function Explained - xslt</title>
+    <meta name="description" content="The has-children() function in XSLT 3.0 and XPath 3.0 provides a native, efficient way to determine whether a context node or specified node contains any child nodes. Returning a simple boolean value (true or false), it simplifies node evaluation, improv">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/xslt-3-0-has-children-function-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XSLT 3.0 has-children Function Explained - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/xslt-3-0-has-children-function-explained" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The has-children() function in XSLT 3.0 and XPath 3.0 provides a native, efficient way to determine whether a context node or specified node contains any child nodes. Returning a simple boolean value (true or false), it simplifies node evaluation, improv" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="xslt-30-has-children-function-explained">XSLT 3.0 has-children
+Function Explained</h1>
+<p>The <code>has-children()</code> function in XSLT 3.0 and XPath 3.0
+provides a native, efficient way to determine whether a context node or
+specified node contains any child nodes. Returning a simple boolean
+value (<code>true</code> or <code>false</code>), it simplifies node
+evaluation, improves stylesheet readability, and plays a crucial role in
+enabling streaming transformations where buffering entire node sets must
+be avoided.</p>
+<h3 id="syntax-and-basic-operation">Syntax and Basic Operation</h3>
+<p>The function belongs to the standard XPath and XSLT function
+namespace and can be invoked in two ways:</p>
+<ul>
+<li><code>fn:has-children()</code>: Evaluates the current context
+node.</li>
+<li><code>fn:has-children($node as node()?)</code>: Evaluates the node
+passed as an argument.</li>
+</ul>
+<p>If the evaluated node possesses at least one child node, the function
+returns <code>true</code>. If the node is empty, or if the argument is
+an empty sequence (<code>()</code>), it returns <code>false</code>.</p>
+<h3 id="what-counts-as-a-child-node">What Counts as a Child Node</h3>
+<p>Under the XQuery and XPath Data Model (XDM),
+<code>has-children()</code> checks for any node residing on the
+<code>child</code> axis. This includes:</p>
+<ul>
+<li>Element nodes</li>
+<li>Text nodes (including whitespace text nodes)</li>
+<li>Comment nodes</li>
+<li>Processing instruction nodes</li>
+</ul>
+<p>Attributes and namespace nodes are associated with elements via
+distinct axes, meaning an element that contains only attributes and no
+nested text or markup will cause <code>has-children()</code> to return
+<code>false</code>.</p>
+<h3 id="improvement-over-legacy-approaches">Improvement Over Legacy
+Approaches</h3>
+<p>Prior to XSLT 3.0, developers relied on expressions such as
+<code>boolean(node())</code>, <code>exists(node())</code>, or
+<code>count(node()) &gt; 0</code> to check for child content. While
+functional, these patterns had drawbacks:</p>
+<ol type="1">
+<li><strong>Performance:</strong> Expressions like <code>node()</code>
+construct a sequence of child nodes before converting that sequence to a
+boolean. While optimizing processors might stop at the first node,
+<code>has-children()</code> explicitly guarantees an existence check
+that terminates immediately upon finding the first child.</li>
+<li><strong>Intent and Readability:</strong> The function makes the
+conditional test explicit in template matches and control structures,
+eliminating syntactic clutter.</li>
+</ol>
+<h3 id="optimization-for-streaming-transformations">Optimization for
+Streaming Transformations</h3>
+<p>The primary architectural driver for introducing
+<code>has-children()</code> in XSLT 3.0 is streaming. In a streaming
+environment, documents are read sequentially from a feed rather than
+loaded into an in-memory tree.</p>
+<p>Standard constructs like <code>child::node()</code> can consume the
+stream or require lookahead buffering, which may violate streaming
+rules. The <code>has-children()</code> function is classified by the
+XSLT 3.0 specification as an inspection function that can often be
+evaluated without advancing the stream past the boundary of the current
+element, allowing developers to branch logic based on element structure
+without breaking streamability.</p>
+<h3 id="practical-example">Practical Example</h3>
+<p>In practice, <code>has-children()</code> is typically used in
+<code>xsl:if</code>, <code>xsl:choose</code>, or pattern predicates:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;section[has-children()]&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">div</span> <span class="ot">class=</span><span class="st">&quot;content-section&quot;</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">div</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;section[not(has-children())]&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Suppress or handle empty sections --&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:template</span>&gt;</span></code></pre></div>
+<p>By leveraging <code>has-children()</code>, XSLT 3.0 developers
+achieve cleaner code, better runtime performance, and strict compliance
+with streaming constraints.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

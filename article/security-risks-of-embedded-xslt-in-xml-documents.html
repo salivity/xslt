@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Risks of Embedded XSLT in XML Documents - xslt</title>
+    <meta name="description" content="Processing XML documents containing embedded XSLT stylesheets introduces critical security vulnerabilities, most notably Remote Code Execution (RCE), Server-Side Request Forgery (SSRF), and unauthorized data access. When an XML parser processes untrusted">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/security-risks-of-embedded-xslt-in-xml-documents">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Security Risks of Embedded XSLT in XML Documents - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/security-risks-of-embedded-xslt-in-xml-documents" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing XML documents containing embedded XSLT stylesheets introduces critical security vulnerabilities, most notably Remote Code Execution (RCE), Server-Side Request Forgery (SSRF), and unauthorized data access. When an XML parser processes untrusted" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="security-risks-of-embedded-xslt-in-xml-documents">Security Risks
+of Embedded XSLT in XML Documents</h1>
+<p>Processing XML documents containing embedded XSLT stylesheets
+introduces critical security vulnerabilities, most notably Remote Code
+Execution (RCE), Server-Side Request Forgery (SSRF), and unauthorized
+data access. When an XML parser processes untrusted transformation
+logic, attackers can leverage built-in stylesheet directives or
+extension functions to manipulate the host system. This article breaks
+down the mechanisms behind embedded XSLT attacks, outlines the specific
+threats they introduce, and highlights methods to secure XML
+transformation workflows.</p>
+<h3 id="the-mechanism-of-embedded-xslt">The Mechanism of Embedded
+XSLT</h3>
+<p>XML documents can associate with stylesheets using processing
+instructions, such as
+<code>&lt;?xml-stylesheet type="text/xsl" href="stylesheet.xslt"?&gt;</code>,
+or by embedding the <code>&lt;xsl:stylesheet&gt;</code> element directly
+within the XML payload itself. When an application accepts and
+automatically processes this transformation via an XSLT engine, it
+relinquishes control over execution flow. Rather than merely parsing
+static data, the server compiles and evaluates arbitrary transformation
+logic dictated by the document supplier.</p>
+<h3 id="remote-code-execution-rce">Remote Code Execution (RCE)</h3>
+<p>The most critical danger of untrusted XSLT processing is arbitrary
+code execution. Many modern and legacy XSLT processors feature
+proprietary extensions or scripting capabilities intended for complex
+data formatting:</p>
+<ul>
+<li><strong>Java-based engines (Saxon, Xalan):</strong> Can allow
+namespace declarations that map to Java classes, enabling an attacker to
+instantiate objects, call system commands via
+<code>java.lang.Runtime</code>, and execute shell commands.</li>
+<li><strong>.NET processors (XslCompiledTransform,
+XslTransform):</strong> May support <code>&lt;msxsl:script&gt;</code>
+blocks, allowing attackers to embed C# or JScript directly into the
+stylesheet to run inside the application context.</li>
+<li><strong>PHP applications:</strong> The PHP XSL extension permits
+registering PHP functions, potentially exposing dangerous system
+functions like <code>system()</code>, <code>exec()</code>, or
+<code>passthru()</code>.</li>
+</ul>
+<h3 id="arbitrary-file-retrieval-and-ssrf">Arbitrary File Retrieval and
+SSRF</h3>
+<p>Even when full command execution is blocked, default XSLT functions
+allow unauthorized network interactions and data theft:</p>
+<ul>
+<li><strong>The <code>document()</code> Function:</strong> Standard XSLT
+defines <code>document()</code>, which retrieves and includes external
+XML resources during processing. Attackers can supply internal file URIs
+(such as <code>file:///etc/passwd</code> or
+<code>file:///C:/Windows/win.ini</code>) or private network
+addresses.</li>
+<li><strong>The <code>unparsed-text()</code> Function:</strong> In XSLT
+2.0 and later, this function reads non-XML text files directly into the
+transformation output, bypassing well-formedness requirements and
+allowing full exfiltration of configuration files, source code, and
+credentials.</li>
+<li><strong>Server-Side Request Forgery (SSRF):</strong> Requesting
+network-accessible resources allows attackers to scan internal networks,
+interact with unauthenticated internal APIs, or query cloud metadata
+services (e.g., <code>http://169.254.169.254</code>).</li>
+</ul>
+<h3 id="denial-of-service-dos">Denial of Service (DoS)</h3>
+<p>Malicious stylesheets can exhaust system resources through
+computational amplification. Attackers can define recursive templates,
+cyclical imports via <code>&lt;xsl:include&gt;</code> or
+<code>&lt;xsl:import&gt;</code>, and computationally expensive
+operations. Without resource limitations, the XSLT engine consumes
+available CPU threads and memory, rendering the service unavailable to
+legitimate users.</p>
+<h3 id="mitigation-strategies">Mitigation Strategies</h3>
+<p>To eliminate the risks associated with embedded XSLT processing:</p>
+<ol type="1">
+<li><strong>Decouple Data from Logic:</strong> Never permit
+user-supplied XML documents to declare their own stylesheets. Enforce
+server-side, hardcoded stylesheets and reject any document containing
+processing instructions or embedded stylesheet nodes.</li>
+<li><strong>Disable Scripting and Extension Functions:</strong>
+Explicitly configure the XSLT processor to disallow external scripts,
+reflection, and extension objects. For example, in .NET, pass
+<code>XsltSettings(false, false)</code> to disable both the
+<code>document()</code> function and embedded script blocks.</li>
+<li><strong>Restrict External Resolvers:</strong> Disable external
+entity resolution and external document fetching by setting URI
+resolvers to <code>null</code> or implementing an allowlist-only
+resolver.</li>
+<li><strong>Use Secure Processing Modes:</strong> In Java, enable
+<code>XMLConstants.FEATURE_SECURE_PROCESSING</code> (FSP) to impose
+resource limits and disable external entity and extension access.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How XSLT media-type Attribute Affects HTTP Headers - xslt</title>
+    <meta name="description" content="The media-type attribute on the <xsl:output> element specifies the MIME type of the serialized transformation result, serving as metadata that host environments can use to populate the HTTP Content-Type response header. Because XSLT is strictly a transfo">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/how-xslt-media-type-attribute-affects-http-headers">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How XSLT media-type Attribute Affects HTTP Headers - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/how-xslt-media-type-attribute-affects-http-headers" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The media-type attribute on the <xsl:output> element specifies the MIME type of the serialized transformation result, serving as metadata that host environments can use to populate the HTTP Content-Type response header. Because XSLT is strictly a transfo" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-xslt-media-type-attribute-affects-http-headers">How XSLT
+media-type Attribute Affects HTTP Headers</h1>
+<p>The <code>media-type</code> attribute on the
+<code>&lt;xsl:output&gt;</code> element specifies the MIME type of the
+serialized transformation result, serving as metadata that host
+environments can use to populate the HTTP <code>Content-Type</code>
+response header. Because XSLT is strictly a transformation language
+rather than an HTTP server protocol, it does not send network packets or
+construct HTTP headers on its own. Instead, it relies on server-side
+wrappers, web servers, and processing pipelines to read this attribute
+and set the actual HTTP headers accordingly.</p>
+<h3 id="the-purpose-of-the-media-type-attribute">The Purpose of the
+<code>media-type</code> Attribute</h3>
+<p>According to the W3C XSLT specifications, the
+<code>&lt;xsl:output&gt;</code> element defines serialization parameters
+for the transformation's output document. The <code>media-type</code>
+attribute accepts a standard MIME string, such as
+<code>text/html</code>, <code>application/xml</code>,
+<code>application/json</code>, or <code>text/plain</code>.</p>
+<p>Its primary role within the XSLT engine is to define the intended
+internet media type for the resulting byte stream. If omitted, the XSLT
+processor assigns a default value based on the chosen output
+<code>method</code>:</p>
+<ul>
+<li><code>method="xml"</code> defaults to <code>text/xml</code> (or
+<code>application/xml</code> in newer implementations).</li>
+<li><code>method="html"</code> defaults to <code>text/html</code>.</li>
+<li><code>method="text"</code> defaults to <code>text/plain</code>.</li>
+</ul>
+<h3 id="how-host-environments-bridge-xslt-to-http">How Host Environments
+Bridge XSLT to HTTP</h3>
+<p>An XSLT processor alone does not interact with the network layer.
+When an XSLT transformation is part of a server-side web stack (such as
+Java Servlets, PHP, Node.js, or Apache web server modules), the host
+application is responsible for the HTTP response lifecycle.</p>
+<p>The process operates as follows:</p>
+<ol type="1">
+<li>The XSLT processor compiles the stylesheet and reads the
+<code>&lt;xsl:output&gt;</code> element.</li>
+<li>The host environment extracts the output properties from the
+processor's API.</li>
+<li>The server sets the HTTP <code>Content-Type</code> header using the
+value defined in <code>media-type</code>, frequently appending the
+character encoding (for example,
+<code>Content-Type: text/html; charset=UTF-8</code>).</li>
+<li>The server flushes the HTTP headers and streams the serialized XSLT
+output to the client.</li>
+</ol>
+<p>If the hosting application does not explicitly query the
+transformation's output properties, the <code>media-type</code>
+attribute will have no effect on the HTTP response, and the server will
+use its own default header.</p>
+<h3 id="client-side-considerations">Client-Side Considerations</h3>
+<p>When an XSLT transformation occurs directly inside a web browser via
+the <code>&lt;?xml-stylesheet?&gt;</code> processing instruction, the
+<code>media-type</code> attribute plays no role in HTTP headers. The
+HTTP headers have already been established by the server during the
+retrieval of the source XML document. In the browser, the transformation
+operates entirely within memory, converting the XML DOM into an HTML or
+XHTML DOM for immediate rendering by the browser's layout engine.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

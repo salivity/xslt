@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>namespace-uri vs local-name vs name in XSLT - xslt</title>
+    <meta name="description" content="In XSLT and XPath, navigating and matching XML elements accurately requires a clear understanding of how an element's identity is constructed. XML nodes with namespaces have an expanded name consisting of a namespace URI and a local name, alongside an op">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/namespace-uri-vs-local-name-vs-name-in-xslt">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="namespace-uri vs local-name vs name in XSLT - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/namespace-uri-vs-local-name-vs-name-in-xslt" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, navigating and matching XML elements accurately requires a clear understanding of how an element's identity is constructed. XML nodes with namespaces have an expanded name consisting of a namespace URI and a local name, alongside an op" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="namespace-uri-vs-local-name-vs-name-in-xslt">namespace-uri vs
+local-name vs name in XSLT</h1>
+<p>In XSLT and XPath, navigating and matching XML elements accurately
+requires a clear understanding of how an element's identity is
+constructed. XML nodes with namespaces have an expanded name consisting
+of a namespace URI and a local name, alongside an optional prefix used
+in the source document. The functions <code>namespace-uri()</code>,
+<code>local-name()</code>, and <code>name()</code> serve distinct
+purposes by extracting different components of this identity.
+Understanding their differences is essential for writing robust node
+tests that do not break when XML prefixes change.</p>
+<h3 id="xml-name-components">XML Name Components</h3>
+<p>To understand these functions, consider an XML element defined with a
+prefix and a namespace:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">inv:product</span> <span class="ot">xmlns:inv=</span><span class="st">&quot;https://example.com/inventory&quot;</span>&gt;Widget&lt;/<span class="kw">inv:product</span>&gt;</span></code></pre></div>
+<p>This node has three separate naming components:</p>
+<ul>
+<li><strong>Namespace URI:</strong>
+<code>https://example.com/inventory</code> (the globally unique
+identifier)</li>
+<li><strong>Local Name:</strong> <code>product</code> (the element name
+stripped of any prefix)</li>
+<li><strong>Prefix:</strong> <code>inv</code> (a local alias mapped to
+the namespace URI within the document)</li>
+</ul>
+<h3 id="the-namespace-uri-function">The <code>namespace-uri()</code>
+Function</h3>
+<p>The <code>namespace-uri()</code> function returns the string
+representing the namespace URI of the node passed as an argument (or the
+context node if omitted).</p>
+<ul>
+<li><strong>Behavior:</strong> It resolves to the actual URI string, not
+the prefix.</li>
+<li><strong>No Namespace:</strong> If the node does not belong to a
+namespace, it returns an empty string (<code>""</code>).</li>
+<li><strong>Example Output:</strong> For
+<code>&lt;inv:product&gt;</code>, <code>namespace-uri()</code> returns
+<code>"https://example.com/inventory"</code>.</li>
+</ul>
+<h3 id="the-local-name-function">The <code>local-name()</code>
+Function</h3>
+<p>The <code>local-name()</code> function returns the local part of the
+node's expanded name as a string.</p>
+<ul>
+<li><strong>Behavior:</strong> It completely strips out any namespace
+prefix and ignores the namespace URI.</li>
+<li><strong>No Namespace:</strong> If the node has no prefix, the
+returned string is simply the node name.</li>
+<li><strong>Example Output:</strong> For
+<code>&lt;inv:product&gt;</code>, <code>local-name()</code> returns
+<code>"product"</code>.</li>
+</ul>
+<h3 id="the-name-function">The <code>name()</code> Function</h3>
+<p>The <code>name()</code> function returns the qualified name (QName)
+of the node exactly as it appears or resolves in the context of the
+source document, represented as a string.</p>
+<ul>
+<li><strong>Behavior:</strong> If the node has a prefix,
+<code>name()</code> returns <code>prefix:local-name</code>. If there is
+no prefix, it returns only the local name.</li>
+<li><strong>Caveat:</strong> The output depends directly on the prefix
+chosen by the author of the XML document.</li>
+<li><strong>Example Output:</strong> For
+<code>&lt;inv:product&gt;</code>, <code>name()</code> returns
+<code>"inv:product"</code>.</li>
+</ul>
+<h3 id="key-differences-in-node-testing">Key Differences in Node
+Testing</h3>
+<p>The functional difference becomes critical when evaluating nodes in
+XPath expressions and XSLT templates:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Function</th>
+<th style="text-align: left;">What It Returns</th>
+<th style="text-align: left;">Dependent on XML Prefix?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>namespace-uri()</code></td>
+<td style="text-align: left;">The namespace URI string</td>
+<td style="text-align: left;">No</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>local-name()</code></td>
+<td style="text-align: left;">The element name without prefix</td>
+<td style="text-align: left;">No</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>name()</code></td>
+<td style="text-align: left;"><code>prefix:local-name</code> (or just
+<code>local-name</code>)</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="why-name-is-fragile-in-node-tests">Why <code>name()</code> Is
+Fragile in Node Tests</h4>
+<p>Testing nodes using <code>name()</code> is generally discouraged in
+production stylesheets:</p>
+<pre class="xpath"><code>&lt;!-- Fragile: Fails if the source XML uses a different prefix like &lt;inventory:product&gt; --&gt;
+&lt;xsl:if test=&quot;name() = &#39;inv:product&#39;&quot;&gt; ... &lt;/xsl:if&gt;</code></pre>
+<p>Because XML prefixes are arbitrary and can vary between documents (or
+even within the same document), matching against the literal string
+<code>"inv:product"</code> causes the transformation to fail if the
+incoming XML uses
+<code>&lt;item:product xmlns:item="https://example.com/inventory"&gt;</code>.</p>
+<h4 id="combining-local-name-and-namespace-uri">Combining
+<code>local-name()</code> and <code>namespace-uri()</code></h4>
+<p>When dynamic prefix matching is required, or when working in
+environments where namespace prefixes cannot be declared ahead of time
+in the stylesheet, combining <code>local-name()</code> and
+<code>namespace-uri()</code> provides a reliable, prefix-agnostic
+test:</p>
+<pre class="xpath"><code>&lt;!-- Robust: Matches regardless of prefix --&gt;
+&lt;xsl:if test=&quot;local-name() = &#39;product&#39; and namespace-uri() = &#39;https://example.com/inventory&#39;&quot;&gt;
+    ...
+&lt;/xsl:if&gt;</code></pre>
+<h4 id="ignoring-namespaces">Ignoring Namespaces</h4>
+<p>If you need to match an element purely by its tag name while ignoring
+namespaces entirely, <code>local-name()</code> is the correct
+choice:</p>
+<pre class="xpath"><code>&lt;!-- Matches &lt;product&gt;, &lt;inv:product&gt;, or &lt;shop:product&gt; --&gt;
+&lt;xsl:apply-templates select=&quot;*[local-name() = &#39;product&#39;]&quot; /&gt;</code></pre>
+<p>In standard XSLT development, standard QName matching (declaring the
+namespace in the stylesheet and using <code>prefix:element</code>) is
+the preferred approach. However, when runtime inspection functions are
+required, use <code>namespace-uri()</code> to check identity against the
+URI standard, <code>local-name()</code> to evaluate the tag
+independently of prefixes, and avoid <code>name()</code> unless prefix
+preservation is explicitly required.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

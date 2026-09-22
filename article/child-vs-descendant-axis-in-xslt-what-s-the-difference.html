@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Child vs Descendant Axis in XSLT: What's the Difference? - xslt</title>
+    <meta name="description" content="In XSLT and XPath, navigating an XML document depends on axes that define the directional relationship from the current context node to target elements. The primary difference between the child axis and the descendant axis lies in traversal depth: the ch">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/child-vs-descendant-axis-in-xslt-what-s-the-difference">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Child vs Descendant Axis in XSLT: What's the Difference? - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/child-vs-descendant-axis-in-xslt-what-s-the-difference" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT and XPath, navigating an XML document depends on axes that define the directional relationship from the current context node to target elements. The primary difference between the child axis and the descendant axis lies in traversal depth: the ch" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="child-vs-descendant-axis-in-xslt-whats-the-difference">Child vs
+Descendant Axis in XSLT: What's the Difference?</h1>
+<p>In XSLT and XPath, navigating an XML document depends on axes that
+define the directional relationship from the current context node to
+target elements. The primary difference between the <code>child</code>
+axis and the <code>descendant</code> axis lies in traversal depth: the
+<code>child</code> axis selects only the immediate direct offspring of
+the context node, while the <code>descendant</code> axis recursively
+searches the entire subtree beneath the context node, matching elements
+at any nesting depth. Understanding when to use each axis ensures
+precise element targeting and prevents unexpected transformation errors
+or performance slowdowns.</p>
+<h3 id="understanding-the-child-axis">Understanding the Child Axis</h3>
+<p>The <code>child</code> axis represents a single step downward in the
+XML hierarchy. When selecting an element using the <code>child</code>
+axis, XPath evaluates only the elements that are directly nested inside
+the current node (one level down).</p>
+<p>In standard XPath syntax, the child axis is written explicitly as
+<code>child::element-name</code> or using its abbreviated syntax, which
+is the default when writing an element name directly (e.g.,
+<code>section/title</code> or <code>book/author</code>). It will never
+match an element if that element is enclosed inside another intermediary
+container.</p>
+<h3 id="understanding-the-descendant-axis">Understanding the Descendant
+Axis</h3>
+<p>The <code>descendant</code> axis traverses all descendant levels
+beneath the context node. It evaluates children, grandchildren,
+great-grandchildren, and all subsequent nested elements, returning every
+match regardless of how deep it resides in the tree hierarchy.</p>
+<p>In XPath expressions, this axis is written explicitly as
+<code>descendant::element-name</code> or using the familiar double-slash
+abbreviation <code>//</code> (such as <code>book//author</code> or
+<code>descendant-or-self::node()</code>).</p>
+<h3 id="key-differences-in-practice">Key Differences in Practice</h3>
+<p>Consider an XML snippet structured as follows:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">library</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">book</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">title</span>&gt;XSLT Essentials&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">author</span>&gt;Jane Doe&lt;/<span class="kw">author</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">chapter</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">title</span>&gt;Axes and Navigation&lt;/<span class="kw">title</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">chapter</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">book</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">library</span>&gt;</span></code></pre></div>
+<p>When evaluating XPath expressions against the
+<code>&lt;book&gt;</code> element as the context node:</p>
+<ul>
+<li><strong><code>child::title</code> (or <code>title</code>):</strong>
+Returns only <code>&lt;title&gt;XSLT Essentials&lt;/title&gt;</code>. It
+stops at the direct child level and ignores titles inside
+<code>&lt;chapter&gt;</code>.</li>
+<li><strong><code>descendant::title</code> (or
+<code>.//title</code>):</strong> Returns both
+<code>&lt;title&gt;XSLT Essentials&lt;/title&gt;</code> and
+<code>&lt;title&gt;Axes and Navigation&lt;/title&gt;</code>, capturing
+every title throughout the book's subtree.</li>
+</ul>
+<h3 id="performance-and-precision-considerations">Performance and
+Precision Considerations</h3>
+<p>Choosing between these axes impacts both transformation accuracy and
+processing speed. The <code>child</code> axis is strictly bounded and
+faster because the XSLT processor only needs to inspect adjacent child
+nodes. It also prevents unintended side effects caused by matching
+identically named elements in nested sub-structures. Conversely, the
+<code>descendant</code> axis forces the processor to scan the full
+branch depth, which can create processing overhead on large XML
+documents and may capture unwanted nodes if the document schema contains
+repeated tag names at multiple nesting layers.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

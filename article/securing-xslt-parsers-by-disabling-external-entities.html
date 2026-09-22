@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Securing XSLT Parsers by Disabling External Entities - xslt</title>
+    <meta name="description" content="Extensible Stylesheet Language Transformations (XSLT) rely heavily on underlying XML parsers to transform XML documents into different formats. When an XSLT processor allows external entity resolution, attackers can exploit this behavior to compromise ap">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/securing-xslt-parsers-by-disabling-external-entities">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Securing XSLT Parsers by Disabling External Entities - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/securing-xslt-parsers-by-disabling-external-entities" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Extensible Stylesheet Language Transformations (XSLT) rely heavily on underlying XML parsers to transform XML documents into different formats. When an XSLT processor allows external entity resolution, attackers can exploit this behavior to compromise ap" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="securing-xslt-parsers-by-disabling-external-entities">Securing
+XSLT Parsers by Disabling External Entities</h1>
+<p>Extensible Stylesheet Language Transformations (XSLT) rely heavily on
+underlying XML parsers to transform XML documents into different
+formats. When an XSLT processor allows external entity resolution,
+attackers can exploit this behavior to compromise application integrity,
+exfiltrate internal data, or disrupt service availability. Disabling
+external entity resolution acts as a fundamental security boundary,
+neutralizing XML External Entity (XXE) attacks, Server-Side Request
+Forgery (SSRF), and resource exhaustion vectors by preventing the parser
+from accessing resources outside the direct document context.</p>
+<h3 id="eliminating-local-file-disclosure">Eliminating Local File
+Disclosure</h3>
+<p>By default, standard XML specifications allow Document Type
+Definitions (DTDs) to declare external general entities using
+<code>SYSTEM</code> identifiers. When an XSLT parser processes a
+document containing an external entity pointed at a local file path
+(such as <code>file:///etc/passwd</code> or
+<code>file:///C:/Windows/win.ini</code>), it attempts to read and
+include the file's contents into the transformation output.</p>
+<p>Disabling external entity resolution stops the parser from
+dereferencing local URI schemes. When the parser encounters an external
+entity definition, it either throws an error or ignores the reference
+entirely, ensuring sensitive system configurations, application source
+code, and credentials remain inaccessible to attackers.</p>
+<h3 id="preventing-server-side-request-forgery-ssrf">Preventing
+Server-Side Request Forgery (SSRF)</h3>
+<p>External entities can specify network protocols, such as
+<code>http://</code> or <code>https://</code>, rather than local file
+schemes. If external resolution is enabled, an attacker can force the
+backend server running the XSLT parser to initiate outbound network
+requests. This allows attackers to:</p>
+<ul>
+<li>Probe internal networks and scan internal ports hidden behind
+firewalls.</li>
+<li>Query internal services that trust local traffic without
+authentication.</li>
+<li>Access cloud metadata APIs (such as
+<code>http://169.254.169.254</code>) to steal temporary instance
+credentials and tokens.</li>
+</ul>
+<p>Turning off external entity resolution ensures the XML and XSLT
+engines cannot act as network proxies, preventing unauthorized outbound
+connections from the hosting environment.</p>
+<h3 id="mitigating-denial-of-service-dos-attacks">Mitigating
+Denial-of-Service (DoS) Attacks</h3>
+<p>Unrestricted entity resolution leaves parsers vulnerable to memory
+and CPU exhaustion attacks. Classic examples include the "Billion
+Laughs" attack (recursive XML entity expansion) and quadratic blowup
+attacks, which multiply document size exponentially in memory.</p>
+<p>Additionally, an attacker can specify an external entity targeting
+endless data streams (such as <code>/dev/urandom</code> on Unix-like
+systems) or external URLs that intentionally delay responses
+(slowloris-style entity references). Disabling DTD processing and
+external entity resolution prevents the parser from expanding nested
+structures or waiting indefinitely on external resources, maintaining
+server stability.</p>
+<h3 id="securing-built-in-xslt-functions">Securing Built-In XSLT
+Functions</h3>
+<p>XSLT includes specific transformation functions—such as
+<code>document()</code>, <code>xsl:include</code>, and
+<code>xsl:import</code>—that resolve external XML stylesheets or
+documents dynamically. While these differ from standard XML DTD
+entities, processors often use the same underlying entity resolver or
+URI resolver to fetch them.</p>
+<p>Restricting external entity and URI resolution prevents untrusted XSL
+stylesheets from importing malicious external templates or pulling
+remote XML documents into the parsing context, which can otherwise lead
+to remote template injection and arbitrary code execution in vulnerable
+environments.</p>
+<h3 id="implementation-principles">Implementation Principles</h3>
+<p>Securing an XSLT parser requires hardening both the XML parser
+handling the input and the XSLT transformer itself:</p>
+<ol type="1">
+<li><strong>Disable DTDs Entirely:</strong> Configure the XML parser
+with features such as <code>disallow-doctype-decl</code> set to
+<code>true</code>. If DTDs are unnecessary, completely forbidding them
+removes the entity attack surface altogether.</li>
+<li><strong>Disable External Entities:</strong> If DTDs are strictly
+required, set <code>external-general-entities</code> and
+<code>external-parameter-entities</code> to <code>false</code>.</li>
+<li><strong>Restrict URI Resolvers:</strong> Implement a custom, secure
+<code>URIResolver</code> in the XSLT transformer that rejects external
+network protocols or limits file access strictly to a safe, pre-approved
+local directory.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

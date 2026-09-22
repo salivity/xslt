@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using default-mode in Multi-Pass XSLT Stylesheets - xslt</title>
+    <meta name="description" content="In XSLT 3.0, the default-mode attribute provides a cleaner, more modular way to organize multi-pass transformations. Multi-pass processing—where an XML document is transformed through a succession of intermediate stages—traditionally requires adding">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/using-default-mode-in-multi-pass-xslt-stylesheets">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using default-mode in Multi-Pass XSLT Stylesheets - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/using-default-mode-in-multi-pass-xslt-stylesheets" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0, the default-mode attribute provides a cleaner, more modular way to organize multi-pass transformations. Multi-pass processing—where an XML document is transformed through a succession of intermediate stages—traditionally requires adding" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="using-default-mode-in-multi-pass-xslt-stylesheets">Using
+default-mode in Multi-Pass XSLT Stylesheets</h1>
+<p>In XSLT 3.0, the <code>default-mode</code> attribute provides a
+cleaner, more modular way to organize multi-pass transformations.
+Multi-pass processing—where an XML document is transformed through a
+succession of intermediate stages—traditionally requires adding explicit
+<code>mode</code> attributes to every template and apply-templates
+instruction. By declaring <code>default-mode</code> at the stylesheet or
+package level, developers can assign an entire stylesheet module to a
+dedicated processing phase, drastically reducing boilerplate code,
+minimizing mode-mismatch bugs, and improving maintainability.</p>
+<h3 id="the-challenge-of-multi-pass-processing-in-legacy-xslt">The
+Challenge of Multi-Pass Processing in Legacy XSLT</h3>
+<p>In complex transformations, trying to achieve the desired output in a
+single pass often leads to overly complicated logic. Breaking the
+process into multiple discrete steps (such as normalization, structural
+enrichment, and final serialization) is a standard design pattern.</p>
+<p>In XSLT 2.0 and earlier, multi-pass processing relied heavily on
+modes to separate these stages:</p>
+<ul>
+<li>Every <code>&lt;xsl:template&gt;</code> rule intended for a specific
+phase required an explicit <code>mode="phase-name"</code>.</li>
+<li>Every <code>&lt;xsl:apply-templates&gt;</code> instruction within
+that phase had to specify the same <code>mode</code>.</li>
+<li>Forgetting a single <code>mode</code> attribute would inadvertently
+throw the processor back into the default (unnamed) mode, causing
+hard-to-detect processing bugs.</li>
+<li>Grouping phase logic into separate files still required manually
+stamping every template with the same mode identifier.</li>
+</ul>
+<h3 id="how-default-mode-works">How <code>default-mode</code> Works</h3>
+<p>The <code>default-mode</code> attribute, placed on the root
+<code>&lt;xsl:stylesheet&gt;</code>, <code>&lt;xsl:transform&gt;</code>,
+or <code>&lt;xsl:package&gt;</code> element, changes the implicit mode
+for the entire module. Any template rule
+(<code>&lt;xsl:template match="..."&gt;</code>) or processing
+instruction (<code>&lt;xsl:apply-templates&gt;</code>) that omits an
+explicit <code>mode</code> attribute automatically assumes the mode
+defined in <code>default-mode</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xs=</span><span class="st">&quot;http://www.w3.org/2001/XMLSchema&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">default-mode=</span><span class="st">&quot;normalize&quot;</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- This template automatically belongs to mode=&quot;normalize&quot; --&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;entry&quot;</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="co">&lt;!-- This apply-templates automatically invokes mode=&quot;normalize&quot; --&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">xsl:apply-templates</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h3 id="architectural-benefits-for-multi-pass-systems">Architectural
+Benefits for Multi-Pass Systems</h3>
+<h4 id="1-file-level-phase-encapsulation">1. File-Level Phase
+Encapsulation</h4>
+<p>The most effective pattern for multi-pass XSLT 3.0 is allocating one
+stylesheet file per pass. A master controller imports each phase, while
+each individual phase declares its own <code>default-mode</code>:</p>
+<ul>
+<li><code>01-strip-whitespace.xsl</code> sets
+<code>default-mode="strip"</code>.</li>
+<li><code>02-enrich-metadata.xsl</code> sets
+<code>default-mode="enrich"</code>.</li>
+<li><code>03-generate-html.xsl</code> sets
+<code>default-mode="format"</code>.</li>
+</ul>
+<p>This isolates each stage conceptually and structurally. Authors can
+write standard templates without cluttering their code with repetitive
+mode tags.</p>
+<h4 id="2-prevention-of-mode-leaks">2. Prevention of Mode Leaks</h4>
+<p>When templates accidentally omit a mode attribute in traditional
+XSLT, they default to the unnamed mode (<code>#unnamed</code>). This can
+unintentionally capture nodes meant for another stage or cause infinite
+loops. With <code>default-mode</code>, omission simply means the rule
+stays within its intended phase context, eliminating common human
+error.</p>
+<h4 id="3-seamless-integration-with-the-identity-transform">3. Seamless
+Integration with the Identity Transform</h4>
+<p>Multi-pass stages frequently modify only a small subset of nodes
+while copying the rest unchanged. In XSLT 3.0, combining
+<code>default-mode</code> with <code>default-mode-on-no-match</code> (or
+<code>xsl:mode on-no-match="shallow-copy"</code>) allows entire passes
+to act as selective filters with almost zero setup:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:stylesheet</span> <span class="ot">version=</span><span class="st">&quot;3.0&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">xmlns:xsl=</span><span class="st">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">default-mode=</span><span class="st">&quot;enrich&quot;</span>&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:mode</span> <span class="ot">name=</span><span class="st">&quot;enrich&quot;</span> <span class="ot">on-no-match=</span><span class="st">&quot;shallow-copy&quot;</span>/&gt;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- Only specify what changes in this pass --&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:template</span> <span class="ot">match=</span><span class="st">&quot;price&quot;</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">price</span> <span class="ot">currency=</span><span class="st">&quot;USD&quot;</span>&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            &lt;<span class="kw">xsl:value-of</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span>/&gt;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        &lt;/<span class="kw">price</span>&gt;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">xsl:template</span>&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:stylesheet</span>&gt;</span></code></pre></div>
+<h4 id="4-clean-orchestration-pipelines">4. Clean Orchestration
+Pipelines</h4>
+<p>A pipeline orchestrator can pass the results of one phase into
+variables and apply the next phase sequentially using standard
+functional idioms or chaining variables:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;pass1-result&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;.&quot;</span> <span class="ot">mode=</span><span class="st">&quot;strip&quot;</span>/&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:variable</span> <span class="ot">name=</span><span class="st">&quot;pass2-result&quot;</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;$pass1-result&quot;</span> <span class="ot">mode=</span><span class="st">&quot;enrich&quot;</span>/&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">xsl:variable</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">xsl:apply-templates</span> <span class="ot">select=</span><span class="st">&quot;$pass2-result&quot;</span> <span class="ot">mode=</span><span class="st">&quot;format&quot;</span>/&gt;</span></code></pre></div>
+<p>Because the individual rules for each pass are self-contained through
+<code>default-mode</code>, the orchestrator remains easy to read and
+maintain.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

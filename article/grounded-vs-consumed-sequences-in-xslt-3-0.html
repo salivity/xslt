@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grounded vs Consumed Sequences in XSLT 3.0 - xslt</title>
+    <meta name="description" content="In XSLT 3.0 streaming, processing large XML documents efficiently depends on distinguishing how sequences are accessed and stored. This article examines the differences between a grounded sequence and a consumed stream sequence, highlighting their behavi">
+    <link rel="canonical" href="https://salivity.github.io/xslt/article/grounded-vs-consumed-sequences-in-xslt-3-0">
+    <link rel="search" type="application/opensearchdescription+xml" title="xslt" href="/xslt/opensearch.xml">
+    <link rel="icon" href="/xslt/favicon.ico">
+    <link rel="stylesheet" href="/xslt/css/style.css">
+    <link media="print" rel="stylesheet" href="/xslt/css/print.css">
+    <script src="/xslt/js/fuse.min.js"></script>
+    <script src="/xslt/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Grounded vs Consumed Sequences in XSLT 3.0 - xslt" />
+    <meta property="og:url" content="https://salivity.github.io/xslt/article/grounded-vs-consumed-sequences-in-xslt-3-0" />
+    <meta property="og:image" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/xslt/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In XSLT 3.0 streaming, processing large XML documents efficiently depends on distinguishing how sequences are accessed and stored. This article examines the differences between a grounded sequence and a consumed stream sequence, highlighting their behavi" />
+    <link rel="manifest" href="/xslt/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/xslt/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>xslt</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/xslt/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="grounded-vs-consumed-sequences-in-xslt-30">Grounded vs Consumed
+Sequences in XSLT 3.0</h1>
+<p>In XSLT 3.0 streaming, processing large XML documents efficiently
+depends on distinguishing how sequences are accessed and stored. This
+article examines the differences between a grounded sequence and a
+consumed stream sequence, highlighting their behavior regarding memory
+consumption, navigation capability, and node reusability during stream
+evaluation.</p>
+<h3 id="what-is-a-grounded-sequence">What is a Grounded Sequence?</h3>
+<p>In XSLT 3.0 streamability analysis, an expression has a
+<strong>grounded</strong> posture when its result exists independently
+of the streamed input document's position. A grounded sequence typically
+consists of atomic values, newly constructed nodes, or nodes created
+using functions like <code>copy-of()</code>.</p>
+<p>Because a grounded sequence resides fully in memory:</p>
+<ul>
+<li><strong>Arbitrary Navigation:</strong> You can traverse it using any
+axis, including reverse axes (<code>parent::</code>,
+<code>preceding-sibling::</code>) or random-access expressions
+(<code>$seq[5]</code>).</li>
+<li><strong>Multiple Evaluations:</strong> The sequence can be
+evaluated, bound to variables, sorted, and looped over multiple times
+without restriction.</li>
+<li><strong>Memory Cost:</strong> Storing large subtrees as grounded
+sequences increases heap memory usage, which counters the benefits of
+streaming if overused.</li>
+</ul>
+<h3 id="what-is-a-consumed-stream-sequence">What is a Consumed Stream
+Sequence?</h3>
+<p>A <strong>streamed sequence</strong> consists of nodes that point
+directly to the underlying XML parser reading the document
+incrementally. These nodes generally possess a posture of
+<code>striding</code> or <code>crawling</code>.</p>
+<p>A streamed sequence becomes <strong>consumed</strong> when an XSLT
+instruction reads through it to produce output or evaluate an
+expression. In XSLT streaming semantics:</p>
+<ul>
+<li><strong>Forward-Only Access:</strong> The stream reader only moves
+forward. Once the processor traverses a node in a streamed sequence to
+evaluate an instruction (such as <code>xsl:apply-templates</code> or
+<code>xsl:for-each</code>), that node is consumed and passes out of
+scope.</li>
+<li><strong>Single-Pass Restriction:</strong> A consumed sequence cannot
+be read a second time. Attempting to iterate over or reference a
+consumed streamed node again causes an XSLT streamability violation (a
+static or dynamic error).</li>
+<li><strong>Restricted Navigation:</strong> While still unconsumed, a
+streamed sequence can only be navigated using forward axes (primarily
+<code>child::</code> and <code>attribute::</code>). Reverse and sibling
+navigation are disallowed.</li>
+</ul>
+<h3 id="key-differences">Key Differences</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Grounded Sequence</th>
+<th style="text-align: left;">Consumed Stream Sequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Storage Location</strong></td>
+<td style="text-align: left;">System memory (RAM)</td>
+<td style="text-align: left;">Parser stream buffer</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Evaluation Limit</strong></td>
+<td style="text-align: left;">Infinite; reusable across
+instructions</td>
+<td style="text-align: left;">Single-use; cannot be revisited</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Axis Support</strong></td>
+<td style="text-align: left;">Full XPath navigation (forward and
+reverse)</td>
+<td style="text-align: left;">Restricted to forward downward axes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Memory Footprint</strong></td>
+<td style="text-align: left;">Proportional to the size of the copied
+data</td>
+<td style="text-align: left;">Constant, near-zero buffer overhead</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Creation Method</strong></td>
+<td style="text-align: left;"><code>copy-of()</code>, atomic values, new
+element constructors</td>
+<td style="text-align: left;">Selecting nodes directly from
+<code>snapshot()</code> or streaming axes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="practical-implication">Practical Implication</h3>
+<p>The transition between these two types of sequences is a fundamental
+pattern in XSLT 3.0 streaming. While an entire multi-gigabyte document
+must remain a stream sequence to avoid memory exhaustion, developers
+often consume individual child elements from the stream and convert them
+into small grounded sequences using <code>copy-of()</code> or
+<code>snapshot()</code>. This allows localized, complex transformations
+using standard XPath operations on small fragments while preserving the
+overall low-memory, single-pass processing of the master document.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/xslt'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/xslt/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/xslt/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
